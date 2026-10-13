@@ -1,10 +1,10 @@
 {
   "version": 1,
   "meta": {
-    "runs": 2,
+    "runs": 3,
     "nextTask": 10,
     "nextGate": 1,
-    "lastRun": "2026-10-13T06:51:54.268Z"
+    "lastRun": "2026-10-13T10:23:24.430Z"
   },
   "tasks": [
     {
@@ -229,6 +229,13 @@
     },
     {
       "at": "2026-10-13T06:51:54.268Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "warn",
+      "text": "Nincs beállítva ANTHROPIC_API_KEY, ezért a cég csak a táblát frissítette, munka nem folyt."
+    },
+    {
+      "at": "2026-10-13T10:23:24.430Z",
       "actor": "system",
       "department": "system",
       "kind": "warn",
