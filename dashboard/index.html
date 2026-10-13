@@ -3,301 +3,493 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Alicya Nexus</title>
+<title>Alicya Nexus vezérlőterem</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
-/* Vezérlőterem: felül állapot, középen élő hálózat + részleg, alatta tábla, kapuk, napló. Egyetlen sötét világ. */
+/* Holografikus HUD: középen a mag és a körülötte keringő részlegek, két oldalt lebegő panelek, alul küldetéssávok. Egyetlen sötét világ. */
 :root{
-  --void:#05080f;--hull:#0b1220;--hull-2:#111a2c;--line:#1d2a42;
-  --ice:#7fe3ff;--ice-dim:#3a8fb0;--flare:#ffb347;--ok:#5ee6a8;--bad:#ff6b6b;
-  --ink:#dfe8f5;--ink-2:#93a3bd;--ink-3:#5f6f8a;
-  --f-display:"Chakra Petch","Segoe UI",system-ui,sans-serif;
+  --void:#02060c;
+  --deep:#061423;
+  --glass:rgba(10,32,52,.55);
+  --holo:#6ff3ff;
+  --holo-2:rgba(111,243,255,.55);
+  --holo-3:rgba(111,243,255,.18);
+  --amber:#ffb547;
+  --red:#ff5d6c;
+  --ok:#5ef2c0;
+  --ink:#dff7ff;
+  --ink-2:#8fb6c8;
+  --ink-3:#4f7487;
+  --f-display:"Rajdhani","Segoe UI",system-ui,sans-serif;
   --f-body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
-  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --f-mono:"Share Tech Mono",ui-monospace,Menlo,monospace;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
 html,body{background:var(--void);color:var(--ink);margin:0}
-body{font-family:var(--f-body);font-size:15px;line-height:1.55;padding-inline:clamp(16px,4vw,40px);padding-block:24px 56px;
-  background-image:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(127,227,255,.10),transparent 70%),
-  linear-gradient(rgba(127,227,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(127,227,255,.035) 1px,transparent 1px);
-  background-size:auto,40px 40px,40px 40px}
-.wrap{max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
-h1,h2,h3{font-family:var(--f-display);margin:0;letter-spacing:.01em;text-wrap:balance}
-h1{font-size:clamp(30px,5vw,52px);line-height:1}
-h1 span{color:var(--ice)}
-h2{font-size:20px;font-weight:600}
+body{font-family:var(--f-body);font-size:14px;line-height:1.5;padding-inline:clamp(16px,3vw,32px);padding-block:18px 48px;min-height:100%;
+  background:
+    radial-gradient(ellipse 60% 45% at 50% 32%,rgba(111,243,255,.13),transparent 70%),
+    radial-gradient(ellipse 120% 80% at 50% 120%,rgba(255,181,71,.06),transparent 60%),
+    var(--void)}
+/* Holografikus szkennervonalak az egész felületen */
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:50;
+  background:repeating-linear-gradient(0deg,rgba(111,243,255,.035) 0 1px,transparent 1px 3px);mix-blend-mode:screen}
+.wrap{max-width:1360px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{margin:0;font-family:var(--f-display);letter-spacing:.06em;text-wrap:balance}
 p{margin:0}
-.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--ice)}
-.muted{color:var(--ink-2)}
-.top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
-.status{font-family:var(--f-mono);font-size:12px;color:var(--ink-3);text-align:right;line-height:1.8}
-.status b{font-weight:600}
-.panel{background:linear-gradient(180deg,var(--hull-2),var(--hull));border:1px solid var(--line);border-radius:4px;position:relative;min-width:0}
-.panel::before,.panel::after{content:"";position:absolute;width:12px;height:12px;border-color:var(--ice-dim);border-style:solid;pointer-events:none}
-.panel::before{top:-1px;left:-1px;border-width:1px 0 0 1px}
-.panel::after{bottom:-1px;right:-1px;border-width:0 1px 1px 0}
-.ph{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px 16px;border-bottom:1px solid var(--line);font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
-.live{color:var(--ok)}
-.live::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ok);margin-right:6px;box-shadow:0 0 8px var(--ok);animation:blink 1.6s infinite}
-.live.off{color:var(--flare)}.live.off::before{background:var(--flare);box-shadow:0 0 8px var(--flare)}
-@keyframes blink{50%{opacity:.35}}
-.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:4px;overflow:hidden}
-@media (max-width:800px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi:last-child{grid-column:1/-1}}
-@media (max-width:600px){.map{aspect-ratio:1/1}.status{text-align:left}}
-.kpi{background:var(--hull);padding:14px 16px;display:flex;flex-direction:column;gap:2px}
-.kpi .v{font-family:var(--f-display);font-size:28px;font-weight:600;font-variant-numeric:tabular-nums}
-.kpi .l{font-size:11px;color:var(--ink-3);font-family:var(--f-mono);letter-spacing:.06em;text-transform:uppercase}
-.meter{height:4px;background:var(--line);border-radius:2px;overflow:hidden;margin-top:6px}
-.meter i{display:block;height:100%;background:var(--ice)}
-.grid2{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px}
-@media (max-width:900px){.grid2{grid-template-columns:1fr}}
-.map{position:relative;aspect-ratio:16/10;max-width:100%}
-.map canvas{width:100%;height:100%;display:block}
-.tabs{display:flex;flex-wrap:wrap;gap:6px;padding:12px 16px;border-top:1px solid var(--line)}
-.tabs button{font-family:var(--f-mono);font-size:11px;background:transparent;color:var(--ink-2);border:1px solid var(--line);padding:6px 10px;border-radius:2px;cursor:pointer}
-.tabs button[aria-pressed="true"]{border-color:var(--ice);color:var(--void);background:var(--ice)}
-button:focus-visible,canvas:focus-visible,a:focus-visible{outline:2px solid var(--flare);outline-offset:2px}
-.detail{padding:16px 18px;display:flex;flex-direction:column;gap:12px}
-.roles{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;max-height:430px;overflow:auto}
-.roles li{display:grid;grid-template-columns:8px minmax(0,1fr);gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
-.roles li:last-child{border-bottom:0}
-.dot{width:8px;height:8px;border-radius:50%;margin-top:6px;background:var(--ink-3)}
-.dot.busy{background:var(--ice);box-shadow:0 0 8px var(--ice)}
-.dot.wait{background:var(--flare)}
-.roles b{font-weight:600}
+.mono{font-family:var(--f-mono)}
+.label{font-family:var(--f-mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3)}
+
+/* Felső sáv */
+.bar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--holo-3);padding-bottom:12px}
+.brand{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.brand h1{font-size:clamp(26px,4vw,40px);font-weight:700;line-height:1;color:var(--holo);text-shadow:0 0 18px rgba(111,243,255,.55)}
+.brand h1 span{color:var(--ink);text-shadow:none;font-weight:500}
+.brand .label{color:var(--holo-2)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chip{font-family:var(--f-mono);font-size:12px;padding:5px 10px;border:1px solid var(--holo-3);color:var(--ink-2);clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+.chip b{color:var(--holo);font-weight:400}
+.chip.state{border-color:var(--ok);color:var(--ok)}
+.chip.state.off{border-color:var(--amber);color:var(--amber)}
+.chip.state::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 10px currentColor;margin-right:8px;animation:blink 1.4s infinite}
+@keyframes blink{50%{opacity:.3}}
+
+/* Fő elrendezés */
+.stage{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr) minmax(0,320px);gap:18px;align-items:start}
+@media (max-width:1100px){.stage{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.hud-wrap{grid-column:1/-1;order:-1}}
+@media (max-width:700px){.stage{grid-template-columns:minmax(0,1fr)}}
+
+/* Lebegő üvegpanel levágott sarkokkal */
+.panel{position:relative;background:linear-gradient(160deg,rgba(14,44,70,.55),rgba(4,16,28,.75));border:1px solid var(--holo-3);min-width:0;
+  clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);
+  box-shadow:inset 0 0 40px rgba(111,243,255,.05);animation:rise .7s cubic-bezier(.2,.8,.2,1) both}
+.panel::before{content:"";position:absolute;top:0;left:14px;right:30%;height:1px;background:linear-gradient(90deg,var(--holo),transparent)}
+.panel-h{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 16px 10px;border-bottom:1px solid var(--holo-3)}
+.panel-h h2{font-size:15px;font-weight:600;color:var(--holo);text-transform:uppercase}
+.panel-b{padding:14px 16px}
+@keyframes rise{from{opacity:.0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.side{display:flex;flex-direction:column;gap:18px;min-width:0}
+.side .panel:nth-child(2){animation-delay:.12s}
+
+/* HUD */
+.hud-wrap{position:relative;min-width:0}
+.hud{position:relative;width:100%;aspect-ratio:1/1;max-height:760px;margin:0 auto}
+@media (min-width:1101px){.hud{aspect-ratio:auto;height:min(760px,72vw)}}
+.hud canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair}
+.voice{margin:6px auto 0;max-width:62ch;text-align:center;font-family:var(--f-mono);font-size:14px;color:var(--ink);min-height:3em}
+.voice::before{content:"ALICYA › ";color:var(--holo)}
+.voice .cursor{display:inline-block;width:.55em;height:1em;background:var(--holo);vertical-align:-2px;margin-left:2px;animation:blink 1s steps(1) infinite}
+.hud-legend{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:6px}
+.hud-legend span{font-family:var(--f-mono);font-size:11px;color:var(--ink-3)}
+.hud-legend i{display:inline-block;width:14px;height:2px;vertical-align:middle;margin-right:6px}
+
+/* Részleg panel */
+.dept-name{font-family:var(--f-display);font-size:24px;font-weight:700;letter-spacing:.04em}
+.dept-purpose{color:var(--ink-2);font-size:13px;margin-top:4px}
+.roles{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;max-height:420px;overflow:auto}
+.roles li{display:grid;grid-template-columns:10px minmax(0,1fr);gap:10px;padding:8px 0;border-top:1px solid rgba(111,243,255,.08)}
+.dot{width:8px;height:8px;margin-top:6px;transform:rotate(45deg);border:1px solid var(--ink-3)}
+.dot.busy{background:var(--holo);border-color:var(--holo);box-shadow:0 0 10px var(--holo)}
+.dot.wait{background:var(--amber);border-color:var(--amber);box-shadow:0 0 10px var(--amber)}
+.roles b{font-weight:600;font-size:13px}
 .roles small{display:block;color:var(--ink-3);font-family:var(--f-mono);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tier{font-family:var(--f-mono);font-size:10px;color:var(--ice);border:1px solid var(--ice-dim);padding:0 5px;border-radius:2px;margin-left:6px}
-.board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
-@media (max-width:1100px){.board{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media (max-width:600px){.board{grid-template-columns:1fr}}
-.col{display:flex;flex-direction:column;gap:8px;min-width:0}
-.col h3{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:400;display:flex;justify-content:space-between}
-.card{background:var(--hull);border:1px solid var(--line);border-left:2px solid var(--ice-dim);padding:9px 10px;border-radius:2px;font-size:13px;display:flex;flex-direction:column;gap:4px}
-.card .id{font-family:var(--f-mono);font-size:11px;color:var(--ink-3)}
-.card.p1{border-left-color:var(--ice)}
-.card.st-awaiting_approval{border-left-color:var(--flare)}
-.card.st-blocked{border-left-color:var(--bad)}
-.card.st-done{opacity:.7}
-.empty{font-size:12px;color:var(--ink-3);font-family:var(--f-mono)}
-.gates{display:flex;flex-direction:column}
-.gate{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
-.gate:last-child{border-bottom:0}
-.pill{font-family:var(--f-mono);font-size:11px;padding:3px 8px;border-radius:2px;font-weight:600;white-space:nowrap}
-.pill.pending{background:var(--flare);color:var(--void)}
-.pill.approved{background:var(--ok);color:var(--void)}
-.pill.rejected{background:var(--bad);color:var(--void)}
-a{color:var(--ice)}
-.feed{font-family:var(--f-mono);font-size:12px;padding:10px 16px 14px;display:flex;flex-direction:column;gap:5px;max-height:360px;overflow:auto}
-.feed div{display:grid;grid-template-columns:92px 120px minmax(0,1fr);gap:8px;color:var(--ink-2)}
-@media (max-width:600px){.feed div{grid-template-columns:70px minmax(0,1fr)}.feed .who{display:none}}
-.feed .t{color:var(--ink-3)}.feed .who{color:var(--ice);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.feed .gate-ev{color:var(--flare)}.feed .warn{color:var(--bad)}
-pre.report{margin:0;padding:16px;font-family:var(--f-mono);font-size:12px;white-space:pre-wrap;color:var(--ink-2);max-height:360px;overflow:auto}
-.banner{border:1px solid var(--flare);color:var(--flare);padding:12px 16px;border-radius:4px;font-size:14px}
-footer{font-family:var(--f-mono);font-size:11px;color:var(--ink-3);border-top:1px solid var(--line);padding-top:14px}
-@media (prefers-reduced-motion:reduce){.live::before{animation:none}}
+.tier{font-family:var(--f-mono);font-size:10px;color:var(--holo-2);margin-left:6px;letter-spacing:.08em}
+.dept-nav{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.dept-nav button{font-family:var(--f-mono);font-size:11px;background:transparent;color:var(--ink-2);border:1px solid var(--holo-3);padding:5px 8px;cursor:pointer}
+.dept-nav button[aria-pressed="true"]{color:var(--void);background:var(--holo);border-color:var(--holo);box-shadow:0 0 14px rgba(111,243,255,.5)}
+button:focus-visible,canvas:focus-visible,a:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+
+/* Kapuk és napló */
+.gate{padding:10px 0;border-top:1px solid rgba(111,243,255,.08);display:flex;flex-direction:column;gap:4px}
+.gate:first-child{border-top:0}
+.gate .t{font-weight:600}
+.gate .s{color:var(--ink-2);font-size:12px}
+.tag{font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;padding:2px 7px;width:max-content}
+.tag.pending{background:var(--amber);color:var(--void);box-shadow:0 0 14px rgba(255,181,71,.45)}
+.tag.approved{background:var(--ok);color:var(--void)}
+.tag.rejected{background:var(--red);color:var(--void)}
+a{color:var(--holo)}
+.empty{font-family:var(--f-mono);font-size:12px;color:var(--ink-3)}
+.feed{display:flex;flex-direction:column;gap:6px;max-height:360px;overflow:auto;font-family:var(--f-mono);font-size:12px}
+.feed>div{display:grid;grid-template-columns:44px minmax(0,1fr);gap:8px;color:var(--ink-2)}
+.feed .tm{color:var(--ink-3)}
+.feed .who{color:var(--holo)}
+.feed .g{color:var(--amber)}
+.feed .w{color:var(--red)}
+
+/* Mutatók */
+.stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+@media (max-width:900px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stat:last-child{grid-column:1/-1}}
+.stat{position:relative;padding:12px 14px;border:1px solid var(--holo-3);background:rgba(6,22,38,.6);display:flex;align-items:center;gap:12px;min-width:0}
+.stat svg{flex:none}
+.stat .v{font-family:var(--f-display);font-size:30px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.stat .l{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);margin-top:4px}
+.stat.warn .v{color:var(--amber);text-shadow:0 0 14px rgba(255,181,71,.5)}
+
+/* Küldetéssávok (feladattábla) */
+.tracks{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+@media (max-width:1100px){.tracks{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:600px){.tracks{grid-template-columns:minmax(0,1fr)}}
+.track{display:flex;flex-direction:column;gap:8px;min-width:0}
+.track h3{font-family:var(--f-mono);font-size:11px;font-weight:400;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);display:flex;justify-content:space-between;border-bottom:1px solid var(--holo-3);padding-bottom:6px}
+.track h3 b{color:var(--holo);font-weight:400}
+.card{padding:8px 10px;border-left:2px solid var(--holo-2);background:linear-gradient(90deg,rgba(111,243,255,.08),transparent);font-size:13px;display:flex;flex-direction:column;gap:2px}
+.card .id{font-family:var(--f-mono);font-size:10px;color:var(--ink-3)}
+.card.p1{border-left-color:var(--holo);box-shadow:-4px 0 12px -6px var(--holo)}
+.card.awaiting_approval{border-left-color:var(--amber);background:linear-gradient(90deg,rgba(255,181,71,.1),transparent)}
+.card.blocked{border-left-color:var(--red);background:linear-gradient(90deg,rgba(255,93,108,.1),transparent)}
+.card.done{opacity:.6}
+
+.alert{border:1px solid var(--amber);color:var(--amber);padding:10px 14px;font-size:13px;background:rgba(255,181,71,.06);clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+pre.report{margin:0;white-space:pre-wrap;font-family:var(--f-mono);font-size:12px;color:var(--ink-2);max-height:300px;overflow:auto}
+footer{font-family:var(--f-mono);font-size:11px;color:var(--ink-3);border-top:1px solid var(--holo-3);padding-top:12px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header class="top">
-    <div>
-      <div class="eyebrow">Autonóm szoftverház · vezérlőterem</div>
-      <h1>Alicya <span>Nexus</span></h1>
+  <header class="bar">
+    <div class="brand">
+      <h1>ALICYA <span>NEXUS</span></h1>
+      <span class="label">Autonóm szoftverház · vezérlőterem</span>
     </div>
-    <div class="status" id="status">Adatok betöltése…</div>
+    <div class="chips">
+      <span class="chip state" id="state">BETÖLTÉS</span>
+      <span class="chip">Munkanap <b id="runs">–</b></span>
+      <span class="chip">Utolsó futás <b id="last">–</b></span>
+      <span class="chip"><b id="clock">--:--:--</b></span>
+    </div>
   </header>
 
-  <div id="banner" class="banner" hidden></div>
+  <div class="alert" id="alert" hidden></div>
 
-  <div class="kpis" id="kpis"></div>
+  <div class="stage">
+    <aside class="side">
+      <section class="panel">
+        <div class="panel-h"><h2>Részleg</h2><span class="label" id="dmeta"></span></div>
+        <div class="panel-b">
+          <div class="dept-name" id="dname">–</div>
+          <p class="dept-purpose" id="dpurpose"></p>
+          <div class="dept-nav" id="dnav" role="group" aria-label="Részleg kiválasztása"></div>
+          <ul class="roles" id="roles"></ul>
+        </div>
+      </section>
+    </aside>
 
-  <div class="grid2">
-    <div class="panel">
-      <div class="ph"><span>Szervezeti hálózat</span><span class="live" id="live">élő</span></div>
-      <div class="map"><canvas id="net" tabindex="0" aria-label="A részlegek hálózata. Kattints egy részlegre."></canvas></div>
-      <div class="tabs" id="tabs" role="group" aria-label="Részleg kiválasztása"></div>
+    <div class="hud-wrap">
+      <div class="hud"><canvas id="hud" tabindex="0" aria-label="A cég holografikus térképe: középen Alicya, körülötte a részlegek. Kattints egy részlegre, vagy használd a nyilakat."></canvas></div>
+      <p class="voice" id="voice" aria-live="polite"></p>
+      <div class="hud-legend"><span><i style="background:var(--holo)"></i>feladat-átadás</span><span><i style="background:var(--amber)"></i>döntésre vár</span><span><i style="background:var(--red)"></i>elakadt</span></div>
     </div>
-    <div class="panel">
-      <div class="ph"><span id="dh">Részleg</span><span id="dn"></span></div>
-      <div class="detail" id="detail" aria-live="polite"></div>
-    </div>
+
+    <aside class="side">
+      <section class="panel">
+        <div class="panel-h"><h2>Rád vár</h2><span class="label" id="gcount"></span></div>
+        <div class="panel-b" id="gates"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-h"><h2>Napló</h2><span class="label">élő</span></div>
+        <div class="panel-b"><div class="feed" id="feed"></div></div>
+      </section>
+    </aside>
   </div>
+
+  <div class="stats" id="stats"></div>
 
   <section class="panel">
-    <div class="ph"><span>Rád vár · jóváhagyási kapuk</span><span id="gcount"></span></div>
-    <div class="gates" id="gates"></div>
+    <div class="panel-h"><h2>Küldetések</h2><span class="label" id="tcount"></span></div>
+    <div class="panel-b"><div class="tracks" id="tracks"></div></div>
   </section>
 
-  <section>
-    <div class="ph" style="padding-inline:0;border:0"><span>Feladattábla</span><span id="tcount"></span></div>
-    <div class="board" id="board"></div>
+  <section class="panel">
+    <div class="panel-h"><h2>Napi jelentés</h2><span class="label" id="rday"></span></div>
+    <div class="panel-b"><pre class="report" id="report">Még nincs jelentés.</pre></div>
   </section>
 
-  <div class="grid2">
-    <div class="panel">
-      <div class="ph"><span>Eseménynapló</span><span>legutóbbi 60</span></div>
-      <div class="feed" id="feed"></div>
-    </div>
-    <div class="panel">
-      <div class="ph"><span>Napi jelentés</span><span id="rday"></span></div>
-      <pre class="report" id="report">Még nincs jelentés.</pre>
-    </div>
-  </div>
-
-  <footer>Alicya Nexus · az adatok a legutóbbi munkanap állapotát mutatják · <span id="foot"></span></footer>
+  <footer>ALICYA NEXUS · a legutóbbi munkanap állapota · <span id="foot"></span></footer>
 </div>
 
 <script>
-(async function(){
+(async function () {
 const $ = (id) => document.getElementById(id);
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const get = async (p, kind) => { try { const r = await fetch(p, { cache: "no-store" }); if (!r.ok) return null; return kind === "text" ? r.text() : r.json(); } catch { return null; } };
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+setInterval(() => { $("clock").textContent = new Date().toLocaleTimeString("hu-HU"); }, 1000);
+$("clock").textContent = new Date().toLocaleTimeString("hu-HU");
 
 const [state, org, meta, report] = await Promise.all([get("data/company.json"), get("data/org.json"), get("data/meta.json"), get("data/report.md", "text")]);
-if (!org) { $("status").textContent = "Nincs még adat. Az első munkanap után itt jelenik meg a cég."; return; }
+if (!org) { $("state").textContent = "NINCS ADAT"; $("state").classList.add("off"); $("voice").textContent = "Még nincs adat. Az első munkanap után itt jelenik meg a cég."; return; }
 const S = state || { tasks: [], gates: [], events: [], ledger: [], meta: { runs: 0 } };
 const M = meta || {};
-const roleBy = Object.fromEntries(org.roles.map(r => [r.id, r]));
-const depBy = Object.fromEntries(org.departments.map(d => [d.id, d]));
+const roleBy = Object.fromEntries(org.roles.map((r) => [r.id, r]));
+const depBy = Object.fromEntries(org.departments.map((d) => [d.id, d]));
 const ST = { todo: "Teendő", in_progress: "Folyamatban", review: "Átvizsgálás", awaiting_approval: "Rád vár", blocked: "Elakadt", done: "Kész" };
-const fmtTime = (iso) => iso ? new Date(iso).toLocaleString("hu-HU", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : "–";
-
-// Állapotsor
+const fmt = (iso) => iso ? new Date(iso).toLocaleString("hu-HU", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : "–";
+const count = (st) => S.tasks.filter((t) => t.status === st).length;
+const open = S.tasks.filter((t) => t.status !== "done");
+const pending = S.gates.filter((g) => g.status === "pending");
+const blocked = count("blocked");
 const month = new Date().toISOString().slice(0, 7);
-const spent = S.ledger.filter(e => e.at.startsWith(month)).reduce((a, e) => a + e.usd, 0);
+const spent = S.ledger.filter((e) => e.at.startsWith(month)).reduce((a, e) => a + e.usd, 0);
 const lastEvt = S.events.at(-1);
-const dry = lastEvt && /API_KEY|API-kulcs/.test(lastEvt.text);
-$("status").innerHTML = "";
-$("status").append(`Munkanapok: ${S.meta.runs}`, el("br"), `Utolsó futás: ${fmtTime(S.meta.lastRun)}`, el("br"), `${org.departments.length} részleg · ${org.roles.length} agent`);
-if (dry) { $("live").textContent = "áll"; $("live").classList.add("off"); $("banner").hidden = false; $("banner").textContent = "A cég áll, mert nincs beállítva az ANTHROPIC_API_KEY titok a GitHub repóban. Amint beállítod, a következő munkanapon elindul a munka."; }
+const standby = Boolean(lastEvt && /API_KEY|API-kulcs/.test(lastEvt.text));
 
-// KPI-k
-const count = (st) => S.tasks.filter(t => t.status === st).length;
-const pendingGates = S.gates.filter(g => g.status === "pending");
-const kpis = [
-  ["Nyitott feladat", S.tasks.filter(t => t.status !== "done").length],
-  ["Átvizsgálás alatt", count("review")],
-  ["Rád vár", pendingGates.length, pendingGates.length ? "var(--flare)" : null],
-  ["Kész", count("done")],
-  ["Havi költés", `$${spent.toFixed(2)}`, null, M.monthlyBudgetUsd ? Math.min(1, spent / M.monthlyBudgetUsd) : null, M.monthlyBudgetUsd ? `/ $${M.monthlyBudgetUsd}` : ""],
-];
-for (const [l, v, color, ratio, suffix] of kpis) {
-  const k = el("div", "kpi"); const vv = el("span", "v", String(v)); if (color) vv.style.color = color;
-  if (suffix) { const s = el("span", "l", suffix); s.style.display = "inline"; s.style.marginLeft = "6px"; vv.append(s); }
-  k.append(vv, el("span", "l", l));
-  if (ratio !== null && ratio !== undefined) { const m = el("div", "meter"); const i = el("i"); i.style.width = (ratio * 100).toFixed(1) + "%"; if (ratio > .85) i.style.background = "var(--flare)"; m.append(i); k.append(m); }
-  $("kpis").append(k);
+// Felső sáv
+$("runs").textContent = S.meta.runs;
+$("last").textContent = fmt(S.meta.lastRun);
+$("state").textContent = standby ? "KÉSZENLÉT" : "ONLINE";
+if (standby) {
+  $("state").classList.add("off");
+  $("alert").hidden = false;
+  $("alert").textContent = "A cég készenlétben áll, mert nincs beállítva az ANTHROPIC_API_KEY titok a GitHub repóban. Amint beállítod, a következő munkanapon elindul a munka.";
 }
 
-// Részlegek
-const active = (depId) => S.tasks.filter(t => t.department === depId && t.status !== "done");
-const LAYOUT = { core: [.5, .48], product: [.5, .1], dev: [.82, .24], security: [.86, .62], finance: [.68, .88], support: [.32, .88], sales: [.14, .62], marketing: [.18, .24] };
-const EDGES = [["core","product"],["core","dev"],["core","security"],["core","marketing"],["core","sales"],["core","support"],["core","finance"],["product","dev"],["dev","security"],["dev","support"],["marketing","sales"],["sales","finance"],["product","marketing"],["security","support"]];
+// Alicya hangja
+const hour = new Date().getHours();
+const greet = hour < 10 ? "Jó reggelt." : hour < 18 ? "Jó napot." : "Jó estét.";
+const line = [
+  greet,
+  `${org.roles.length} agent, ${org.departments.length} részleg.`,
+  `${open.length} nyitott feladat`,
+  pending.length ? `és ${pending.length} döntés vár rád.` : "és most nincs rád váró döntés.",
+  blocked ? `${blocked} feladat elakadt.` : "",
+  standby ? "Készenlétben vagyok: az indításhoz API-kulcs kell." : `Ebben a hónapban $${spent.toFixed(2)} ment el.`,
+].filter(Boolean).join(" ");
+const voice = $("voice");
+if (reduce) voice.textContent = line;
+else {
+  let i = 0; const cur = el("span", "cursor");
+  const tick = () => { voice.textContent = line.slice(0, ++i); voice.append(cur); if (i < line.length) setTimeout(tick, 18 + Math.random() * 30); };
+  tick();
+}
+
+// Mutatók gyűrűs mérőkkel
+const ring = (ratio, color) => {
+  const r = 18, c = 2 * Math.PI * r, v = Math.max(0, Math.min(1, ratio));
+  return `<svg width="46" height="46" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="${r}" fill="none" stroke="rgba(111,243,255,.15)" stroke-width="3"/><circle cx="23" cy="23" r="${r}" fill="none" stroke="${color}" stroke-width="3" stroke-dasharray="${(c * v).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 23 23)" style="filter:drop-shadow(0 0 4px ${color})"/></svg>`;
+};
+const total = Math.max(1, S.tasks.length);
+const stats = [
+  ["Nyitott feladat", open.length, open.length / total, "#6ff3ff"],
+  ["Átvizsgálás alatt", count("review"), count("review") / total, "#6ff3ff"],
+  ["Rád vár", pending.length, pending.length ? 1 : 0, "#ffb547", pending.length > 0],
+  ["Kész", count("done"), count("done") / total, "#5ef2c0"],
+  ["Havi költés", `$${spent.toFixed(2)}`, M.monthlyBudgetUsd ? spent / M.monthlyBudgetUsd : 0, spent / (M.monthlyBudgetUsd || 1) > .85 ? "#ffb547" : "#6ff3ff", false, M.monthlyBudgetUsd ? `keret $${M.monthlyBudgetUsd}` : ""],
+];
+for (const [l, v, ratio, color, warn, sub] of stats) {
+  const d = el("div", "stat" + (warn ? " warn" : ""));
+  d.innerHTML = ring(ratio, color);
+  const box = el("div"); box.append(el("div", "v", String(v)), el("div", "l", sub ? `${l} · ${sub}` : l));
+  d.append(box); $("stats").append(d);
+}
+
+// Részleg panel
 let sel = "dev";
-for (const d of org.departments) { const b = el("button", null, d.name); b.type = "button"; b.dataset.id = d.id; b.onclick = () => select(d.id); $("tabs").append(b); }
+for (const d of org.departments) { const b = el("button", null, d.name); b.type = "button"; b.dataset.id = d.id; b.onclick = () => select(d.id); $("dnav").append(b); }
 function select(id) {
-  sel = id; const d = depBy[id];
-  [...$("tabs").children].forEach(b => b.setAttribute("aria-pressed", String(b.dataset.id === id)));
-  $("dh").textContent = d.name;
-  const roles = org.roles.filter(r => r.department === id);
-  $("dn").textContent = `${roles.length} agent · ${active(id).length} nyitott`;
-  const box = $("detail"); box.innerHTML = "";
-  box.append(el("p", "muted", d.purpose));
-  const ul = el("ul", "roles");
+  sel = id; const d = depBy[id]; const roles = org.roles.filter((r) => r.department === id);
+  [...$("dnav").children].forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.id === id)));
+  $("dname").textContent = d.name; $("dpurpose").textContent = d.purpose;
+  $("dmeta").textContent = `${roles.length} agent · ${open.filter((t) => t.department === id).length} nyitott`;
+  const ul = $("roles"); ul.innerHTML = "";
   for (const r of roles) {
-    const mine = S.tasks.filter(t => t.assignee === r.id && t.status !== "done");
-    const cur = mine.find(t => t.status === "in_progress") || mine.find(t => t.status === "awaiting_approval") || mine[0];
-    const li = el("li"); const dot = el("span", "dot" + (cur ? (cur.status === "awaiting_approval" ? " wait" : " busy") : ""));
-    const body = el("div"); const name = el("b", null, r.name); body.append(name, el("span", "tier", r.tier === "lead" ? "vezető" : r.tier === "worker" ? "munkatárs" : "tömeg"));
+    const mine = open.filter((t) => t.assignee === r.id);
+    const cur = mine.find((t) => t.status === "in_progress") || mine.find((t) => t.status === "awaiting_approval") || mine[0];
+    const li = el("li"); li.append(el("span", "dot" + (cur ? (cur.status === "awaiting_approval" ? " wait" : " busy") : "")));
+    const body = el("div"); const nm = el("b", null, r.name); body.append(nm, el("span", "tier", r.tier === "lead" ? "VEZETŐ" : r.tier === "worker" ? "MUNKATÁRS" : "TÖMEG"));
     body.append(el("small", null, cur ? `${cur.id} · ${ST[cur.status]} · ${cur.title}` : r.mission));
-    li.append(dot, body); ul.append(li);
+    li.append(body); ul.append(li);
   }
-  box.append(ul);
 }
 select(sel);
 
-// Hálózat
-const cv = $("net"), cx = cv.getContext("2d");
-const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-let W = 0, H = 0;
-function size() { const r = cv.getBoundingClientRect(); const dpr = Math.min(devicePixelRatio || 1, 2); W = r.width; H = r.height; cv.width = W * dpr; cv.height = H * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0); }
-addEventListener("resize", size); size();
-const P = (id) => [LAYOUT[id][0] * W, LAYOUT[id][1] * H];
-// Impulzusok a tényleges eseményekből: a legutóbbi események részlegei között.
-const recentDeps = S.events.slice(-30).map(e => e.department).filter(d => LAYOUT[d]);
-const pulses = [];
-function spawn() {
-  const busy = recentDeps.length ? recentDeps[Math.random() * recentDeps.length | 0] : null;
-  const pool = busy ? EDGES.filter(e => e.includes(busy)) : EDGES;
-  const e = pool[Math.random() * pool.length | 0]; const rev = Math.random() < .5;
-  pulses.push({ a: rev ? e[1] : e[0], b: rev ? e[0] : e[1], t: 0, s: .004 + Math.random() * .006, g: e.includes("core") && pendingGates.length > 0 && Math.random() < .3 });
-}
-const nPulses = dry ? 2 : Math.max(4, Math.min(14, recentDeps.length));
-for (let i = 0; i < nPulses; i++) { spawn(); pulses[i].t = Math.random(); }
-function draw(ts) {
-  cx.clearRect(0, 0, W, H);
-  const R = Math.max(16, Math.min(W, H) * .062);
-  const [cxx, cyy] = P("core");
-  cx.strokeStyle = "rgba(127,227,255,.07)"; cx.lineWidth = 1;
-  for (let i = 1; i <= 3; i++) { cx.beginPath(); cx.ellipse(cxx, cyy, W * .15 * i, H * .15 * i, 0, 0, Math.PI * 2); cx.stroke(); }
-  for (const [a, b] of EDGES) { const [x1, y1] = P(a), [x2, y2] = P(b); const on = a === sel || b === sel; cx.strokeStyle = on ? "rgba(127,227,255,.45)" : "rgba(127,227,255,.13)"; cx.lineWidth = on ? 1.4 : 1; cx.beginPath(); cx.moveTo(x1, y1); cx.lineTo(x2, y2); cx.stroke(); }
-  for (const p of pulses) { const [x1, y1] = P(p.a), [x2, y2] = P(p.b); const x = x1 + (x2 - x1) * p.t, y = y1 + (y2 - y1) * p.t; const c = p.g ? "#ffb347" : "#7fe3ff"; cx.shadowColor = c; cx.shadowBlur = 10; cx.fillStyle = c; cx.beginPath(); cx.arc(x, y, 2.4, 0, Math.PI * 2); cx.fill(); cx.shadowBlur = 0; if (!reduce) p.t += p.s; }
-  for (let i = pulses.length - 1; i >= 0; i--) if (pulses[i].t > 1) { pulses.splice(i, 1); spawn(); }
-  const tt = (ts || 0) / 1000;
-  for (const d of org.departments) {
-    const [x, y] = P(d.id); const isC = d.id === "core", on = d.id === sel, r = isC ? R * 1.35 : R; const n = active(d.id).length;
-    const waiting = S.tasks.some(t => t.department === d.id && t.status === "awaiting_approval");
-    cx.fillStyle = "#0b1220"; cx.strokeStyle = waiting ? "#ffb347" : on ? "#7fe3ff" : "rgba(127,227,255,.5)"; cx.lineWidth = on ? 2 : 1;
-    cx.beginPath(); for (let k = 0; k < 6; k++) { const an = Math.PI / 3 * k + Math.PI / 6; cx.lineTo(x + r * Math.cos(an), y + r * Math.sin(an)); } cx.closePath(); cx.fill(); cx.stroke();
-    if (on || isC) { cx.strokeStyle = "rgba(127,227,255,.25)"; cx.beginPath(); cx.arc(x, y, r + 6 + (reduce ? 0 : Math.sin(tt * 2) * 2), 0, Math.PI * 2); cx.stroke(); }
-    cx.fillStyle = on ? "#7fe3ff" : "#dfe8f5"; cx.font = "600 " + Math.max(10, Math.round(R * .42)) + "px 'JetBrains Mono',monospace"; cx.textAlign = "center"; cx.textBaseline = "middle"; cx.fillText(String(n), x, y);
-    cx.fillStyle = on ? "#7fe3ff" : "#93a3bd"; cx.font = Math.max(10, Math.round(Math.min(W, H) * .03)) + "px 'Chakra Petch',sans-serif";
-    cx.fillText(d.name.toUpperCase(), x, LAYOUT[d.id][1] > .8 ? y - r - 10 : y + r + 14);
-  }
-  requestAnimationFrame(draw);
-}
-requestAnimationFrame(draw);
-const hit = (ev) => { const r = cv.getBoundingClientRect(); const mx = ev.clientX - r.left, my = ev.clientY - r.top; let best = null, bd = 1e9; for (const d of org.departments) { const [x, y] = P(d.id); const dd = Math.hypot(mx - x, my - y); if (dd < bd) { bd = dd; best = d; } } return bd < Math.max(30, Math.min(W, H) * .1) ? best : null; };
-cv.addEventListener("click", ev => { const d = hit(ev); if (d) select(d.id); });
-cv.addEventListener("mousemove", ev => { cv.style.cursor = hit(ev) ? "pointer" : "default"; });
-cv.addEventListener("keydown", ev => { if (ev.key !== "ArrowRight" && ev.key !== "ArrowLeft") return; const ids = org.departments.map(d => d.id); const i = ids.indexOf(sel); select(ids[(i + (ev.key === "ArrowRight" ? 1 : ids.length - 1)) % ids.length]); ev.preventDefault(); });
-
 // Kapuk
-$("gcount").textContent = `${pendingGates.length} függőben`;
-const gates = [...S.gates].sort((a, b) => (a.status === "pending" ? 0 : 1) - (b.status === "pending" ? 0 : 1) || b.createdAt.localeCompare(a.createdAt)).slice(0, 10);
-if (!gates.length) { const p = el("p", "empty", "Még nem kért jóváhagyást a cég."); p.style.padding = "12px 16px"; $("gates").append(p); }
+$("gcount").textContent = `${pending.length} függőben`;
+const gates = [...S.gates].sort((a, b) => (a.status === "pending" ? 0 : 1) - (b.status === "pending" ? 0 : 1) || b.createdAt.localeCompare(a.createdAt)).slice(0, 8);
+if (!gates.length) $("gates").append(el("p", "empty", "Nincs döntésre váró kérdés."));
 for (const g of gates) {
-  const row = el("div", "gate");
-  row.append(el("span", "pill " + g.status, g.status === "pending" ? "DÖNTÉSRE VÁR" : g.status === "approved" ? "JÓVÁHAGYVA" : "ELUTASÍTVA"));
-  const body = el("div"); body.append(el("b", null, `${g.id} · ${g.title}`), el("div", "muted", g.summary.slice(0, 220) + (g.summary.length > 220 ? "…" : "")));
-  row.append(body);
-  if (g.issueNumber && M.repoUrl) { const a = el("a", null, "Döntés →"); a.href = `${M.repoUrl}/issues/${g.issueNumber}`; a.target = "_blank"; a.rel = "noopener"; row.append(a); } else row.append(el("span"));
-  $("gates").append(row);
-}
-
-// Tábla
-$("tcount").textContent = `${S.tasks.length} feladat`;
-for (const st of Object.keys(ST)) {
-  const col = el("div", "col"); const list = S.tasks.filter(t => t.status === st);
-  const h = el("h3"); h.append(el("span", null, ST[st]), el("span", null, String(list.length))); col.append(h);
-  const shown = st === "done" ? list.slice(-6).reverse() : list.sort((a, b) => a.priority - b.priority).slice(0, 8);
-  if (!shown.length) col.append(el("p", "empty", "–"));
-  for (const t of shown) { const c = el("div", `card p${t.priority} st-${t.status}`); c.append(el("span", "id", `${t.id} · ${(roleBy[t.assignee] || {}).name || t.assignee}`), el("span", null, t.title)); c.title = t.description; col.append(c); }
-  if (list.length > shown.length) col.append(el("p", "empty", `+${list.length - shown.length} további`));
-  $("board").append(col);
+  const box = el("div", "gate");
+  box.append(el("span", "tag " + g.status, g.status === "pending" ? "DÖNTÉSRE VÁR" : g.status === "approved" ? "JÓVÁHAGYVA" : "ELUTASÍTVA"), el("span", "t", `${g.id} · ${g.title}`), el("span", "s", g.summary.length > 160 ? g.summary.slice(0, 160) + "…" : g.summary));
+  if (g.issueNumber && M.repoUrl) { const a = el("a", null, "Döntés a GitHubon →"); a.href = `${M.repoUrl}/issues/${g.issueNumber}`; a.target = "_blank"; a.rel = "noopener"; box.append(a); }
+  $("gates").append(box);
 }
 
 // Napló
-const evs = S.events.slice(-60).reverse();
+const evs = S.events.slice(-50).reverse();
 if (!evs.length) $("feed").append(el("p", "empty", "Még nincs esemény."));
-for (const e of evs) { const row = el("div"); row.append(el("span", "t", fmtTime(e.at)), el("span", "who", (roleBy[e.actor] || {}).name || e.actor), el("span", e.kind === "gate" ? "gate-ev" : e.kind === "warn" ? "warn" : "", e.text)); $("feed").append(row); }
+for (const e of evs) {
+  const row = el("div"); const right = el("div");
+  right.append(el("span", "who", ((roleBy[e.actor] || {}).name || e.actor) + " "), el("span", e.kind === "gate" ? "g" : e.kind === "warn" ? "w" : "", e.text));
+  row.append(el("span", "tm", new Date(e.at).toLocaleTimeString("hu-HU", { hour: "2-digit", minute: "2-digit" })), right);
+  $("feed").append(row);
+}
+
+// Küldetéssávok
+$("tcount").textContent = `${S.tasks.length} feladat`;
+for (const st of Object.keys(ST)) {
+  const list = S.tasks.filter((t) => t.status === st);
+  const col = el("div", "track"); const h = el("h3"); h.append(el("span", null, ST[st]), el("b", null, String(list.length))); col.append(h);
+  const shown = st === "done" ? list.slice(-6).reverse() : list.sort((a, b) => a.priority - b.priority).slice(0, 5);
+  if (!shown.length) col.append(el("p", "empty", "—"));
+  for (const t of shown) { const c = el("div", `card p${t.priority} ${t.status}`); c.title = t.description; c.append(el("span", "id", `${t.id} · ${(roleBy[t.assignee] || {}).name || t.assignee}`), el("span", null, t.title)); col.append(c); }
+  if (list.length > shown.length) col.append(el("p", "empty", `+${list.length - shown.length} további`));
+  $("tracks").append(col);
+}
 
 if (report) { $("report").textContent = report; $("rday").textContent = (report.match(/· (\d{4}-\d{2}-\d{2})/) || [])[1] || ""; }
-$("foot").textContent = M.builtAt ? `frissítve: ${fmtTime(M.builtAt)}` : "";
+$("foot").textContent = M.builtAt ? `frissítve ${fmt(M.builtAt)}` : "";
+
+// ── Holografikus HUD ──
+const cv = $("hud"), cx = cv.getContext("2d");
+const C = { holo: "111,243,255", amber: "255,181,71", red: "255,93,108", ok: "94,242,192" };
+const rgba = (c, a) => `rgba(${C[c]},${a})`;
+let W = 0, H = 0, X = 0, Y = 0, R = 0;
+function size() {
+  const r = cv.getBoundingClientRect(); const dpr = Math.min(devicePixelRatio || 1, 2);
+  W = r.width; H = r.height; cv.width = W * dpr; cv.height = H * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  X = W / 2; Y = H / 2; R = Math.min(W, H) * (W < 560 ? 0.4 : 0.46);
+}
+addEventListener("resize", size); size();
+
+const deps = org.departments;
+const coreIdx = deps.findIndex((d) => d.id === "core");
+const orbit = deps.filter((d) => d.id !== "core");
+const angleOf = (i) => -Math.PI / 2 + (i / orbit.length) * Math.PI * 2;
+const nodePos = (d) => { if (d.id === "core") return [X, Y]; const i = orbit.indexOf(d); const a = angleOf(i); return [X + Math.cos(a) * R * 0.7, Y + Math.sin(a) * R * 0.7]; };
+const depOpen = (id) => open.filter((t) => t.department === id);
+const depState = (id) => { const l = depOpen(id); return l.some((t) => t.status === "blocked") ? "red" : l.some((t) => t.status === "awaiting_approval") ? "amber" : "holo"; };
+
+// Impulzusok a valódi eseményekből: a legutóbbi aktív részlegek felé
+const recent = S.events.slice(-30).map((e) => e.department).filter((d) => depBy[d] && d !== "core");
+const pulses = [];
+function spawn() {
+  const target = recent.length ? recent[(Math.random() * recent.length) | 0] : orbit[(Math.random() * orbit.length) | 0].id;
+  const out = Math.random() < 0.6;
+  const st = depState(target);
+  pulses.push({ d: target, out, t: 0, s: 0.006 + Math.random() * 0.008, c: st === "holo" ? "holo" : st });
+}
+const N = standby ? 3 : Math.max(5, Math.min(16, recent.length));
+for (let i = 0; i < N; i++) { spawn(); pulses[i].t = Math.random(); }
+
+function hex(x, y, r, rot = 0) { cx.beginPath(); for (let k = 0; k < 6; k++) { const a = rot + Math.PI / 3 * k; cx.lineTo(x + r * Math.cos(a), y + r * Math.sin(a)); } cx.closePath(); }
+function arc(r, a0, a1, color, w = 1) { cx.beginPath(); cx.arc(X, Y, r, a0, a1); cx.strokeStyle = color; cx.lineWidth = w; cx.stroke(); }
+
+const statusArcs = [
+  ["TEENDŐ", count("todo"), "holo"],
+  ["ÁTVIZSG.", count("review"), "holo"],
+  ["RÁD VÁR", count("awaiting_approval"), "amber"],
+  ["KÉSZ", count("done"), "ok"],
+];
+
+function draw(ts) {
+  const t = reduce ? 0 : (ts || 0) / 1000;
+  cx.clearRect(0, 0, W, H);
+  cx.save();
+  cx.globalCompositeOperation = "lighter";
+
+  // Külső skálagyűrű tickekkel
+  cx.save(); cx.translate(X, Y); cx.rotate(t * 0.03);
+  for (let i = 0; i < 180; i++) {
+    const a = (i / 180) * Math.PI * 2; const long = i % 15 === 0; const r0 = R * (long ? 0.94 : 0.965), r1 = R * 0.985;
+    cx.beginPath(); cx.moveTo(Math.cos(a) * r0, Math.sin(a) * r0); cx.lineTo(Math.cos(a) * r1, Math.sin(a) * r1);
+    cx.strokeStyle = rgba("holo", long ? 0.55 : 0.18); cx.lineWidth = 1; cx.stroke();
+  }
+  cx.restore();
+  arc(R * 0.995, 0, Math.PI * 2, rgba("holo", 0.12));
+
+  // Ellentétesen forgó szaggatott ívek
+  for (let k = 0; k < 3; k++) { const a0 = -t * 0.12 + k * (Math.PI * 2 / 3); arc(R * 0.86, a0, a0 + Math.PI * 0.45, rgba("holo", 0.4), 2); }
+  for (let k = 0; k < 6; k++) { const a0 = t * 0.2 + k * (Math.PI / 3); arc(R * 0.82, a0, a0 + Math.PI * 0.08, rgba("holo", 0.25), 4); }
+
+  // Radarsöprés
+  if (!reduce) {
+    const sa = t * 0.6; const g = cx.createConicGradient ? cx.createConicGradient(sa, X, Y) : null;
+    if (g) { g.addColorStop(0, rgba("holo", 0)); g.addColorStop(0.9, rgba("holo", 0)); g.addColorStop(1, rgba("holo", 0.14)); cx.fillStyle = g; cx.beginPath(); cx.arc(X, Y, R * 0.9, 0, Math.PI * 2); cx.fill(); }
+    cx.beginPath(); cx.moveTo(X, Y); cx.lineTo(X + Math.cos(sa) * R * 0.9, Y + Math.sin(sa) * R * 0.9); cx.strokeStyle = rgba("holo", 0.35); cx.lineWidth = 1; cx.stroke();
+  }
+
+  // Pálya
+  cx.setLineDash([2, 6]); arc(R * 0.7, 0, Math.PI * 2, rgba("holo", 0.28)); cx.setLineDash([]);
+
+  // Állapotívek a belső gyűrűn
+  const totalT = Math.max(1, S.tasks.length);
+  statusArcs.forEach(([label, n, c], i) => {
+    const seg = (Math.PI * 2) / statusArcs.length; const a0 = -Math.PI / 2 + i * seg + 0.06; const a1 = a0 + seg - 0.12;
+    arc(R * 0.46, a0, a1, rgba(c, 0.15), 6);
+    const fill = n / totalT; if (fill > 0) arc(R * 0.46, a0, a0 + (a1 - a0) * fill, rgba(c, 0.9), 6);
+    const am = (a0 + a1) / 2; const lx = X + Math.cos(am) * R * 0.38, ly = Y + Math.sin(am) * R * 0.38;
+    cx.fillStyle = rgba(c, 0.85); cx.font = `${Math.max(9, R * 0.032)}px 'Share Tech Mono',monospace`; cx.textAlign = "center"; cx.textBaseline = "middle";
+    cx.fillText(`${label} ${n}`, lx, ly);
+  });
+
+  // Sugarak a magtól a részlegekig
+  for (const d of orbit) {
+    const [x, y] = nodePos(d); const on = d.id === sel; const st = depState(d.id);
+    const g = cx.createLinearGradient(X, Y, x, y); g.addColorStop(0, rgba(st, on ? 0.6 : 0.25)); g.addColorStop(1, rgba(st, on ? 0.9 : 0.35));
+    cx.strokeStyle = g; cx.lineWidth = on ? 1.6 : 1; cx.beginPath(); cx.moveTo(X, Y); cx.lineTo(x, y); cx.stroke();
+  }
+  // Impulzusok
+  for (const p of pulses) {
+    const [x, y] = nodePos(depBy[p.d]); const k = p.out ? p.t : 1 - p.t;
+    const px = X + (x - X) * k, py = Y + (y - Y) * k;
+    const grd = cx.createRadialGradient(px, py, 0, px, py, 8); grd.addColorStop(0, rgba(p.c, 0.95)); grd.addColorStop(1, rgba(p.c, 0));
+    cx.fillStyle = grd; cx.beginPath(); cx.arc(px, py, 8, 0, Math.PI * 2); cx.fill();
+    if (!reduce) p.t += p.s;
+  }
+  for (let i = pulses.length - 1; i >= 0; i--) if (pulses[i].t > 1) { pulses.splice(i, 1); spawn(); }
+
+  // Részleg-csomópontok
+  const nr = Math.max(14, R * 0.085);
+  for (const d of orbit) {
+    const [x, y] = nodePos(d); const on = d.id === sel; const st = depState(d.id); const n = depOpen(d.id).length;
+    const glow = cx.createRadialGradient(x, y, 0, x, y, nr * 2.2); glow.addColorStop(0, rgba(st, on ? 0.35 : 0.18)); glow.addColorStop(1, rgba(st, 0));
+    cx.fillStyle = glow; cx.beginPath(); cx.arc(x, y, nr * 2.2, 0, Math.PI * 2); cx.fill();
+    cx.globalCompositeOperation = "source-over";
+    hex(x, y, nr, Math.PI / 6); cx.fillStyle = "rgba(4,18,30,.92)"; cx.fill();
+    cx.strokeStyle = rgba(st, on ? 1 : 0.7); cx.lineWidth = on ? 2 : 1.2; cx.stroke();
+    if (on) { cx.save(); cx.translate(x, y); cx.rotate(t * 0.8); cx.setLineDash([4, 5]); cx.beginPath(); cx.arc(0, 0, nr * 1.45, 0, Math.PI * 2); cx.strokeStyle = rgba(st, 0.8); cx.lineWidth = 1; cx.stroke(); cx.restore(); cx.setLineDash([]); }
+    cx.fillStyle = rgba(st, 1); cx.font = `700 ${Math.round(nr * 0.85)}px 'Rajdhani',sans-serif`; cx.textAlign = "center"; cx.textBaseline = "middle"; cx.fillText(String(n), x, y + 1);
+    // Címke kifelé
+    const a = angleOf(orbit.indexOf(d)); const lx = X + Math.cos(a) * (R * 0.7 + nr * 1.9), ly = Y + Math.sin(a) * (R * 0.7 + nr * 1.9);
+    cx.font = `600 ${Math.max(10, Math.round(R * 0.04))}px 'Rajdhani',sans-serif`; cx.fillStyle = on ? rgba(st, 1) : "rgba(223,247,255,.85)";
+    cx.textAlign = Math.cos(a) > 0.3 ? "left" : Math.cos(a) < -0.3 ? "right" : "center";
+    const lx2 = Math.cos(a) > 0.3 ? X + Math.cos(a) * (R * 0.7) + nr * 1.3 : Math.cos(a) < -0.3 ? X + Math.cos(a) * (R * 0.7) - nr * 1.3 : lx;
+    const ly2 = Math.abs(Math.cos(a)) > 0.3 ? Y + Math.sin(a) * R * 0.7 + nr * 1.7 : ly;
+    const label = d.name.toUpperCase(); const tw = cx.measureText(label).width;
+    const left = cx.textAlign === "left" ? lx2 : cx.textAlign === "right" ? lx2 - tw : lx2 - tw / 2;
+    cx.fillText(label, lx2 + Math.max(0, 4 - left) - Math.max(0, left + tw - (W - 4)), ly2);
+    cx.globalCompositeOperation = "lighter";
+  }
+
+  // Mag
+  const coreR = R * 0.24; const breathe = reduce ? 1 : 0.92 + Math.sin(t * 2.2) * 0.08; const cs = standby ? "amber" : "holo";
+  const halo = cx.createRadialGradient(X, Y, 0, X, Y, coreR * 1.7); halo.addColorStop(0, rgba(cs, 0.35 * breathe)); halo.addColorStop(0.6, rgba(cs, 0.08)); halo.addColorStop(1, rgba(cs, 0));
+  cx.fillStyle = halo; cx.beginPath(); cx.arc(X, Y, coreR * 1.7, 0, Math.PI * 2); cx.fill();
+  cx.save(); cx.translate(X, Y); cx.rotate(-t * 0.5);
+  for (let k = 0; k < 12; k++) { const a0 = (k / 12) * Math.PI * 2; cx.beginPath(); cx.arc(0, 0, coreR, a0 + 0.06, a0 + Math.PI / 6 - 0.06); cx.strokeStyle = rgba(cs, k % 3 === 0 ? 0.95 : 0.45); cx.lineWidth = 3; cx.stroke(); }
+  cx.rotate(t * 1.1);
+  hex(0, 0, coreR * 0.72, 0); cx.strokeStyle = rgba(cs, 0.6); cx.lineWidth = 1; cx.stroke();
+  cx.restore();
+  arc(coreR * 0.55, 0, Math.PI * 2, rgba(cs, 0.35), 1);
+  cx.globalCompositeOperation = "source-over";
+  cx.fillStyle = "rgba(223,247,255,.95)"; cx.textAlign = "center"; cx.textBaseline = "middle";
+  cx.font = `700 ${Math.round(coreR * 0.32)}px 'Rajdhani',sans-serif`; cx.fillText("ALICYA", X, Y - coreR * 0.08);
+  cx.fillStyle = rgba(cs, 1); cx.font = `${Math.max(9, Math.round(coreR * 0.14))}px 'Share Tech Mono',monospace`;
+  cx.fillText(standby ? "KÉSZENLÉT" : "ONLINE", X, Y + coreR * 0.22);
+  cx.restore();
+  requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+
+const hit = (ev) => { const r = cv.getBoundingClientRect(); const mx = ev.clientX - r.left, my = ev.clientY - r.top; let best = null, bd = 1e9; for (const d of deps) { const [x, y] = nodePos(d); const dd = Math.hypot(mx - x, my - y); if (dd < bd) { bd = dd; best = d; } } return bd < Math.max(28, R * 0.12) ? best : null; };
+cv.addEventListener("click", (ev) => { const d = hit(ev); if (d) select(d.id); });
+cv.addEventListener("mousemove", (ev) => { cv.style.cursor = hit(ev) ? "pointer" : "crosshair"; });
+cv.addEventListener("keydown", (ev) => { if (ev.key !== "ArrowRight" && ev.key !== "ArrowLeft") return; const ids = deps.map((d) => d.id); const i = ids.indexOf(sel); select(ids[(i + (ev.key === "ArrowRight" ? 1 : ids.length - 1)) % ids.length]); ev.preventDefault(); });
 })();
 </script>
 </body>
