@@ -1,11 +1,10 @@
 {
   "version": 1,
   "meta": {
-    "runs": 4,
+    "runs": 5,
     "nextTask": 19,
     "nextGate": 2,
-    "lastRun": "2026-10-13T10:34:28.803Z",
-    "running": "2026-10-13T14:22:02.907Z"
+    "lastRun": "2026-10-13T14:22:02.907Z"
   },
   "tasks": [
     {
@@ -553,6 +552,20 @@
       "department": "finance",
       "kind": "warn",
       "text": "A munkanap költségkerete elfogyott."
+    },
+    {
+      "at": "2026-10-13T14:22:04.858Z",
+      "actor": "privacy-officer",
+      "department": "security",
+      "kind": "info",
+      "text": "Adatvédelmi tisztviselő (DPO · EU) dolgozik: T-0006 Adatvédelmi követelmények az ERP-hez (EU)"
+    },
+    {
+      "at": "2026-10-13T14:22:05.044Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "warn",
+      "text": "Hiba T-0006 közben: 401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CfzPKyzRBx8kSgWRGGZvX\"}"
     }
   ],
   "ledger": [
