@@ -4,13 +4,16 @@
   "private": true,
   "description": "Autonóm, agentekből álló szoftverház, amely dobozos ERP szoftvert fejleszt.",
   "type": "module",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "workday": "tsx src/workday.ts",
     "gate": "tsx src/gate-cli.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "build:dashboard": "tsx src/build-dashboard.ts"
+    "build:dashboard": "tsx src/build-dashboard.ts",
+    "build:privacy": "tsx src/build-privacy-docs.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",

@@ -49,6 +49,12 @@ class ScriptedClient implements ModelClient {
           call("write_file", { path: "docs/security/policy.md", content: "# Biztonsági szabályzat" }),
           call("complete_task", { summary: "Szabályzat kész." }),
         ]);
+      case "privacy-officer":
+        return msg([
+          call("privacy_lookup", { jurisdictions: ["HU", "PL", "CZ"], topic: "megorzes" }),
+          call("write_file", { path: "docs/security/privacy/requirements.md", content: "# Adatvédelmi követelmények" }),
+          call("complete_task", { summary: "Követelmények kész." }),
+        ]);
       case "product-manager":
         return msg([
           call("write_file", { path: "docs/product/prd.md", content: "# PRD" }),
@@ -74,7 +80,7 @@ describe("munkanap", () => {
 
   it("tervez, dolgozik, jóváhagyást kér és GitHub issue-t nyit", async () => {
     const root = tmp();
-    const config = { ...loadConfig({ ANTHROPIC_API_KEY: "x", MAX_TASKS_PER_RUN: "4" }, root) };
+    const config = { ...loadConfig({ ANTHROPIC_API_KEY: "x", MAX_TASKS_PER_RUN: "6" }, root) };
     const client = new ScriptedClient();
     const ghCalls: string[][] = [];
     const gh: Gh = (args) => {
@@ -89,6 +95,8 @@ describe("munkanap", () => {
     expect(byTitle("Napi tervezés").status).toBe("done");
     expect(byTitle("Piaci rés").status).toBe("done");
     expect(byTitle("Biztonsági alapszabályzat").status).toBe("done");
+    expect(byTitle("Adatvédelmi követelmények").status).toBe("done");
+    expect(byTitle("Napi tervezés").id).toBe(s.events.find((e) => e.text.includes("dolgozik"))!.text.match(/T-\d+/)![0]);
     expect(byTitle("PRD").status).toBe("awaiting_approval");
     expect(fs.readFileSync(path.join(root, "docs/security/policy.md"), "utf8")).toContain("szabályzat");
     expect(r.files).toContain("docs/product/market.md");

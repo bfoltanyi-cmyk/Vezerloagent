@@ -7,7 +7,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { roleById } from "../company/org.js";
 import { runAgent } from "./agent.js";
-import { boardSummary, createTask, logEvent, runnableTasks, seedBacklog } from "./board.js";
+import { boardSummary, createTask, logEvent, runnableTasks, seedBacklog, seedPrivacyBacklog } from "./board.js";
 import { compactLedger, spentSince, spentThisMonth } from "./budget.js";
 import { loadConfig, type Config } from "./config.js";
 import { githubAvailable, openIssues, realGh, syncDecisions, type Gh } from "./gates.js";
@@ -29,6 +29,7 @@ export async function workday(opts: { config: Config; client?: ModelClient; gh?:
   const startIso = now.toISOString();
   const s = loadState(config.rootDir);
   seedBacklog(s, now);
+  seedPrivacyBacklog(s, now);
   if (opts.gh) syncDecisions(s, opts.gh);
 
   const result: WorkdayResult = { status: "worked", tasksRun: 0, usd: 0, files: [] };

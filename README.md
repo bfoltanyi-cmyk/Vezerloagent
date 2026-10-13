@@ -1,6 +1,6 @@
 # Alicya Nexus
 
-Egy agentekből álló szoftverház, amely önállóan dolgozik egy dobozosan eladható vállalatirányítási (ERP) szoftveren magyar kis- és középvállalkozásoknak. Nyolc részlegben 42 Claude agent dolgozik, közös feladattáblán. A tulajdonos (te) csak a kritikus pontokon dönt.
+Egy agentekből álló szoftverház, amely önállóan dolgozik egy dobozosan eladható vállalatirányítási (ERP) szoftveren magyar, lengyel és cseh kis- és középvállalkozásoknak. Nyolc részlegben 45 Claude agent dolgozik, közös feladattáblán. A tulajdonos (te) csak a kritikus pontokon dönt.
 
 A cég GitHub Actionsben fut hétköznap kétszer (8:00 és 16:00 körül), és kézzel is indítható. Az állapotát egy GitHub Pages-en futó vezérlőterem mutatja.
 
@@ -11,7 +11,7 @@ A cég GitHub Actionsben fut hétköznap kétszer (8:00 és 16:00 körül), és 
 | Alicya Core | 3 | Vezérigazgató, Operációs vezető, Jelentésíró |
 | Termék & kutatás | 3 | Piackutató, Termékmenedzser, UX tervező |
 | Fejlesztés | 19 | Szoftverarchitekt, Tech lead, 4 backend fejlesztő (számlázás, készlet, könyvelés, HR), NAV-integrációs fejlesztő, API fejlesztő, Adatbázis-mérnök, 2 frontend fejlesztő, Kódellenőr, QA vezető, Tesztautomatizáló, Elfogadási tesztelő, Teljesítménytesztelő, DevOps mérnök, Kiadásfelelős, Dokumentátor |
-| Adatbiztonság | 7 | CISO, Alkalmazásbiztonsági auditor, Ellátásilánc-figyelő, Adatvédelmi tisztviselő (GDPR), Behatolásteszt-tervező, Titok- és hozzáférés-kezelő, Incidenskezelő |
+| Adatbiztonság | 10 | CISO, Adatvédelmi tisztviselő (DPO · EU), Adatvédelmi szakértő · Magyarország, · Lengyelország, · Csehország, Alkalmazásbiztonsági auditor, Ellátásilánc-figyelő, Behatolásteszt-tervező, Titok- és hozzáférés-kezelő, Incidenskezelő |
 | Marketing | 3 | Márkastratéga, Tartalomíró, Kampánymenedzser |
 | Sales | 3 | Sales vezető, Árazási elemző, Ajánlatíró |
 | Ügyfélsiker | 2 | Ügyfélsiker vezető, Tudásbázis-szerkesztő |
@@ -24,10 +24,19 @@ A szervezet a [`company/org.ts`](company/org.ts) fájlban van leírva. Új agent
 1. **Döntések beolvasása.** A munkanap elején a cég beolvassa a GitHub issue-kon hozott döntéseidet.
 2. **Tervezés.** A vezérigazgató agent átnézi a táblát, feloldja az elakadt feladatokat, és új munkát ad a részlegeknek.
 3. **Munka.** A legsürgősebb elvégezhető feladatok sorra kerülnek. Minden agent csak a saját szerepkörében dolgozik: a kódszerepek a `product/` és `docs/` alá írhatnak, a többiek csak a `docs/` alá.
-4. **Kötelező átvizsgálás.** Minden kódfeladat lezárásakor automatikusan indul egy kódellenőrzés és egy biztonsági átvizsgálás. A feladat csak akkor kész, ha mindkettő jóváhagyta; különben visszamegy a fejlesztőhöz.
+4. **Kötelező átvizsgálás.** Minden kódfeladat lezárásakor automatikusan indul egy kódellenőrzés és egy biztonsági átvizsgálás, személyes adatot érintő változásnál adatvédelmi átvizsgálás is. A feladat csak akkor kész, ha mindegyik jóváhagyta; különben visszamegy a fejlesztőhöz.
 5. **Jóváhagyási kapuk.** A specifikáció, a kiadás, az árazás és minden kifelé szánt szöveg rád vár. Ezekből `kapu` címkés GitHub issue lesz.
 6. **Mentés.** Minden munka az `alicya/munka` ágra kerül, és egy nyitott pull requestben vár. A `main` ágra semmi nem kerül nélküled.
 7. **Napi jelentés** a `state/reports/` alatt és a vezérlőteremben.
+
+## Adatvédelmi modul (EU, HU, PL, CZ)
+
+A cég célpiaca Magyarország, Lengyelország és Csehország, ezért az adatbiztonsági részlegben egy EU-s adatvédelmi tisztviselő (DPO) és három országos szakértő dolgozik. A munkájukat egy tudásbázis segíti: [`company/privacy/knowledge.ts`](company/privacy/knowledge.ts), olvasható formában [`docs/security/adatvedelem/README.md`](docs/security/adatvedelem/README.md).
+
+- **Lefedett terület:** GDPR (alapelvek, jogalap, különleges adatok, érintetti jogok, incidens, adatfeldolgozás, nyilvántartás, DPIA, DPO, adattovábbítás, bírság), ePrivacy, NIS2, MI-rendelet, adatrendelet, továbbá országonként a hatóság, a gyermekkorhatár, a munkahelyi adatkezelés, a számviteli és adózási megőrzés, az e-számlázás (NAV Online Számla, KSeF), a marketing és a sütik, valamint a nemzeti NIS2-törvény.
+- **Minden agent** kereshet benne a `privacy_lookup` eszközzel, és minden szabályhoz tartozik egy „Teendő nálunk” pont az ERP-re.
+- **Minden személyes adatot érintő kódváltozást** a DPO is átvizsgál.
+- **Ez munkasegédlet, nem jogi tanácsadás.** A ⚠ jelölésű pontokat kiadás előtt helyi jogásznak kell ellenőriznie, és a tudásbázist legalább félévente át kell nézni (`LAST_REVIEWED`). Módosítás után futtasd az `npm run build:privacy` parancsot.
 
 ## Döntés egy kapuról
 

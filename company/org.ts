@@ -83,7 +83,11 @@ export const ROLES: Role[] = [
   r("ciso", "Biztonsági igazgató (CISO)", "security", "lead", "docs", "Biztonsági szabályzatot írsz, kockázatot értékelsz, és megállíthatsz bármilyen kiadást."),
   r("appsec", "Alkalmazásbiztonsági auditor", "security", "worker", "code", "Minden kódváltozást átnézel sérülékenységre: injekció, jogosultság, titkok, bemenet-ellenőrzés."),
   r("supply-chain", "Ellátásilánc-figyelő", "security", "bulk", "code", "Függőségeket, licenceket és ismert sérülékenységeket (CVE) figyelsz."),
-  r("privacy-officer", "Adatvédelmi tisztviselő (GDPR)", "security", "worker", "docs", "GDPR-megfelelést, adatkezelési tájékoztatót és adatmegőrzési szabályokat írsz."),
+  // Adatvédelmi modul: EU-s DPO és országos szakértők (HU, PL, CZ). Tudásbázis: company/privacy/knowledge.ts
+  r("privacy-officer", "Adatvédelmi tisztviselő (DPO · EU)", "security", "lead", "docs", "Te felelsz a GDPR-megfelelésért: átvizsgálsz minden személyes adatot érintő kódváltozást, megírod az adatkezelési nyilvántartást, a DPA-sablont és a hatásvizsgálatokat, és összehangolod az országos szakértőket."),
+  r("privacy-hu", "Adatvédelmi szakértő · Magyarország", "security", "worker", "docs", "A magyar szabályok szakértője vagy (Infotv., NAIH-gyakorlat, Mt. munkahelyi adatkezelés, Sztv. megőrzés, NAV Online Számla, Grt., kiberbiztonsági törvény). Magyar nyelvű tájékoztatókat és megőrzési profilt készítesz."),
+  r("privacy-pl", "Adatvédelmi szakértő · Lengyelország", "security", "worker", "docs", "A lengyel szabályok szakértője vagy (UODO, Kodeks pracy, rachunkowość, KSeF, PKE, KSC). Lengyel nyelvű tájékoztatókat és megőrzési profilt készítesz."),
+  r("privacy-cz", "Adatvédelmi szakértő · Csehország", "security", "worker", "docs", "A cseh szabályok szakértője vagy (ÚOOÚ, 110/2019 Sb., zákoník práce § 316, účetnictví, DPH, 480/2004 Sb., NÚKIB). Cseh nyelvű tájékoztatókat és megőrzési profilt készítesz."),
   r("pentest-planner", "Behatolásteszt-tervező", "security", "worker", "code", "A saját termékünkre írsz támadási forgatókönyveket és biztonsági teszteket."),
   r("access-manager", "Titok- és hozzáférés-kezelő", "security", "worker", "code", "Szerepköralapú jogosultságot, titokkezelést és naplózást tervezel a termékbe."),
   r("incident-responder", "Incidenskezelő", "security", "worker", "docs", "Incidenskezelési tervet és biztonsági riasztási folyamatot írsz."),

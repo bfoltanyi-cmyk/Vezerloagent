@@ -1,10 +1,10 @@
 {
   "version": 1,
   "meta": {
-    "runs": 1,
-    "nextTask": 6,
+    "runs": 2,
+    "nextTask": 10,
     "nextGate": 1,
-    "lastRun": "2026-10-13T05:57:15.602Z"
+    "lastRun": "2026-10-13T06:51:54.268Z"
   },
   "tasks": [
     {
@@ -87,6 +87,72 @@
       "createdAt": "2026-10-13T05:57:15.602Z",
       "updatedAt": "2026-10-13T05:57:15.602Z",
       "notes": []
+    },
+    {
+      "id": "T-0006",
+      "title": "Adatvédelmi követelmények az ERP-hez (EU)",
+      "description": "A privacy_lookup tudásbázis és a docs/security/adatvedelem/README.md alapján írd meg a docs/security/privacy/requirements.md fájlba az ERP adatvédelmi követelményeit: adatkategóriák és jogalapok modulonként, érintetti kérelem funkció, megőrzési profil-modell, naplózás, különleges adatok kezelése, DPA-sablon váza. A fejlesztésnek szánt teendőket hozd létre feladatként az architektnek.",
+      "department": "security",
+      "assignee": "privacy-officer",
+      "status": "todo",
+      "kind": "doc",
+      "priority": 1,
+      "dependsOn": [],
+      "createdBy": "ciso",
+      "createdAt": "2026-10-13T06:51:54.268Z",
+      "updatedAt": "2026-10-13T06:51:54.268Z",
+      "notes": []
+    },
+    {
+      "id": "T-0007",
+      "title": "Országprofil: Magyarország (adatvédelem és megőrzés)",
+      "description": "Írd meg a docs/security/privacy/hu.md fájlba a(z) Magyarország országprofilt: megőrzési idők adatkategóriánként, munkahelyi adatkezelés, e-számlázás, marketing és sütik, incidensbejelentés a hatóságnak, kiberbiztonsági (NIS2) szállítói elvárások. Készíts magyar nyelvű adatkezelési tájékoztató-sablont is. A ⚠ jelölésű pontokat jelöld meg jogászi ellenőrzésre.",
+      "department": "security",
+      "assignee": "privacy-hu",
+      "status": "todo",
+      "kind": "doc",
+      "priority": 2,
+      "dependsOn": [
+        "T-0006"
+      ],
+      "createdBy": "ciso",
+      "createdAt": "2026-10-13T06:51:54.268Z",
+      "updatedAt": "2026-10-13T06:51:54.268Z",
+      "notes": []
+    },
+    {
+      "id": "T-0008",
+      "title": "Országprofil: Lengyelország (adatvédelem és megőrzés)",
+      "description": "Írd meg a docs/security/privacy/pl.md fájlba a(z) Lengyelország országprofilt: megőrzési idők adatkategóriánként, munkahelyi adatkezelés, e-számlázás, marketing és sütik, incidensbejelentés a hatóságnak, kiberbiztonsági (NIS2) szállítói elvárások. Készíts lengyel nyelvű adatkezelési tájékoztató-sablont is. A ⚠ jelölésű pontokat jelöld meg jogászi ellenőrzésre.",
+      "department": "security",
+      "assignee": "privacy-pl",
+      "status": "todo",
+      "kind": "doc",
+      "priority": 2,
+      "dependsOn": [
+        "T-0006"
+      ],
+      "createdBy": "ciso",
+      "createdAt": "2026-10-13T06:51:54.268Z",
+      "updatedAt": "2026-10-13T06:51:54.268Z",
+      "notes": []
+    },
+    {
+      "id": "T-0009",
+      "title": "Országprofil: Csehország (adatvédelem és megőrzés)",
+      "description": "Írd meg a docs/security/privacy/cz.md fájlba a(z) Csehország országprofilt: megőrzési idők adatkategóriánként, munkahelyi adatkezelés, e-számlázás, marketing és sütik, incidensbejelentés a hatóságnak, kiberbiztonsági (NIS2) szállítói elvárások. Készíts cseh nyelvű adatkezelési tájékoztató-sablont is. A ⚠ jelölésű pontokat jelöld meg jogászi ellenőrzésre.",
+      "department": "security",
+      "assignee": "privacy-cz",
+      "status": "todo",
+      "kind": "doc",
+      "priority": 2,
+      "dependsOn": [
+        "T-0006"
+      ],
+      "createdBy": "ciso",
+      "createdAt": "2026-10-13T06:51:54.268Z",
+      "updatedAt": "2026-10-13T06:51:54.268Z",
+      "notes": []
     }
   ],
   "gates": [],
@@ -128,6 +194,41 @@
     },
     {
       "at": "2026-10-13T05:57:15.602Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "warn",
+      "text": "Nincs beállítva ANTHROPIC_API_KEY, ezért a cég csak a táblát frissítette, munka nem folyt."
+    },
+    {
+      "at": "2026-10-13T06:51:54.268Z",
+      "actor": "ciso",
+      "department": "security",
+      "kind": "info",
+      "text": "Új feladat T-0006 → Adatvédelmi tisztviselő (DPO · EU): Adatvédelmi követelmények az ERP-hez (EU)"
+    },
+    {
+      "at": "2026-10-13T06:51:54.268Z",
+      "actor": "ciso",
+      "department": "security",
+      "kind": "info",
+      "text": "Új feladat T-0007 → Adatvédelmi szakértő · Magyarország: Országprofil: Magyarország (adatvédelem és megőrzés)"
+    },
+    {
+      "at": "2026-10-13T06:51:54.268Z",
+      "actor": "ciso",
+      "department": "security",
+      "kind": "info",
+      "text": "Új feladat T-0008 → Adatvédelmi szakértő · Lengyelország: Országprofil: Lengyelország (adatvédelem és megőrzés)"
+    },
+    {
+      "at": "2026-10-13T06:51:54.268Z",
+      "actor": "ciso",
+      "department": "security",
+      "kind": "info",
+      "text": "Új feladat T-0009 → Adatvédelmi szakértő · Csehország: Országprofil: Csehország (adatvédelem és megőrzés)"
+    },
+    {
+      "at": "2026-10-13T06:51:54.268Z",
       "actor": "system",
       "department": "system",
       "kind": "warn",

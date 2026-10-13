@@ -276,11 +276,35 @@
     },
     {
       "id": "privacy-officer",
-      "name": "Adatvédelmi tisztviselő (GDPR)",
+      "name": "Adatvédelmi tisztviselő (DPO · EU)",
+      "department": "security",
+      "tier": "lead",
+      "access": "docs",
+      "mission": "Te felelsz a GDPR-megfelelésért: átvizsgálsz minden személyes adatot érintő kódváltozást, megírod az adatkezelési nyilvántartást, a DPA-sablont és a hatásvizsgálatokat, és összehangolod az országos szakértőket."
+    },
+    {
+      "id": "privacy-hu",
+      "name": "Adatvédelmi szakértő · Magyarország",
       "department": "security",
       "tier": "worker",
       "access": "docs",
-      "mission": "GDPR-megfelelést, adatkezelési tájékoztatót és adatmegőrzési szabályokat írsz."
+      "mission": "A magyar szabályok szakértője vagy (Infotv., NAIH-gyakorlat, Mt. munkahelyi adatkezelés, Sztv. megőrzés, NAV Online Számla, Grt., kiberbiztonsági törvény). Magyar nyelvű tájékoztatókat és megőrzési profilt készítesz."
+    },
+    {
+      "id": "privacy-pl",
+      "name": "Adatvédelmi szakértő · Lengyelország",
+      "department": "security",
+      "tier": "worker",
+      "access": "docs",
+      "mission": "A lengyel szabályok szakértője vagy (UODO, Kodeks pracy, rachunkowość, KSeF, PKE, KSC). Lengyel nyelvű tájékoztatókat és megőrzési profilt készítesz."
+    },
+    {
+      "id": "privacy-cz",
+      "name": "Adatvédelmi szakértő · Csehország",
+      "department": "security",
+      "tier": "worker",
+      "access": "docs",
+      "mission": "A cseh szabályok szakértője vagy (ÚOOÚ, 110/2019 Sb., zákoník práce § 316, účetnictví, DPH, 480/2004 Sb., NÚKIB). Cseh nyelvű tájékoztatókat és megőrzési profilt készítesz."
     },
     {
       "id": "pentest-planner",

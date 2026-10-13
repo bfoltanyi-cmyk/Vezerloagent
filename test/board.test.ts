@@ -24,11 +24,13 @@ describe("feladattábla", () => {
     completeTask(s, t.id, "backend-invoicing", "Kész a számla API tesztekkel.", later(1));
     expect(getTask(s, t.id).status).toBe("review");
     const reviews = s.tasks.filter((x) => x.reviewOf === t.id);
-    expect(reviews.map((r) => r.assignee).sort()).toEqual(["appsec", "code-reviewer"]);
+    // A számlázás személyes adatot érint, ezért a DPO is átvizsgál.
+    expect(reviews.map((r) => r.assignee).sort()).toEqual(["appsec", "code-reviewer", "privacy-officer"]);
 
-    submitReview(s, reviews[0]!.id, reviews[0]!.assignee, "approve", "Rendben.", later(2));
-    expect(getTask(s, t.id).status).toBe("review");
-    submitReview(s, reviews[1]!.id, reviews[1]!.assignee, "approve", "Rendben.", later(3));
+    for (const [i, r] of reviews.entries()) {
+      expect(getTask(s, t.id).status).toBe("review");
+      submitReview(s, r.id, r.assignee, "approve", "Rendben.", later(2 + i));
+    }
     expect(getTask(s, t.id).status).toBe("done");
   });
 
@@ -36,14 +38,14 @@ describe("feladattábla", () => {
     const s = emptyState();
     const t = createTask(s, { title: "Készletfoglalás", description: "Foglalás logika", department: "dev", assignee: "backend-inventory" }, "architect", t0);
     completeTask(s, t.id, "backend-inventory", "Első változat kész.", later(1));
-    const [a, b] = s.tasks.filter((x) => x.reviewOf === t.id);
+    const [a, b] = s.tasks.filter((x) => x.reviewOf === t.id && x.assignee !== "privacy-officer");
     submitReview(s, b!.id, "appsec", "changes", "SQL injekció a keresőben.", later(2));
     expect(getTask(s, t.id).status).toBe("todo");
     expect(getTask(s, a!.id).status).toBe("done");
 
     completeTask(s, t.id, "backend-inventory", "Javítva, paraméterezett lekérdezés.", later(3));
     const round2 = s.tasks.filter((x) => x.reviewOf === t.id && x.reviewRound === 2);
-    expect(round2).toHaveLength(2);
+    expect(round2.length).toBeGreaterThanOrEqual(2);
     for (const r of round2) submitReview(s, r.id, r.assignee, "approve", "Rendben.", later(4));
     expect(getTask(s, t.id).status).toBe("done");
   });

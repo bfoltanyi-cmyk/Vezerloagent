@@ -12,6 +12,7 @@ import {
   requestGate,
   submitReview,
 } from "./board.js";
+import { formatRule, JURISDICTIONS, lookup, TOPIC_NAMES, type Topic } from "../company/privacy/knowledge.js";
 import type { CompanyState, Task } from "./types.js";
 import type { Workspace } from "./workspace.js";
 
@@ -21,7 +22,14 @@ export const MAX_OPEN_TASKS = 80;
 const depIds = DEPARTMENTS.map((d) => d.id) as [string, ...string[]];
 const roleIds = ROLES.map((r) => r.id) as [string, ...string[]];
 
+const topicIds = Object.keys(TOPIC_NAMES) as [Topic, ...Topic[]];
+
 const schemas = {
+  privacy_lookup: z.object({
+    jurisdictions: z.array(z.enum(JURISDICTIONS as [string, ...string[]])).max(4).optional().describe("EU, HU, PL, CZ; az EU-s szabályok mindig benne vannak."),
+    topic: z.enum(topicIds).optional(),
+    query: z.string().max(200).optional().describe("Szabad szavas keresés, pl. 'megőrzés számla' vagy 'monitoring'."),
+  }),
   list_tasks: z.object({
     status: z.enum(["todo", "in_progress", "review", "awaiting_approval", "blocked", "done"]).optional(),
     department: z.enum(depIds).optional(),
@@ -52,6 +60,7 @@ const schemas = {
 type ToolName = keyof typeof schemas;
 
 const descriptions: Record<ToolName, string> = {
+  privacy_lookup: `Adatvédelmi tudásbázis (GDPR és EU-s, magyar, lengyel, cseh szabályok) keresése. Témák: ${topicIds.join(", ")}. Személyes adatot érintő munka előtt használd.`,
   list_tasks: "A feladattábla listázása szűréssel.",
   read_task: "Egy feladat teljes leírása és jegyzetei.",
   create_task: "Új feladat létrehozása egy részlegnek vagy szerepnek. Csak valóban szükséges, jól körülhatárolt feladatot hozz létre.",
@@ -77,7 +86,7 @@ export interface ToolContext {
 }
 
 function allowedTools(role: Role, task: Task): ToolName[] {
-  const base: ToolName[] = ["list_tasks", "read_task", "read_file", "list_files", "write_file", "create_task", "block_task"];
+  const base: ToolName[] = ["privacy_lookup", "list_tasks", "read_task", "read_file", "list_files", "write_file", "create_task", "block_task"];
   if (task.kind === "review") base.push("submit_review");
   else base.push("complete_task", "request_approval");
   if (role.tier === "lead") base.push("reassign_task");
@@ -114,6 +123,11 @@ function execute(ctx: ToolContext, name: ToolName, input: any): string {
     throw new Error("Az aktuális feladat már le van zárva.");
   }
   switch (name) {
+    case "privacy_lookup": {
+      const rules = lookup({ jurisdictions: input.jurisdictions, topic: input.topic, query: input.query });
+      if (rules.length === 0) return "Nincs találat. Próbáld téma szerint vagy más kulcsszóval.";
+      return `${rules.slice(0, 12).map(formatRule).join("\n\n")}${rules.length > 12 ? `\n\n…és még ${rules.length - 12} szabály, szűkítsd a keresést.` : ""}\n\nMunkasegédlet, nem jogi tanácsadás; a ⚠ jelölésű pontokat jogász ellenőrizze.`;
+    }
     case "list_tasks": {
       const rows = s.tasks
         .filter((t) => (input.status ? t.status === input.status : t.status !== "done"))

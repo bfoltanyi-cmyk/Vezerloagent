@@ -2,6 +2,7 @@
 // így a motor és a tesztek ugyanazt a logikát használják.
 
 import { DEPARTMENTS, roleById, type DepartmentId } from "../company/org.js";
+import { touchesPersonalData } from "../company/privacy/review.js";
 import type { CompanyEvent, CompanyState, Gate, GateKind, Task, TaskKind, TaskStatus } from "./types.js";
 
 export const MAX_EVENTS = 400;
@@ -81,7 +82,8 @@ function setStatus(t: Task, status: TaskStatus, now: Date): void {
 
 /**
  * Egy feladat elkészült. Kódfeladatnál nem zárul le azonnal: automatikusan
- * kódellenőrzés és biztonsági átvizsgálás indul, és csak mindkettő jóváhagyása után kész.
+ * kódellenőrzés és biztonsági átvizsgálás indul, személyes adatot érintő változásnál
+ * adatvédelmi átvizsgálás is, és csak mindegyik jóváhagyása után kész.
  */
 export function completeTask(s: CompanyState, id: string, by: string, summary: string, now = new Date()): Task {
   const t = getTask(s, id);
@@ -90,13 +92,18 @@ export function completeTask(s: CompanyState, id: string, by: string, summary: s
   if (t.kind === "code") {
     setStatus(t, "review", now);
     t.reviewRound = (t.reviewRound ?? 0) + 1;
-    for (const reviewer of ["code-reviewer", "appsec"] as const) {
+    const reviewers = ["code-reviewer", "appsec"];
+    if (touchesPersonalData(t, summary)) reviewers.push("privacy-officer");
+    for (const reviewer of reviewers) {
       const role = roleById(reviewer)!;
       const rt = createTask(
         s,
         {
           title: `Átvizsgálás: ${t.title}`,
-          description: `Vizsgáld át a(z) ${t.id} feladat változásait (${role.name}). A fejlesztő összefoglalója: ${summary}`,
+          description:
+            reviewer === "privacy-officer"
+              ? `Vizsgáld át adatvédelmi szempontból a(z) ${t.id} feladat változásait: jogalap, adattakarékosság, megőrzés, érintetti jogok, naplózás, és az EU, HU, PL, CZ szabályok (privacy_lookup). A fejlesztő összefoglalója: ${summary}`
+              : `Vizsgáld át a(z) ${t.id} feladat változásait (${role.name}). A fejlesztő összefoglalója: ${summary}`,
           department: role.department,
           assignee: reviewer,
           kind: "review",
@@ -234,7 +241,8 @@ const isReady = (s: CompanyState, t: Task) =>
 export function runnableTasks(s: CompanyState, limit: number): Task[] {
   return s.tasks
     .filter((t) => isReady(s, t))
-    .sort((a, b) => a.priority - b.priority || a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id))
+    // A napi tervezés mindig elsőként fut, utána prioritás és életkor szerint.
+    .sort((a, b) => Number(b.kind === "plan") - Number(a.kind === "plan") || a.priority - b.priority || a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id))
     .slice(0, limit);
 }
 
@@ -285,4 +293,33 @@ export function seedBacklog(s: CompanyState, now = new Date()): void {
     priority: 3,
     dependsOn: [research.id],
   }, "ceo", now);
+}
+
+/** Az adatvédelmi modul induló feladatai. Idempotens: meglévő táblára is csak egyszer kerülnek fel. */
+export function seedPrivacyBacklog(s: CompanyState, now = new Date()): void {
+  const base = "Adatvédelmi követelmények az ERP-hez (EU)";
+  if (s.tasks.some((t) => t.title === base)) return;
+  const eu = createTask(s, {
+    title: base,
+    description:
+      "A privacy_lookup tudásbázis és a docs/security/adatvedelem/README.md alapján írd meg a docs/security/privacy/requirements.md fájlba az ERP adatvédelmi követelményeit: adatkategóriák és jogalapok modulonként, érintetti kérelem funkció, megőrzési profil-modell, naplózás, különleges adatok kezelése, DPA-sablon váza. A fejlesztésnek szánt teendőket hozd létre feladatként az architektnek.",
+    department: "security",
+    assignee: "privacy-officer",
+    priority: 1,
+  }, "ciso", now);
+  const countries = [
+    ["privacy-hu", "Magyarország", "magyar"],
+    ["privacy-pl", "Lengyelország", "lengyel"],
+    ["privacy-cz", "Csehország", "cseh"],
+  ] as const;
+  for (const [role, country, lang] of countries) {
+    createTask(s, {
+      title: `Országprofil: ${country} (adatvédelem és megőrzés)`,
+      description: `Írd meg a docs/security/privacy/${role.slice(-2)}.md fájlba a(z) ${country} országprofilt: megőrzési idők adatkategóriánként, munkahelyi adatkezelés, e-számlázás, marketing és sütik, incidensbejelentés a hatóságnak, kiberbiztonsági (NIS2) szállítói elvárások. Készíts ${lang} nyelvű adatkezelési tájékoztató-sablont is. A ⚠ jelölésű pontokat jelöld meg jogászi ellenőrzésre.`,
+      department: "security",
+      assignee: role,
+      priority: 2,
+      dependsOn: [eu.id],
+    }, "ciso", now);
+  }
 }
