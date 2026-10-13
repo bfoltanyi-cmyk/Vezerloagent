@@ -1,0 +1,138 @@
+{
+  "version": 1,
+  "meta": {
+    "runs": 1,
+    "nextTask": 6,
+    "nextGate": 1,
+    "lastRun": "2026-10-13T05:57:15.602Z"
+  },
+  "tasks": [
+    {
+      "id": "T-0001",
+      "title": "Piaci rés: magyar KKV számlázás + készlet",
+      "description": "Elemezd a magyar KKV-knak szóló számlázó és készletkezelő szoftverek piacát (funkciók, árak, NAV Online Számla, gyenge pontok). Írd le a docs/product/market.md fájlba, és javasolj egy első, gyorsan eladható termékszeletet.",
+      "department": "product",
+      "assignee": "market-researcher",
+      "status": "todo",
+      "kind": "doc",
+      "priority": 1,
+      "dependsOn": [],
+      "createdBy": "ceo",
+      "createdAt": "2026-10-13T05:57:15.602Z",
+      "updatedAt": "2026-10-13T05:57:15.602Z",
+      "notes": []
+    },
+    {
+      "id": "T-0002",
+      "title": "PRD: első termékszelet (számlázás + készlet)",
+      "description": "A piackutatás alapján írd meg a termékleírást a docs/product/prd.md fájlba: célfelhasználó, modulok, elfogadási feltételek, nem-célok, licencmodell javaslat. Ha kész, kérj spec jóváhagyást.",
+      "department": "product",
+      "assignee": "product-manager",
+      "status": "todo",
+      "kind": "doc",
+      "priority": 1,
+      "dependsOn": [
+        "T-0001"
+      ],
+      "createdBy": "ceo",
+      "createdAt": "2026-10-13T05:57:15.602Z",
+      "updatedAt": "2026-10-13T05:57:15.602Z",
+      "notes": []
+    },
+    {
+      "id": "T-0003",
+      "title": "Biztonsági alapszabályzat",
+      "description": "Írd meg a docs/security/policy.md fájlba a fejlesztés biztonsági szabályait: titokkezelés, függőségek, kódellenőrzés, adatkezelés (GDPR), és mit jelent a kiadás előtti biztonsági jóváhagyás.",
+      "department": "security",
+      "assignee": "ciso",
+      "status": "todo",
+      "kind": "doc",
+      "priority": 1,
+      "dependsOn": [],
+      "createdBy": "ceo",
+      "createdAt": "2026-10-13T05:57:15.602Z",
+      "updatedAt": "2026-10-13T05:57:15.602Z",
+      "notes": []
+    },
+    {
+      "id": "T-0004",
+      "title": "Architektúra és repó-struktúra",
+      "description": "A PRD alapján tervezd meg a termék architektúráját (NestJS + PostgreSQL + React, moduláris monolit) a docs/dev/architecture.md fájlba, hozd létre a product/ alatti vázat, és bontsd fejlesztői feladatokra a munkát.",
+      "department": "dev",
+      "assignee": "architect",
+      "status": "todo",
+      "kind": "code",
+      "priority": 1,
+      "dependsOn": [
+        "T-0002"
+      ],
+      "createdBy": "ceo",
+      "createdAt": "2026-10-13T05:57:15.602Z",
+      "updatedAt": "2026-10-13T05:57:15.602Z",
+      "notes": []
+    },
+    {
+      "id": "T-0005",
+      "title": "Pozicionálás és üzenet",
+      "description": "Írd meg a docs/marketing/positioning.md fájlba, kinek és milyen ígérettel adjuk el a terméket. Ez belső vázlat, nem publikálunk.",
+      "department": "marketing",
+      "assignee": "brand-strategist",
+      "status": "todo",
+      "kind": "doc",
+      "priority": 3,
+      "dependsOn": [
+        "T-0001"
+      ],
+      "createdBy": "ceo",
+      "createdAt": "2026-10-13T05:57:15.602Z",
+      "updatedAt": "2026-10-13T05:57:15.602Z",
+      "notes": []
+    }
+  ],
+  "gates": [],
+  "events": [
+    {
+      "at": "2026-10-13T05:57:15.602Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Új feladat T-0001 → Piackutató: Piaci rés: magyar KKV számlázás + készlet"
+    },
+    {
+      "at": "2026-10-13T05:57:15.602Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Új feladat T-0002 → Termékmenedzser: PRD: első termékszelet (számlázás + készlet)"
+    },
+    {
+      "at": "2026-10-13T05:57:15.602Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Új feladat T-0003 → Biztonsági igazgató (CISO): Biztonsági alapszabályzat"
+    },
+    {
+      "at": "2026-10-13T05:57:15.602Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Új feladat T-0004 → Szoftverarchitekt: Architektúra és repó-struktúra"
+    },
+    {
+      "at": "2026-10-13T05:57:15.602Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Új feladat T-0005 → Márkastratéga: Pozicionálás és üzenet"
+    },
+    {
+      "at": "2026-10-13T05:57:15.602Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "warn",
+      "text": "Nincs beállítva ANTHROPIC_API_KEY, ezért a cég csak a táblát frissítette, munka nem folyt."
+    }
+  ],
+  "ledger": []
+}

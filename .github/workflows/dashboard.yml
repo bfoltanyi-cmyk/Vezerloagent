@@ -1,0 +1,46 @@
+# A vezérlőterem újraépítése munkanap nélkül (pl. az első beállítás után vagy egy kapu eldöntése után).
+name: Vezérlőterem
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [dashboard/**, src/build-dashboard.ts]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: alicya-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Legfrissebb állapot a munkaágról
+        run: |
+          if git ls-remote --exit-code --heads origin alicya/munka >/dev/null; then
+            git fetch origin alicya/munka
+            git checkout origin/alicya/munka -- state
+          fi
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build:dashboard
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - uses: actions/deploy-pages@v4
+        id: deploy

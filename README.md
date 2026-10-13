@@ -1,0 +1,81 @@
+# Alicya Nexus
+
+Egy agentekből álló szoftverház, amely önállóan dolgozik egy dobozosan eladható vállalatirányítási (ERP) szoftveren magyar kis- és középvállalkozásoknak. Nyolc részlegben 42 Claude agent dolgozik, közös feladattáblán. A tulajdonos (te) csak a kritikus pontokon dönt.
+
+A cég GitHub Actionsben fut hétköznap kétszer (8:00 és 16:00 körül), és kézzel is indítható. Az állapotát egy GitHub Pages-en futó vezérlőterem mutatja.
+
+## Részlegek
+
+| Részleg | Agentek | Szerepek |
+|---|---|---|
+| Alicya Core | 3 | Vezérigazgató, Operációs vezető, Jelentésíró |
+| Termék & kutatás | 3 | Piackutató, Termékmenedzser, UX tervező |
+| Fejlesztés | 19 | Szoftverarchitekt, Tech lead, 4 backend fejlesztő (számlázás, készlet, könyvelés, HR), NAV-integrációs fejlesztő, API fejlesztő, Adatbázis-mérnök, 2 frontend fejlesztő, Kódellenőr, QA vezető, Tesztautomatizáló, Elfogadási tesztelő, Teljesítménytesztelő, DevOps mérnök, Kiadásfelelős, Dokumentátor |
+| Adatbiztonság | 7 | CISO, Alkalmazásbiztonsági auditor, Ellátásilánc-figyelő, Adatvédelmi tisztviselő (GDPR), Behatolásteszt-tervező, Titok- és hozzáférés-kezelő, Incidenskezelő |
+| Marketing | 3 | Márkastratéga, Tartalomíró, Kampánymenedzser |
+| Sales | 3 | Sales vezető, Árazási elemző, Ajánlatíró |
+| Ügyfélsiker | 2 | Ügyfélsiker vezető, Tudásbázis-szerkesztő |
+| Pénzügy & jog | 2 | Kontroller, Jogi agent |
+
+A szervezet a [`company/org.ts`](company/org.ts) fájlban van leírva. Új agentet ide kell felvenni.
+
+## Hogyan dolgozik
+
+1. **Döntések beolvasása.** A munkanap elején a cég beolvassa a GitHub issue-kon hozott döntéseidet.
+2. **Tervezés.** A vezérigazgató agent átnézi a táblát, feloldja az elakadt feladatokat, és új munkát ad a részlegeknek.
+3. **Munka.** A legsürgősebb elvégezhető feladatok sorra kerülnek. Minden agent csak a saját szerepkörében dolgozik: a kódszerepek a `product/` és `docs/` alá írhatnak, a többiek csak a `docs/` alá.
+4. **Kötelező átvizsgálás.** Minden kódfeladat lezárásakor automatikusan indul egy kódellenőrzés és egy biztonsági átvizsgálás. A feladat csak akkor kész, ha mindkettő jóváhagyta; különben visszamegy a fejlesztőhöz.
+5. **Jóváhagyási kapuk.** A specifikáció, a kiadás, az árazás és minden kifelé szánt szöveg rád vár. Ezekből `kapu` címkés GitHub issue lesz.
+6. **Mentés.** Minden munka az `alicya/munka` ágra kerül, és egy nyitott pull requestben vár. A `main` ágra semmi nem kerül nélküled.
+7. **Napi jelentés** a `state/reports/` alatt és a vezérlőteremben.
+
+## Döntés egy kapuról
+
+Nyisd meg a `kapu` címkés issue-t:
+
+- **Jóváhagyás:** tedd rá a `jóváhagyva` címkét, vagy zárd le (Close as completed).
+- **Elutasítás:** írd meg hozzászólásban, mi a gond, és tedd rá az `elutasítva` címkét (vagy Close as not planned). A hozzászólásod visszakerül a feladathoz.
+
+A döntést a következő munkanap olvassa be.
+
+## Beállítás
+
+1. **API-kulcs:** Settings → Secrets and variables → Actions → New repository secret, név: `ANTHROPIC_API_KEY`. Kulcs nélkül a cég nem dolgozik, csak a táblát frissíti.
+2. **Vezérlőterem:** Settings → Pages → Source: **GitHub Actions**. Utána futtasd a *Vezérlőterem* workflow-t.
+3. **Pull request engedélyezése:** Settings → Actions → General → Workflow permissions → pipáld be az *Allow GitHub Actions to create and approve pull requests* opciót.
+4. **Költségkeret (nem kötelező):** Settings → Secrets and variables → Actions → Variables:
+   - `MONTHLY_BUDGET_USD` havi keret (alapértelmezés: 50)
+   - `RUN_BUDGET_USD` egy munkanap kerete (alapértelmezés: 3)
+   - `MAX_TASKS_PER_RUN` feladat munkanaponként (alapértelmezés: 6)
+5. **Első indítás:** Actions → *Munkanap* → Run workflow.
+
+A keret elérésekor a cég leáll a hónap végéig.
+
+## Modellek
+
+| Szint | Modell | Kik |
+|---|---|---|
+| Vezető | `claude-opus-5-5` | részlegvezetők, architekt, tech lead, QA vezető, CISO |
+| Munkatárs | `claude-sonnet-5-5` | fejlesztők, tesztelők, auditorok |
+| Tömeg | `claude-haiku-5-5` | dokumentáció, tartalom, tudásbázis |
+
+Felülírható a `MODEL_LEAD`, `MODEL_WORKER`, `MODEL_BULK` környezeti változókkal. Az Opus és Sonnet hívások szerveroldali tartalék modellt használnak, ha a modell biztonsági okból visszautasítana egy kérést.
+
+## Biztonsági korlátok
+
+- Az agenteknek nincs eszközük kifelé kommunikálni (e-mail, közösségi média, fizetés). Amit kifelé szánnak, vázlatként írják meg és jóváhagyást kérnek.
+- Fájlt csak a `docs/` és `product/` alá írhatnak; a workflow-khoz, a motorhoz és a titkokhoz nem férnek hozzá.
+- Az agentek által írt kódot a munkanap nem futtatja.
+- Munkanaponként és havonta is van költségkorlát, és minden hívás költsége a `state/company.json` főkönyvében látszik.
+
+## Fejlesztés
+
+```bash
+npm install
+npm test            # tesztek hamis modellel, API-kulcs nélkül
+npm run workday     # egy munkanap helyben (API-kulcs nélkül csak a táblát frissíti)
+npm run build:dashboard && npx serve _site
+npm run gate -- G-001 approve "megjegyzés"   # kapu eldöntése GitHub nélkül
+```
+
+Felépítés: `company/` a szervezet, `src/` a motor (`workday.ts` a belépési pont), `dashboard/` a vezérlőterem, `state/` a cég állapota, `docs/` és `product/` a munka eredménye.

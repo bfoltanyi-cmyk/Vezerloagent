@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Alicya Nexus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Vezérlőterem: felül állapot, középen élő hálózat + részleg, alatta tábla, kapuk, napló. Egyetlen sötét világ. */
+:root{
+  --void:#05080f;--hull:#0b1220;--hull-2:#111a2c;--line:#1d2a42;
+  --ice:#7fe3ff;--ice-dim:#3a8fb0;--flare:#ffb347;--ok:#5ee6a8;--bad:#ff6b6b;
+  --ink:#dfe8f5;--ink-2:#93a3bd;--ink-3:#5f6f8a;
+  --f-display:"Chakra Petch","Segoe UI",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--void);color:var(--ink);margin:0}
+body{font-family:var(--f-body);font-size:15px;line-height:1.55;padding-inline:clamp(16px,4vw,40px);padding-block:24px 56px;
+  background-image:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(127,227,255,.10),transparent 70%),
+  linear-gradient(rgba(127,227,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(127,227,255,.035) 1px,transparent 1px);
+  background-size:auto,40px 40px,40px 40px}
+.wrap{max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--f-display);margin:0;letter-spacing:.01em;text-wrap:balance}
+h1{font-size:clamp(30px,5vw,52px);line-height:1}
+h1 span{color:var(--ice)}
+h2{font-size:20px;font-weight:600}
+p{margin:0}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--ice)}
+.muted{color:var(--ink-2)}
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.status{font-family:var(--f-mono);font-size:12px;color:var(--ink-3);text-align:right;line-height:1.8}
+.status b{font-weight:600}
+.panel{background:linear-gradient(180deg,var(--hull-2),var(--hull));border:1px solid var(--line);border-radius:4px;position:relative;min-width:0}
+.panel::before,.panel::after{content:"";position:absolute;width:12px;height:12px;border-color:var(--ice-dim);border-style:solid;pointer-events:none}
+.panel::before{top:-1px;left:-1px;border-width:1px 0 0 1px}
+.panel::after{bottom:-1px;right:-1px;border-width:0 1px 1px 0}
+.ph{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px 16px;border-bottom:1px solid var(--line);font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.live{color:var(--ok)}
+.live::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ok);margin-right:6px;box-shadow:0 0 8px var(--ok);animation:blink 1.6s infinite}
+.live.off{color:var(--flare)}.live.off::before{background:var(--flare);box-shadow:0 0 8px var(--flare)}
+@keyframes blink{50%{opacity:.35}}
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:4px;overflow:hidden}
+@media (max-width:800px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi:last-child{grid-column:1/-1}}
+@media (max-width:600px){.map{aspect-ratio:1/1}.status{text-align:left}}
+.kpi{background:var(--hull);padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.kpi .v{font-family:var(--f-display);font-size:28px;font-weight:600;font-variant-numeric:tabular-nums}
+.kpi .l{font-size:11px;color:var(--ink-3);font-family:var(--f-mono);letter-spacing:.06em;text-transform:uppercase}
+.meter{height:4px;background:var(--line);border-radius:2px;overflow:hidden;margin-top:6px}
+.meter i{display:block;height:100%;background:var(--ice)}
+.grid2{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px}
+@media (max-width:900px){.grid2{grid-template-columns:1fr}}
+.map{position:relative;aspect-ratio:16/10;max-width:100%}
+.map canvas{width:100%;height:100%;display:block}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;padding:12px 16px;border-top:1px solid var(--line)}
+.tabs button{font-family:var(--f-mono);font-size:11px;background:transparent;color:var(--ink-2);border:1px solid var(--line);padding:6px 10px;border-radius:2px;cursor:pointer}
+.tabs button[aria-pressed="true"]{border-color:var(--ice);color:var(--void);background:var(--ice)}
+button:focus-visible,canvas:focus-visible,a:focus-visible{outline:2px solid var(--flare);outline-offset:2px}
+.detail{padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.roles{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;max-height:430px;overflow:auto}
+.roles li{display:grid;grid-template-columns:8px minmax(0,1fr);gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+.roles li:last-child{border-bottom:0}
+.dot{width:8px;height:8px;border-radius:50%;margin-top:6px;background:var(--ink-3)}
+.dot.busy{background:var(--ice);box-shadow:0 0 8px var(--ice)}
+.dot.wait{background:var(--flare)}
+.roles b{font-weight:600}
+.roles small{display:block;color:var(--ink-3);font-family:var(--f-mono);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tier{font-family:var(--f-mono);font-size:10px;color:var(--ice);border:1px solid var(--ice-dim);padding:0 5px;border-radius:2px;margin-left:6px}
+.board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+@media (max-width:1100px){.board{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:600px){.board{grid-template-columns:1fr}}
+.col{display:flex;flex-direction:column;gap:8px;min-width:0}
+.col h3{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:400;display:flex;justify-content:space-between}
+.card{background:var(--hull);border:1px solid var(--line);border-left:2px solid var(--ice-dim);padding:9px 10px;border-radius:2px;font-size:13px;display:flex;flex-direction:column;gap:4px}
+.card .id{font-family:var(--f-mono);font-size:11px;color:var(--ink-3)}
+.card.p1{border-left-color:var(--ice)}
+.card.st-awaiting_approval{border-left-color:var(--flare)}
+.card.st-blocked{border-left-color:var(--bad)}
+.card.st-done{opacity:.7}
+.empty{font-size:12px;color:var(--ink-3);font-family:var(--f-mono)}
+.gates{display:flex;flex-direction:column}
+.gate{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+.gate:last-child{border-bottom:0}
+.pill{font-family:var(--f-mono);font-size:11px;padding:3px 8px;border-radius:2px;font-weight:600;white-space:nowrap}
+.pill.pending{background:var(--flare);color:var(--void)}
+.pill.approved{background:var(--ok);color:var(--void)}
+.pill.rejected{background:var(--bad);color:var(--void)}
+a{color:var(--ice)}
+.feed{font-family:var(--f-mono);font-size:12px;padding:10px 16px 14px;display:flex;flex-direction:column;gap:5px;max-height:360px;overflow:auto}
+.feed div{display:grid;grid-template-columns:92px 120px minmax(0,1fr);gap:8px;color:var(--ink-2)}
+@media (max-width:600px){.feed div{grid-template-columns:70px minmax(0,1fr)}.feed .who{display:none}}
+.feed .t{color:var(--ink-3)}.feed .who{color:var(--ice);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.feed .gate-ev{color:var(--flare)}.feed .warn{color:var(--bad)}
+pre.report{margin:0;padding:16px;font-family:var(--f-mono);font-size:12px;white-space:pre-wrap;color:var(--ink-2);max-height:360px;overflow:auto}
+.banner{border:1px solid var(--flare);color:var(--flare);padding:12px 16px;border-radius:4px;font-size:14px}
+footer{font-family:var(--f-mono);font-size:11px;color:var(--ink-3);border-top:1px solid var(--line);padding-top:14px}
+@media (prefers-reduced-motion:reduce){.live::before{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Autonóm szoftverház · vezérlőterem</div>
+      <h1>Alicya <span>Nexus</span></h1>
+    </div>
+    <div class="status" id="status">Adatok betöltése…</div>
+  </header>
+
+  <div id="banner" class="banner" hidden></div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="grid2">
+    <div class="panel">
+      <div class="ph"><span>Szervezeti hálózat</span><span class="live" id="live">élő</span></div>
+      <div class="map"><canvas id="net" tabindex="0" aria-label="A részlegek hálózata. Kattints egy részlegre."></canvas></div>
+      <div class="tabs" id="tabs" role="group" aria-label="Részleg kiválasztása"></div>
+    </div>
+    <div class="panel">
+      <div class="ph"><span id="dh">Részleg</span><span id="dn"></span></div>
+      <div class="detail" id="detail" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <section class="panel">
+    <div class="ph"><span>Rád vár · jóváhagyási kapuk</span><span id="gcount"></span></div>
+    <div class="gates" id="gates"></div>
+  </section>
+
+  <section>
+    <div class="ph" style="padding-inline:0;border:0"><span>Feladattábla</span><span id="tcount"></span></div>
+    <div class="board" id="board"></div>
+  </section>
+
+  <div class="grid2">
+    <div class="panel">
+      <div class="ph"><span>Eseménynapló</span><span>legutóbbi 60</span></div>
+      <div class="feed" id="feed"></div>
+    </div>
+    <div class="panel">
+      <div class="ph"><span>Napi jelentés</span><span id="rday"></span></div>
+      <pre class="report" id="report">Még nincs jelentés.</pre>
+    </div>
+  </div>
+
+  <footer>Alicya Nexus · az adatok a legutóbbi munkanap állapotát mutatják · <span id="foot"></span></footer>
+</div>
+
+<script>
+(async function(){
+const $ = (id) => document.getElementById(id);
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+const get = async (p, kind) => { try { const r = await fetch(p, { cache: "no-store" }); if (!r.ok) return null; return kind === "text" ? r.text() : r.json(); } catch { return null; } };
+
+const [state, org, meta, report] = await Promise.all([get("data/company.json"), get("data/org.json"), get("data/meta.json"), get("data/report.md", "text")]);
+if (!org) { $("status").textContent = "Nincs még adat. Az első munkanap után itt jelenik meg a cég."; return; }
+const S = state || { tasks: [], gates: [], events: [], ledger: [], meta: { runs: 0 } };
+const M = meta || {};
+const roleBy = Object.fromEntries(org.roles.map(r => [r.id, r]));
+const depBy = Object.fromEntries(org.departments.map(d => [d.id, d]));
+const ST = { todo: "Teendő", in_progress: "Folyamatban", review: "Átvizsgálás", awaiting_approval: "Rád vár", blocked: "Elakadt", done: "Kész" };
+const fmtTime = (iso) => iso ? new Date(iso).toLocaleString("hu-HU", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : "–";
+
+// Állapotsor
+const month = new Date().toISOString().slice(0, 7);
+const spent = S.ledger.filter(e => e.at.startsWith(month)).reduce((a, e) => a + e.usd, 0);
+const lastEvt = S.events.at(-1);
+const dry = lastEvt && /API_KEY|API-kulcs/.test(lastEvt.text);
+$("status").innerHTML = "";
+$("status").append(`Munkanapok: ${S.meta.runs}`, el("br"), `Utolsó futás: ${fmtTime(S.meta.lastRun)}`, el("br"), `${org.departments.length} részleg · ${org.roles.length} agent`);
+if (dry) { $("live").textContent = "áll"; $("live").classList.add("off"); $("banner").hidden = false; $("banner").textContent = "A cég áll, mert nincs beállítva az ANTHROPIC_API_KEY titok a GitHub repóban. Amint beállítod, a következő munkanapon elindul a munka."; }
+
+// KPI-k
+const count = (st) => S.tasks.filter(t => t.status === st).length;
+const pendingGates = S.gates.filter(g => g.status === "pending");
+const kpis = [
+  ["Nyitott feladat", S.tasks.filter(t => t.status !== "done").length],
+  ["Átvizsgálás alatt", count("review")],
+  ["Rád vár", pendingGates.length, pendingGates.length ? "var(--flare)" : null],
+  ["Kész", count("done")],
+  ["Havi költés", `$${spent.toFixed(2)}`, null, M.monthlyBudgetUsd ? Math.min(1, spent / M.monthlyBudgetUsd) : null, M.monthlyBudgetUsd ? `/ $${M.monthlyBudgetUsd}` : ""],
+];
+for (const [l, v, color, ratio, suffix] of kpis) {
+  const k = el("div", "kpi"); const vv = el("span", "v", String(v)); if (color) vv.style.color = color;
+  if (suffix) { const s = el("span", "l", suffix); s.style.display = "inline"; s.style.marginLeft = "6px"; vv.append(s); }
+  k.append(vv, el("span", "l", l));
+  if (ratio !== null && ratio !== undefined) { const m = el("div", "meter"); const i = el("i"); i.style.width = (ratio * 100).toFixed(1) + "%"; if (ratio > .85) i.style.background = "var(--flare)"; m.append(i); k.append(m); }
+  $("kpis").append(k);
+}
+
+// Részlegek
+const active = (depId) => S.tasks.filter(t => t.department === depId && t.status !== "done");
+const LAYOUT = { core: [.5, .48], product: [.5, .1], dev: [.82, .24], security: [.86, .62], finance: [.68, .88], support: [.32, .88], sales: [.14, .62], marketing: [.18, .24] };
+const EDGES = [["core","product"],["core","dev"],["core","security"],["core","marketing"],["core","sales"],["core","support"],["core","finance"],["product","dev"],["dev","security"],["dev","support"],["marketing","sales"],["sales","finance"],["product","marketing"],["security","support"]];
+let sel = "dev";
+for (const d of org.departments) { const b = el("button", null, d.name); b.type = "button"; b.dataset.id = d.id; b.onclick = () => select(d.id); $("tabs").append(b); }
+function select(id) {
+  sel = id; const d = depBy[id];
+  [...$("tabs").children].forEach(b => b.setAttribute("aria-pressed", String(b.dataset.id === id)));
+  $("dh").textContent = d.name;
+  const roles = org.roles.filter(r => r.department === id);
+  $("dn").textContent = `${roles.length} agent · ${active(id).length} nyitott`;
+  const box = $("detail"); box.innerHTML = "";
+  box.append(el("p", "muted", d.purpose));
+  const ul = el("ul", "roles");
+  for (const r of roles) {
+    const mine = S.tasks.filter(t => t.assignee === r.id && t.status !== "done");
+    const cur = mine.find(t => t.status === "in_progress") || mine.find(t => t.status === "awaiting_approval") || mine[0];
+    const li = el("li"); const dot = el("span", "dot" + (cur ? (cur.status === "awaiting_approval" ? " wait" : " busy") : ""));
+    const body = el("div"); const name = el("b", null, r.name); body.append(name, el("span", "tier", r.tier === "lead" ? "vezető" : r.tier === "worker" ? "munkatárs" : "tömeg"));
+    body.append(el("small", null, cur ? `${cur.id} · ${ST[cur.status]} · ${cur.title}` : r.mission));
+    li.append(dot, body); ul.append(li);
+  }
+  box.append(ul);
+}
+select(sel);
+
+// Hálózat
+const cv = $("net"), cx = cv.getContext("2d");
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let W = 0, H = 0;
+function size() { const r = cv.getBoundingClientRect(); const dpr = Math.min(devicePixelRatio || 1, 2); W = r.width; H = r.height; cv.width = W * dpr; cv.height = H * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+addEventListener("resize", size); size();
+const P = (id) => [LAYOUT[id][0] * W, LAYOUT[id][1] * H];
+// Impulzusok a tényleges eseményekből: a legutóbbi események részlegei között.
+const recentDeps = S.events.slice(-30).map(e => e.department).filter(d => LAYOUT[d]);
+const pulses = [];
+function spawn() {
+  const busy = recentDeps.length ? recentDeps[Math.random() * recentDeps.length | 0] : null;
+  const pool = busy ? EDGES.filter(e => e.includes(busy)) : EDGES;
+  const e = pool[Math.random() * pool.length | 0]; const rev = Math.random() < .5;
+  pulses.push({ a: rev ? e[1] : e[0], b: rev ? e[0] : e[1], t: 0, s: .004 + Math.random() * .006, g: e.includes("core") && pendingGates.length > 0 && Math.random() < .3 });
+}
+const nPulses = dry ? 2 : Math.max(4, Math.min(14, recentDeps.length));
+for (let i = 0; i < nPulses; i++) { spawn(); pulses[i].t = Math.random(); }
+function draw(ts) {
+  cx.clearRect(0, 0, W, H);
+  const R = Math.max(16, Math.min(W, H) * .062);
+  const [cxx, cyy] = P("core");
+  cx.strokeStyle = "rgba(127,227,255,.07)"; cx.lineWidth = 1;
+  for (let i = 1; i <= 3; i++) { cx.beginPath(); cx.ellipse(cxx, cyy, W * .15 * i, H * .15 * i, 0, 0, Math.PI * 2); cx.stroke(); }
+  for (const [a, b] of EDGES) { const [x1, y1] = P(a), [x2, y2] = P(b); const on = a === sel || b === sel; cx.strokeStyle = on ? "rgba(127,227,255,.45)" : "rgba(127,227,255,.13)"; cx.lineWidth = on ? 1.4 : 1; cx.beginPath(); cx.moveTo(x1, y1); cx.lineTo(x2, y2); cx.stroke(); }
+  for (const p of pulses) { const [x1, y1] = P(p.a), [x2, y2] = P(p.b); const x = x1 + (x2 - x1) * p.t, y = y1 + (y2 - y1) * p.t; const c = p.g ? "#ffb347" : "#7fe3ff"; cx.shadowColor = c; cx.shadowBlur = 10; cx.fillStyle = c; cx.beginPath(); cx.arc(x, y, 2.4, 0, Math.PI * 2); cx.fill(); cx.shadowBlur = 0; if (!reduce) p.t += p.s; }
+  for (let i = pulses.length - 1; i >= 0; i--) if (pulses[i].t > 1) { pulses.splice(i, 1); spawn(); }
+  const tt = (ts || 0) / 1000;
+  for (const d of org.departments) {
+    const [x, y] = P(d.id); const isC = d.id === "core", on = d.id === sel, r = isC ? R * 1.35 : R; const n = active(d.id).length;
+    const waiting = S.tasks.some(t => t.department === d.id && t.status === "awaiting_approval");
+    cx.fillStyle = "#0b1220"; cx.strokeStyle = waiting ? "#ffb347" : on ? "#7fe3ff" : "rgba(127,227,255,.5)"; cx.lineWidth = on ? 2 : 1;
+    cx.beginPath(); for (let k = 0; k < 6; k++) { const an = Math.PI / 3 * k + Math.PI / 6; cx.lineTo(x + r * Math.cos(an), y + r * Math.sin(an)); } cx.closePath(); cx.fill(); cx.stroke();
+    if (on || isC) { cx.strokeStyle = "rgba(127,227,255,.25)"; cx.beginPath(); cx.arc(x, y, r + 6 + (reduce ? 0 : Math.sin(tt * 2) * 2), 0, Math.PI * 2); cx.stroke(); }
+    cx.fillStyle = on ? "#7fe3ff" : "#dfe8f5"; cx.font = "600 " + Math.max(10, Math.round(R * .42)) + "px 'JetBrains Mono',monospace"; cx.textAlign = "center"; cx.textBaseline = "middle"; cx.fillText(String(n), x, y);
+    cx.fillStyle = on ? "#7fe3ff" : "#93a3bd"; cx.font = Math.max(10, Math.round(Math.min(W, H) * .03)) + "px 'Chakra Petch',sans-serif";
+    cx.fillText(d.name.toUpperCase(), x, LAYOUT[d.id][1] > .8 ? y - r - 10 : y + r + 14);
+  }
+  requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+const hit = (ev) => { const r = cv.getBoundingClientRect(); const mx = ev.clientX - r.left, my = ev.clientY - r.top; let best = null, bd = 1e9; for (const d of org.departments) { const [x, y] = P(d.id); const dd = Math.hypot(mx - x, my - y); if (dd < bd) { bd = dd; best = d; } } return bd < Math.max(30, Math.min(W, H) * .1) ? best : null; };
+cv.addEventListener("click", ev => { const d = hit(ev); if (d) select(d.id); });
+cv.addEventListener("mousemove", ev => { cv.style.cursor = hit(ev) ? "pointer" : "default"; });
+cv.addEventListener("keydown", ev => { if (ev.key !== "ArrowRight" && ev.key !== "ArrowLeft") return; const ids = org.departments.map(d => d.id); const i = ids.indexOf(sel); select(ids[(i + (ev.key === "ArrowRight" ? 1 : ids.length - 1)) % ids.length]); ev.preventDefault(); });
+
+// Kapuk
+$("gcount").textContent = `${pendingGates.length} függőben`;
+const gates = [...S.gates].sort((a, b) => (a.status === "pending" ? 0 : 1) - (b.status === "pending" ? 0 : 1) || b.createdAt.localeCompare(a.createdAt)).slice(0, 10);
+if (!gates.length) { const p = el("p", "empty", "Még nem kért jóváhagyást a cég."); p.style.padding = "12px 16px"; $("gates").append(p); }
+for (const g of gates) {
+  const row = el("div", "gate");
+  row.append(el("span", "pill " + g.status, g.status === "pending" ? "DÖNTÉSRE VÁR" : g.status === "approved" ? "JÓVÁHAGYVA" : "ELUTASÍTVA"));
+  const body = el("div"); body.append(el("b", null, `${g.id} · ${g.title}`), el("div", "muted", g.summary.slice(0, 220) + (g.summary.length > 220 ? "…" : "")));
+  row.append(body);
+  if (g.issueNumber && M.repoUrl) { const a = el("a", null, "Döntés →"); a.href = `${M.repoUrl}/issues/${g.issueNumber}`; a.target = "_blank"; a.rel = "noopener"; row.append(a); } else row.append(el("span"));
+  $("gates").append(row);
+}
+
+// Tábla
+$("tcount").textContent = `${S.tasks.length} feladat`;
+for (const st of Object.keys(ST)) {
+  const col = el("div", "col"); const list = S.tasks.filter(t => t.status === st);
+  const h = el("h3"); h.append(el("span", null, ST[st]), el("span", null, String(list.length))); col.append(h);
+  const shown = st === "done" ? list.slice(-6).reverse() : list.sort((a, b) => a.priority - b.priority).slice(0, 8);
+  if (!shown.length) col.append(el("p", "empty", "–"));
+  for (const t of shown) { const c = el("div", `card p${t.priority} st-${t.status}`); c.append(el("span", "id", `${t.id} · ${(roleBy[t.assignee] || {}).name || t.assignee}`), el("span", null, t.title)); c.title = t.description; col.append(c); }
+  if (list.length > shown.length) col.append(el("p", "empty", `+${list.length - shown.length} további`));
+  $("board").append(col);
+}
+
+// Napló
+const evs = S.events.slice(-60).reverse();
+if (!evs.length) $("feed").append(el("p", "empty", "Még nincs esemény."));
+for (const e of evs) { const row = el("div"); row.append(el("span", "t", fmtTime(e.at)), el("span", "who", (roleBy[e.actor] || {}).name || e.actor), el("span", e.kind === "gate" ? "gate-ev" : e.kind === "warn" ? "warn" : "", e.text)); $("feed").append(row); }
+
+if (report) { $("report").textContent = report; $("rday").textContent = (report.match(/· (\d{4}-\d{2}-\d{2})/) || [])[1] || ""; }
+$("foot").textContent = M.builtAt ? `frissítve: ${fmtTime(M.builtAt)}` : "";
+})();
+</script>
+</body>
+</html>
