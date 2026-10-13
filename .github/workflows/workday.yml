@@ -52,6 +52,7 @@ jobs:
       - name: Munkanap
         id: workday
         env:
+          ALICYA_CHECKPOINT: "1"
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ github.token }}
           MONTHLY_BUDGET_USD: ${{ vars.MONTHLY_BUDGET_USD }}

@@ -67,7 +67,7 @@ export interface LedgerEntry {
 
 export interface CompanyState {
   version: 1;
-  meta: { runs: number; lastRun?: string; nextTask: number; nextGate: number };
+  meta: { runs: number; lastRun?: string; nextTask: number; nextGate: number; /** A most futó munkanap kezdete. */ running?: string };
   tasks: Task[];
   gates: Gate[];
   events: CompanyEvent[];

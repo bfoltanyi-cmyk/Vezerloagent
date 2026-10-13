@@ -115,6 +115,23 @@ describe("munkanap", () => {
     expect(client.requests.find((q) => q.system.includes("(market-researcher)"))!.model).toBe("claude-sonnet-5-5");
   });
 
+  it("munka közben menti az állapotot, hogy a vezérlőterem élőben lássa", async () => {
+    const root = tmp();
+    const config = loadConfig({ ANTHROPIC_API_KEY: "x", MAX_TASKS_PER_RUN: "3" }, root);
+    const saves: { message: string; running?: string; done: number }[] = [];
+    const checkpoint = (message: string) => {
+      const s = loadState(root);
+      saves.push({ message, running: s.meta.running, done: s.tasks.filter((t) => t.status === "done").length });
+    };
+
+    const r = await workday({ config, client: new ScriptedClient(), checkpoint });
+    expect(saves[0]).toMatchObject({ message: "Munkanap indul", done: 0 });
+    expect(saves).toHaveLength(1 + r.tasksRun);
+    expect(saves.every((x) => x.running)).toBe(true);
+    expect(saves.at(-1)!.done).toBeGreaterThan(0);
+    expect(loadState(root).meta.running).toBeUndefined();
+  });
+
   it("beolvassa a GitHubon hozott döntést", async () => {
     const root = tmp();
     const client = new ScriptedClient();

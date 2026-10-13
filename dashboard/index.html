@@ -54,6 +54,7 @@ p{margin:0}
 .chip b{color:var(--holo);font-weight:400}
 .chip.state{border-color:var(--ok);color:var(--ok)}
 .chip.state.off{border-color:var(--amber);color:var(--amber)}
+.chip.state.busy{border-color:var(--holo);color:var(--holo)}
 .chip.state::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 10px currentColor;margin-right:8px;animation:blink 1.4s infinite}
 @keyframes blink{50%{opacity:.3}}
 
@@ -209,7 +210,7 @@ footer{font-family:var(--f-mono);font-size:11px;color:var(--ink-3);border-top:1p
     <div class="panel-b"><pre class="report" id="report">Még nincs jelentés.</pre></div>
   </section>
 
-  <footer>ALICYA NEXUS · a legutóbbi munkanap állapota · <span id="foot"></span></footer>
+  <footer>ALICYA NEXUS · <span id="foot"></span></footer>
 </div>
 
 <script>
@@ -222,10 +223,28 @@ const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 setInterval(() => { $("clock").textContent = new Date().toLocaleTimeString("hu-HU"); }, 1000);
 $("clock").textContent = new Date().toLocaleTimeString("hu-HU");
 
-const [state, org, meta, report] = await Promise.all([get("data/company.json"), get("data/org.json"), get("data/meta.json"), get("data/report.md", "text")]);
+const [baked, org, meta, bakedReport] = await Promise.all([get("data/company.json"), get("data/org.json"), get("data/meta.json"), get("data/report.md", "text")]);
+const M = meta || {};
+
+// Élő adat: a munkanap minden lezárt feladat után a munkaágra ment, innen olvassuk közvetlenül.
+const live = async (p, kind) => {
+  if (!M.repo) return null;
+  const branch = M.workBranch || "alicya/munka";
+  const tries = [
+    [`https://api.github.com/repos/${M.repo}/contents/${p}?ref=${encodeURIComponent(branch)}`, { cache: "no-store", headers: { Accept: "application/vnd.github.raw+json" } }],
+    [`https://raw.githubusercontent.com/${M.repo}/${branch}/${p}`, { cache: "no-store" }],
+  ];
+  for (const [u, o] of tries) { try { const r = await fetch(u, o); if (r.ok) return kind === "text" ? await r.text() : await r.json(); } catch {} }
+  return null;
+};
+const stamp = (s) => (s ? [s.meta.lastRun || "", s.meta.running || "", (s.events.at(-1) || {}).at || ""].sort().at(-1) : "");
+const sig = (s) => (s ? JSON.stringify([s.meta.runs, s.meta.running, (s.events.at(-1) || {}).at, s.tasks.length]) : "");
+const fresh = await live("state/company.json");
+const isLive = Boolean(fresh && stamp(fresh) >= stamp(baked));
+const state = isLive ? fresh : baked;
+const report = (isLive && state.meta.lastRun && (await live(`state/reports/${state.meta.lastRun.slice(0, 10)}.md`, "text"))) || bakedReport;
 if (!org) { $("state").textContent = "NINCS ADAT"; $("state").classList.add("off"); $("voice").textContent = "Még nincs adat. Az első munkanap után itt jelenik meg a cég."; return; }
 const S = state || { tasks: [], gates: [], events: [], ledger: [], meta: { runs: 0 } };
-const M = meta || {};
 const roleBy = Object.fromEntries(org.roles.map((r) => [r.id, r]));
 const depBy = Object.fromEntries(org.departments.map((d) => [d.id, d]));
 const ST = { todo: "Teendő", in_progress: "Folyamatban", review: "Átvizsgálás", awaiting_approval: "Rád vár", blocked: "Elakadt", done: "Kész" };
@@ -237,12 +256,15 @@ const blocked = count("blocked");
 const month = new Date().toISOString().slice(0, 7);
 const spent = S.ledger.filter((e) => e.at.startsWith(month)).reduce((a, e) => a + e.usd, 0);
 const lastEvt = S.events.at(-1);
-const standby = Boolean(lastEvt && /API_KEY|API-kulcs/.test(lastEvt.text));
+// A 2 óránál régebbi "fut" jelzés egy megszakadt munkanap maradványa.
+const working = Boolean(S.meta.running && Date.now() - Date.parse(S.meta.running) < 2 * 3600e3);
+const standby = !working && Boolean(lastEvt && /API_KEY|API-kulcs/.test(lastEvt.text));
 
 // Felső sáv
 $("runs").textContent = S.meta.runs;
 $("last").textContent = fmt(S.meta.lastRun);
-$("state").textContent = standby ? "KÉSZENLÉT" : "ONLINE";
+$("state").textContent = working ? "DOLGOZIK" : standby ? "KÉSZENLÉT" : "ONLINE";
+if (working) $("state").classList.add("busy");
 if (standby) {
   $("state").classList.add("off");
   $("alert").hidden = false;
@@ -258,6 +280,7 @@ const line = [
   `${open.length} nyitott feladat`,
   pending.length ? `és ${pending.length} döntés vár rád.` : "és most nincs rád váró döntés.",
   blocked ? `${blocked} feladat elakadt.` : "",
+  working ? `Épp dolgozunk, ${fmt(S.meta.running).split(" ").at(-1)} óta.` : "",
   standby ? "Készenlétben vagyok: az indításhoz API-kulcs kell." : `Ebben a hónapban $${spent.toFixed(2)} ment el.`,
 ].filter(Boolean).join(" ");
 const voice = $("voice");
@@ -342,7 +365,18 @@ for (const st of Object.keys(ST)) {
 }
 
 if (report) { $("report").textContent = report; $("rday").textContent = (report.match(/· (\d{4}-\d{2}-\d{2})/) || [])[1] || ""; }
-$("foot").textContent = M.builtAt ? `frissítve ${fmt(M.builtAt)}` : "";
+$("foot").textContent = isLive ? `élő adat a GitHubról · betöltve ${fmt(new Date().toISOString())}` : M.builtAt ? `a legutóbbi munkanap állapota · frissítve ${fmt(M.builtAt)}` : "";
+
+// Ha változott a cég állapota, az oldal magától újratölt (munka közben gyakrabban néz rá).
+if (M.repo) {
+  const current = sig(state);
+  const poll = async () => {
+    const next = await live("state/company.json");
+    if (next && sig(next) !== current && stamp(next) >= stamp(state)) location.reload();
+    else setTimeout(poll, working ? 90e3 : 300e3);
+  };
+  setTimeout(poll, working ? 90e3 : 300e3);
+}
 
 // ── Holografikus HUD ──
 const cv = $("hud"), cx = cv.getContext("2d");
@@ -467,7 +501,7 @@ function draw(ts) {
   }
 
   // Mag
-  const coreR = R * 0.24; const breathe = reduce ? 1 : 0.92 + Math.sin(t * 2.2) * 0.08; const cs = standby ? "amber" : "holo";
+  const coreR = R * 0.24; const breathe = reduce ? 1 : 0.92 + Math.sin(t * (working ? 4.5 : 2.2)) * 0.08; const cs = standby ? "amber" : "holo";
   const halo = cx.createRadialGradient(X, Y, 0, X, Y, coreR * 1.7); halo.addColorStop(0, rgba(cs, 0.35 * breathe)); halo.addColorStop(0.6, rgba(cs, 0.08)); halo.addColorStop(1, rgba(cs, 0));
   cx.fillStyle = halo; cx.beginPath(); cx.arc(X, Y, coreR * 1.7, 0, Math.PI * 2); cx.fill();
   cx.save(); cx.translate(X, Y); cx.rotate(-t * 0.5);
@@ -480,7 +514,7 @@ function draw(ts) {
   cx.fillStyle = "rgba(223,247,255,.95)"; cx.textAlign = "center"; cx.textBaseline = "middle";
   cx.font = `700 ${Math.round(coreR * 0.32)}px 'Rajdhani',sans-serif`; cx.fillText("ALICYA", X, Y - coreR * 0.08);
   cx.fillStyle = rgba(cs, 1); cx.font = `${Math.max(9, Math.round(coreR * 0.14))}px 'Share Tech Mono',monospace`;
-  cx.fillText(standby ? "KÉSZENLÉT" : "ONLINE", X, Y + coreR * 0.22);
+  cx.fillText(working ? "DOLGOZIK" : standby ? "KÉSZENLÉT" : "ONLINE", X, Y + coreR * 0.22);
   cx.restore();
   requestAnimationFrame(draw);
 }

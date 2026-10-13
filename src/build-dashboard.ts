@@ -27,6 +27,9 @@ const meta = {
   builtAt: new Date().toISOString(),
   monthlyBudgetUsd: loadConfig().monthlyBudgetUsd,
   repoUrl: repo ? `${process.env.GITHUB_SERVER_URL ?? "https://github.com"}/${repo}` : undefined,
+  // Ebből olvas a vezérlőterem élőben, munkanap közben is.
+  repo,
+  workBranch: process.env.WORK_BRANCH || "alicya/munka",
 };
 fs.writeFileSync(path.join(data, "meta.json"), JSON.stringify(meta, null, 2));
 fs.writeFileSync(path.join(out, ".nojekyll"), "");
