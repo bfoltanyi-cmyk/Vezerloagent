@@ -11,6 +11,7 @@ import { boardSummary, createTask, logEvent, runnableTasks, seedBacklog, seedPri
 import { compactLedger, spentSince, spentThisMonth } from "./budget.js";
 import { loadConfig, type Config } from "./config.js";
 import { githubAvailable, openIssues, realGh, syncDecisions, type Gh } from "./gates.js";
+import { gitCheckpoint, type Checkpoint } from "./checkpoint.js";
 import { ClaudeClient, type ModelClient } from "./llm.js";
 import { loadState, saveState } from "./state.js";
 import type { CompanyState } from "./types.js";
@@ -23,7 +24,7 @@ export interface WorkdayResult {
   files: string[];
 }
 
-export async function workday(opts: { config: Config; client?: ModelClient; gh?: Gh; now?: Date }): Promise<WorkdayResult> {
+export async function workday(opts: { config: Config; client?: ModelClient; gh?: Gh; now?: Date; checkpoint?: Checkpoint }): Promise<WorkdayResult> {
   const { config } = opts;
   const now = opts.now ?? new Date();
   const startIso = now.toISOString();
@@ -41,7 +42,18 @@ export async function workday(opts: { config: Config; client?: ModelClient; gh?:
     logEvent(s, { actor: "system", department: "system", kind: "warn", text: "Nincs beállítva ANTHROPIC_API_KEY, ezért a cég csak a táblát frissítette, munka nem folyt." }, now);
     result.status = "dry-run";
   } else {
-    await work(s, config, opts.client, startIso, result);
+    // Köztes mentés: a vezérlőterem élőben látja, hogy dolgozik a cég, és mi készült el.
+    const progress = (message: string) => {
+      saveState(config.rootDir, s);
+      opts.checkpoint?.(message);
+    };
+    s.meta.running = startIso;
+    progress("Munkanap indul");
+    try {
+      await work(s, config, opts.client, startIso, result, progress);
+    } finally {
+      delete s.meta.running;
+    }
   }
 
   if (opts.gh) openIssues(s, opts.gh);
@@ -53,7 +65,7 @@ export async function workday(opts: { config: Config; client?: ModelClient; gh?:
   return result;
 }
 
-async function work(s: CompanyState, config: Config, client: ModelClient, startIso: string, result: WorkdayResult): Promise<void> {
+async function work(s: CompanyState, config: Config, client: ModelClient, startIso: string, result: WorkdayResult, progress: (message: string) => void): Promise<void> {
   const workspace = new Workspace(config.rootDir);
   const createdThisRun = { count: 0 };
   const remainingUsd = () =>
@@ -90,6 +102,7 @@ async function work(s: CompanyState, config: Config, client: ModelClient, startI
       const run = await runAgent({ state: s, role, task, client, config, workspace, createdThisRun, remainingUsd });
       result.tasksRun++;
       run.filesWritten.forEach((f) => files.add(f));
+      progress(`Munkanap folyamatban: ${task.id} ${role.name}`);
     } catch (e) {
       task.status = "todo";
       const msg = e instanceof Error ? e.message : String(e);
@@ -134,7 +147,8 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   const config = loadConfig();
   const gh = githubAvailable() ? realGh : undefined;
   const client = config.dryRun ? undefined : new ClaudeClient();
-  workday({ config, client, gh })
+  const checkpoint = process.env.ALICYA_CHECKPOINT === "1" ? gitCheckpoint(config.rootDir, process.env.WORK_BRANCH || "alicya/munka") : undefined;
+  workday({ config, client, gh, checkpoint })
     .then((r) => {
       console.log(JSON.stringify(r, null, 2));
       if (process.env.GITHUB_OUTPUT) {
