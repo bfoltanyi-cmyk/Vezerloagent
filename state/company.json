@@ -1,11 +1,10 @@
 {
   "version": 1,
   "meta": {
-    "runs": 5,
+    "runs": 6,
     "nextTask": 19,
     "nextGate": 2,
-    "lastRun": "2026-10-13T14:22:02.907Z",
-    "running": "2026-10-14T06:35:01.441Z"
+    "lastRun": "2026-10-14T06:35:01.441Z"
   },
   "tasks": [
     {
@@ -567,6 +566,20 @@
       "department": "system",
       "kind": "warn",
       "text": "Hiba T-0006 közben: 401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CfzPKyzRBx8kSgWRGGZvX\"}"
+    },
+    {
+      "at": "2026-10-14T06:35:03.471Z",
+      "actor": "privacy-officer",
+      "department": "security",
+      "kind": "info",
+      "text": "Adatvédelmi tisztviselő (DPO · EU) dolgozik: T-0006 Adatvédelmi követelmények az ERP-hez (EU)"
+    },
+    {
+      "at": "2026-10-14T06:35:03.650Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "warn",
+      "text": "Hiba T-0006 közben: 401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011Cg1fXKe2Rfi9ZNqohyBJc\"}"
     }
   ],
   "ledger": [
