@@ -4,7 +4,8 @@
     "runs": 8,
     "nextTask": 19,
     "nextGate": 2,
-    "lastRun": "2026-10-15T06:35:55.301Z"
+    "lastRun": "2026-10-15T06:35:55.301Z",
+    "running": "2026-10-15T14:32:18.443Z"
   },
   "tasks": [
     {
