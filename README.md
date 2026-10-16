@@ -44,7 +44,9 @@ A cég célpiaca Magyarország, Lengyelország és Csehország, ezért az adatbi
 
 ## Beszélgetés a vezérigazgatóval
 
-Nyiss egy issue-t az **Üzenet a vezérigazgatónak** sablonnal (a vezérlőteremben is van rá gomb), vagy tedd rá egy issue-ra a `ceo` címkét. A vezérigazgató agent pár percen belül hozzászólásban válaszol, és minden új hozzászólásodra újra.
+A vezérlőteremben a **Chat a vezérigazgatóval** gomb jobb oldalt megnyit egy chatablakot. Íráshoz egyszer össze kell kapcsolni egy saját, finomhangolt GitHub tokennel (csak ez a repó, Issues: Read and write); a token csak a böngésződben tárolódik. Az üzenetek egy `ceo` címkés issue-ba kerülnek, a válasz pár percen belül megjelenik az ablakban. Az **ÚJ** gomb új beszélgetést kezd.
+
+A GitHubon is írhatsz: nyiss egy issue-t az **Üzenet a vezérigazgatónak** sablonnal, vagy tedd rá egy issue-ra a `ceo` címkét. A vezérigazgató agent pár percen belül hozzászólásban válaszol, és minden új hozzászólásodra újra.
 
 - Kérdezheted a cég állapotáról: a feladattáblából és a dokumentumokból válaszol.
 - Adhatsz utasítást: konkrét munkát feladatként ad ki, az általános irányt a `docs/core/tulajdonosi-iranymutatas.md` fájlba írja, amit minden napi tervezés elolvas.
