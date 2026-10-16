@@ -229,6 +229,7 @@ button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:tra
 .tabs button{font-family:var(--f-display);font-size:15px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:transparent;color:var(--ink-3);border:0;border-bottom:2px solid transparent;padding:8px 16px;cursor:pointer}
 .tabs button:hover{color:var(--ink)}
 .tabs button[aria-selected="true"]{color:var(--holo);border-bottom-color:var(--holo);text-shadow:0 0 12px rgba(111,243,255,.5)}
+@media (max-width:600px){.tabs{overflow-x:auto;scrollbar-width:none}.tabs button{font-size:13px;padding:8px 9px;letter-spacing:.06em;white-space:nowrap}}
 .tabs button b{font-family:var(--f-mono);font-weight:400;font-size:11px;color:var(--amber);margin-left:6px}
 .view{display:flex;flex-direction:column;gap:18px;min-width:0}
 .view[hidden]{display:none}
@@ -314,6 +315,37 @@ button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:tra
 @media (max-width:600px){.dp-cols .tracks{grid-template-columns:minmax(0,1fr)}}
 .dept-open{margin-top:12px;font-family:var(--f-mono);font-size:12px;background:transparent;color:var(--holo);border:1px solid var(--holo);padding:7px 12px;cursor:pointer;width:100%}
 .dept-open:hover{background:rgba(111,243,255,.08)}
+/* Kész szoftverek */
+.rel-grid{display:flex;flex-direction:column;gap:14px}
+.rel{border:1px solid rgba(94,242,192,.45);background:linear-gradient(160deg,rgba(94,242,192,.07),rgba(4,16,28,.5));padding:16px 18px;display:flex;flex-direction:column;gap:10px;
+  clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px)}
+.rel .rh{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.rel h3{font-size:24px;font-weight:700;color:var(--ok);text-shadow:0 0 14px rgba(94,242,192,.4)}
+.rel .rh .label{margin-left:auto}
+.rel .dl{display:flex;gap:10px;flex-wrap:wrap}
+.btn.dlb{color:var(--void);background:var(--ok);border-color:var(--ok)}
+.btn.dlb small{font-family:var(--f-mono);font-weight:400;font-size:11px;margin-left:8px;opacity:.75;letter-spacing:0;text-transform:none}
+.rel details summary{cursor:pointer;font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;color:var(--holo)}
+.rel .doc{margin-top:10px}
+.rel-empty{border:1px dashed var(--holo-3);padding:22px;text-align:center;color:var(--ink-2);font-size:14px}
+.rel-empty b{display:block;font-family:var(--f-display);font-size:20px;color:var(--ink);margin-bottom:6px;letter-spacing:.04em}
+.pipes{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,520px),1fr));gap:14px}
+.pipe{border:1px solid var(--holo-3);padding:14px 16px;display:flex;flex-direction:column;gap:12px;background:rgba(6,22,38,.5)}
+.pipe .ph{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.pipe h3{font-size:20px;font-weight:700;color:var(--ink)}
+.pipe .pct{font-family:var(--f-display);font-size:22px;font-weight:700;color:var(--holo)}
+.pbar{height:6px;background:rgba(111,243,255,.1);position:relative;overflow:hidden}
+.pbar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--holo-2),var(--holo));box-shadow:0 0 12px var(--holo)}
+.stages{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+@media (max-width:600px){.stages{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.stg{padding:7px 6px;border-top:3px solid rgba(111,243,255,.12);font-size:11px;color:var(--ink-3);min-width:0}
+.stg b{display:block;font-family:var(--f-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stg span{font-family:var(--f-mono);font-size:10px}
+.stg.done{border-top-color:var(--ok);color:var(--ok)}
+.stg.active{border-top-color:var(--holo);color:var(--holo);box-shadow:0 -6px 14px -10px var(--holo)}
+.stg.active b{color:var(--ink)}
+.pipe .now2{font-size:13px;color:var(--ink-2)}
+.pipe .now2 b{color:var(--ink)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
 </head>
@@ -336,6 +368,7 @@ button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:tra
   <nav class="tabs" role="tablist" aria-label="Nézetek">
     <button type="button" role="tab" id="tab-main" aria-controls="view-main" aria-selected="true">Vezérlőterem</button>
     <button type="button" role="tab" id="tab-out" aria-controls="view-out" aria-selected="false">Eredmények <b id="out-count"></b></button>
+    <button type="button" role="tab" id="tab-rel" aria-controls="view-rel" aria-selected="false">Kész szoftverek <b id="rel-count"></b></button>
   </nav>
 
   <main class="view" id="view-main" role="tabpanel" aria-labelledby="tab-main">
@@ -403,6 +436,17 @@ button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:tra
         <div class="panel-b"><div class="doc" id="out-doc"><p class="out-empty">Bal oldalt látod, mit készített eddig a csapat: dokumentumokat, terveket és kódot. Kattints egyre, és itt elolvashatod.</p></div></div>
       </section>
     </div>
+  </section>
+
+  <section class="view" id="view-rel" role="tabpanel" aria-labelledby="tab-rel" hidden>
+    <section class="panel">
+      <div class="panel-h"><h2>Letölthető kiadások</h2><span class="label" id="rel-sum"></span></div>
+      <div class="panel-b"><div class="rel-grid" id="rel-list"><p class="empty">Betöltés…</p></div></div>
+    </section>
+    <section class="panel">
+      <div class="panel-h"><h2>Úton a kiadás felé</h2><span class="label">termékvonalak</span></div>
+      <div class="panel-b"><div class="pipes" id="pipes"></div></div>
+    </section>
   </section>
 
   <section class="view" id="view-dept" hidden aria-labelledby="dp-title">
@@ -743,15 +787,18 @@ async function openFile(p) {
 }
 $("out-filter").addEventListener("input", () => outFiles && renderOutList());
 function showTab(which) {
-  const out = which === "out";
-  $("view-main").hidden = out; $("view-out").hidden = !out; $("view-dept").hidden = true;
-  $("tab-main").setAttribute("aria-selected", String(!out)); $("tab-out").setAttribute("aria-selected", String(out));
-  if (out) { loadOut(); if (!location.hash.startsWith("#eredmenyek")) history.replaceState(null, "", "#eredmenyek"); }
+  const views = { main: "view-main", out: "view-out", rel: "view-rel" };
+  for (const [k, v] of Object.entries(views)) { $(v).hidden = k !== which; $(`tab-${k}`).setAttribute("aria-selected", String(k === which)); }
+  $("view-dept").hidden = true;
+  if (which === "out") { loadOut(); if (!location.hash.startsWith("#eredmenyek")) history.replaceState(null, "", "#eredmenyek"); }
+  else if (which === "rel") { loadReleases(); history.replaceState(null, "", "#kesz-szoftverek"); }
   else { history.replaceState(null, "", location.pathname + location.search); dispatchEvent(new Event("resize")); }
 }
 $("tab-main").onclick = () => showTab("main");
 $("tab-out").onclick = () => showTab("out");
+$("tab-rel").onclick = () => showTab("rel");
 if (location.hash.startsWith("#eredmenyek")) showTab("out");
+if (location.hash === "#kesz-szoftverek") setTimeout(() => showTab("rel"));
 
 // ── Részleg lap: minden agent, ki min dolgozik, a részleg feladatai és naplója ──
 const monthSpent = (roleId) => S.ledger.filter((e) => e.role === roleId && e.at.startsWith(month)).reduce((a, e) => a + e.usd, 0);
@@ -779,8 +826,8 @@ for (const d of org.departments) { const b = el("button", null, d.name); b.type 
 function openDept(id) {
   const d = depBy[id]; if (!d) return;
   dpCur = id;
-  $("view-main").hidden = true; $("view-out").hidden = true; $("view-dept").hidden = false;
-  $("tab-main").setAttribute("aria-selected", "false"); $("tab-out").setAttribute("aria-selected", "false");
+  for (const k of ["main", "out", "rel"]) { $(`view-${k}`).hidden = true; $(`tab-${k}`).setAttribute("aria-selected", "false"); }
+  $("view-dept").hidden = false;
   history.replaceState(null, "", `#reszleg/${id}`);
   [...$("dp-nav").children].forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.id === id)));
   const roles = org.roles.filter((r) => r.department === id).sort((a, b) => (a.id === d.lead ? -1 : b.id === d.lead ? 1 : 0) || ["lead", "worker", "bulk"].indexOf(a.tier) - ["lead", "worker", "bulk"].indexOf(b.tier));
@@ -847,6 +894,89 @@ function openDept(id) {
 $("dp-back").onclick = () => showTab("main");
 $("dopen").onclick = () => openDept(sel);
 { const m = location.hash.match(/^#reszleg\/(\w+)/); if (m && depBy[m[1]]) openDept(m[1]); }
+
+// ── Kész szoftverek: GitHub Release-ek és a termékvonalak útja a kiadásig ──
+const PRODUCT_LINES = [
+  { id: "erp", name: "Alicya ERP", sub: "Dobozos ERP KKV-knak · első kiadás: Számla + Készlet Start", match: null },
+  { id: "praxis", name: "Alicya Praxis", sub: "Praxiskezelő magánrendelőknek", match: /praxis|rendel[őo]|eeszt/i },
+];
+const lineOf = (text) => (PRODUCT_LINES[1].match.test(text) ? "praxis" : "erp");
+const STAGES = [
+  ["research", "Piackutatás", ["market-researcher", "pricing-analyst"]],
+  ["spec", "Specifikáció", ["product-manager", "ux-designer", "legal", "privacy-officer", "privacy-hu", "privacy-pl", "privacy-cz"]],
+  ["arch", "Architektúra", ["architect", "tech-lead"]],
+  ["build", "Fejlesztés", ["backend-invoicing", "backend-inventory", "backend-accounting", "backend-hr", "integration-dev", "api-dev", "db-engineer", "frontend-core", "frontend-reports", "code-reviewer", "appsec"]],
+  ["test", "Tesztelés", ["qa-lead", "test-automation", "acceptance-tester", "performance-tester", "pentest-planner"]],
+  ["package", "Dobozolás", ["devops", "tech-writer", "supply-chain"]],
+  ["release", "Kiadás", ["release-manager", "ciso"]],
+];
+function renderPipes() {
+  const box = $("pipes"); box.innerHTML = "";
+  for (const line of PRODUCT_LINES) {
+    const ts = S.tasks.filter((t) => lineOf(`${t.title} ${t.description}`) === line.id);
+    const gates = S.gates.filter((g) => lineOf(`${g.title} ${g.summary}`) === line.id);
+    const card = el("article", "pipe");
+    const done = ts.filter((t) => t.status === "done").length;
+    const pct = ts.length ? Math.round((done / ts.length) * 100) : 0;
+    const ph = el("div", "ph"); const nm = el("div"); nm.append(el("h3", null, line.name), el("span", "label", line.sub));
+    ph.append(nm, el("span", "pct", `${pct}%`)); card.append(ph);
+    const bar = el("div", "pbar"); const fill = el("i"); fill.style.width = `${pct}%`; bar.append(fill); card.append(bar);
+    const st = el("div", "stages"); const stg = [];
+    for (const [id, label, roles] of STAGES) {
+      const list = ts.filter((t) => roles.includes(t.assignee) && t.kind !== "review");
+      const gateOk = gates.some((g) => g.kind === (id === "spec" ? "spec" : id === "release" ? "release" : "") && g.status === "approved");
+      const open = list.filter((t) => t.status !== "done").length;
+      // A kiadás csak a tulajdonos jóváhagyásával kész, a feladatok önmagukban nem elegek hozzá.
+      const cls = gateOk || (id !== "release" && list.length && !open) ? "done" : open ? "active" : "";
+      stg.push([label, cls]);
+      const c = el("div", "stg " + cls); c.append(el("b", null, label), el("span", null, list.length ? `${list.length - open}/${list.length}` : "–"));
+      c.title = list.map((t) => `${t.id} ${ST[t.status]} · ${t.title}`).join("\n");
+      st.append(c);
+    }
+    card.append(st);
+    // Ahol most tart: az utolsó kész szakasz utáni első aktív szakasz.
+    const lastDone = stg.map((x) => x[1]).lastIndexOf("done");
+    const current = (stg.find((x, i) => i > lastDone && x[1] === "active") || stg.find((x) => x[1] === "active") || [])[0] || null;
+    const rel = gates.filter((g) => g.kind === "release" && g.releaseTag).length;
+    const now = el("p", "now2");
+    now.append(rel ? `${rel} kiadott verzió. ` : "Még nincs kiadott verzió. ", current ? "Most itt tart: " : "", current ? el("b", null, current) : "", current ? ` · ${ts.filter((t) => t.status !== "done").length} nyitott feladat` : "");
+    card.append(now);
+    box.append(card);
+  }
+}
+let relLoaded = false;
+async function loadReleases() {
+  if (relLoaded) return; relLoaded = true;
+  renderPipes();
+  const list = $("rel-list");
+  let rels = null;
+  if (M.repo) { try { const r = await fetch(`https://api.github.com/repos/${M.repo}/releases?per_page=30`, { cache: "no-store" }); if (r.ok) rels = await r.json(); } catch {} }
+  list.innerHTML = "";
+  if (!rels) { list.append(el("p", "empty", "Most nem érem el a GitHubot. Próbáld újra kicsit később.")); return; }
+  rels = rels.filter((r) => !r.draft);
+  $("rel-sum").textContent = `${rels.length} kiadás`;
+  $("rel-count").textContent = rels.length ? String(rels.length) : "";
+  if (!rels.length) {
+    const e = el("div", "rel-empty"); e.append(el("b", null, "Még nincs kész szoftver"), "Amikor a csapat egy kiadásjelöltet a jóváhagyási panelre tesz és te jóváhagyod, itt jelenik meg letölthető csomagként: a termék kódja és telepítője, a kiadási jegyzet és a felhasználói dokumentáció.");
+    list.append(e); return;
+  }
+  for (const r of rels) {
+    const c = el("article", "rel");
+    const rh = el("div", "rh"); rh.append(el("h3", null, r.name || r.tag_name), el("span", "tag approved", r.prerelease ? "ELŐZETES" : "KIADVA"), el("span", "label", `${fmt(r.published_at || r.created_at)} · ${r.tag_name}`)); c.append(rh);
+    const dl = el("div", "dl");
+    for (const a of r.assets || []) { const b = el("a", "btn dlb", "⬇ Letöltés"); b.append(el("small", null, `${a.name} · ${(a.size / 1048576).toFixed(1)} MB`)); b.href = a.browser_download_url; dl.append(b); }
+    const gh = el("a", "btn ask", "GitHubon →"); gh.href = r.html_url; gh.target = "_blank"; gh.rel = "noopener"; dl.append(gh);
+    c.append(dl);
+    if (r.body) {
+      const det = el("details"); det.append(el("summary", null, "KIADÁSI JEGYZET ▾")); const doc = el("div", "doc"); det.append(doc);
+      det.addEventListener("toggle", async () => { if (det.open && !doc.childNodes.length) { const h = await mdRender(r.body); if (h != null) doc.innerHTML = h; else doc.append(el("pre", null, r.body)); } });
+      c.append(det);
+    }
+    list.append(c);
+  }
+}
+// Darabszám a fülön, a lap megnyitása nélkül is.
+if (M.repo) fetch(`https://api.github.com/repos/${M.repo}/releases?per_page=30`, { cache: "no-store" }).then((r) => (r.ok ? r.json() : [])).then((r) => { const n = r.filter((x) => !x.draft).length; if (n) $("rel-count").textContent = String(n); }).catch(() => {});
 
 // ── Holografikus HUD ──
 const cv = $("hud"), cx = cv.getContext("2d");

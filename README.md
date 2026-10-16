@@ -62,6 +62,10 @@ A legegyszerűbb a vezérlőterem **Jóváhagyási panelje**: minden döntésre 
 
 A kapu issue-ján is dönthetsz: `/jóváhagyom [megjegyzés]` vagy `/elutasítom <indoklás>` hozzászólással, illetve a `jóváhagyva` / `elutasítva` címkével vagy a lezárással. Mindegyiket azonnal rögzíti a rendszer; ha valami miatt elmaradna, a következő munkanap pótolja. Csak a repó tulajdonosának döntései számítanak.
 
+## Kész szoftverek
+
+Amikor a tulajdonos jóváhagy egy kiadási (`release`) kaput, a rendszer GitHub Release-t készít: a termék kódja, a kiadási jegyzet és a dokumentáció egy letölthető csomagban. A vezérlőterem **Kész szoftverek** fülén ezek letölthetők, alatta pedig termékvonalanként (ERP, Praxis) látszik, hol tart a munka a piackutatástól a kiadásig.
+
 ## Beállítás
 
 1. **API-kulcs:** Settings → Secrets and variables → Actions → New repository secret, név: `ANTHROPIC_API_KEY`. Kulcs nélkül a cég nem dolgozik, csak a táblát frissíti.

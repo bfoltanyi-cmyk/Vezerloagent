@@ -44,6 +44,8 @@ export interface Gate {
   createdAt: string;
   decidedAt?: string;
   decisionNote?: string;
+  /** A közzétett GitHub Release címkéje, ha a kiadási kapu már kiment. */
+  releaseTag?: string;
 }
 
 export interface CompanyEvent {
