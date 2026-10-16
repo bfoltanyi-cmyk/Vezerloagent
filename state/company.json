@@ -2,7 +2,7 @@
   "version": 1,
   "meta": {
     "runs": 13,
-    "nextTask": 28,
+    "nextTask": 34,
     "nextGate": 2,
     "lastRun": "2026-10-16T15:31:16.772Z"
   },
@@ -509,6 +509,104 @@
       "updatedAt": "2026-10-16T15:37:38.636Z",
       "notes": [],
       "reviewRound": 1
+    },
+    {
+      "id": "T-0028",
+      "title": "Piaci feltárás: praxiskezelő magánrendelőknek",
+      "description": "Új termékvonal: magánrendelőknek dobozos praxiskezelő szoftver (lásd docs/core/tulajdonosi-iranymutatas.md, 2026-10-16).\nKészíts piaci elemzést a docs/product/praxis/market.md fájlba: célszegmensek (1–10 orvosos magánrendelők, fogászat, szakrendelők, terápiás praxisok), Magyarország elsőként, PL/CZ kitekintés; a vásárló fő problémái (időpontkezelés, kartonozás, számlázás, EESZT-kötelezettségek); versenytárstípusok és jellemző árszintek; miért vennének dobozos, helyben telepíthető megoldást. Jelöld, mi ellenőrzött tény és mi feltételezés.",
+      "department": "product",
+      "assignee": "market-researcher",
+      "status": "todo",
+      "kind": "doc",
+      "priority": 1,
+      "dependsOn": [],
+      "createdBy": "ceo",
+      "createdAt": "2026-10-16T15:47:02.675Z",
+      "updatedAt": "2026-10-16T15:47:02.675Z",
+      "notes": []
+    },
+    {
+      "id": "T-0029",
+      "title": "Egészségügyi adatok: adatvédelmi követelmények a praxiskezelőhöz",
+      "description": "Új termékvonal: magánrendelőknek dobozos praxiskezelő szoftver (lásd docs/core/tulajdonosi-iranymutatas.md, 2026-10-16).\nA praxiskezelő különleges kategóriájú egészségügyi adatot kezel (GDPR 9. cikk). Írd le a docs/security/praxis-adatvedelem.md fájlba a szoftverre vonatkozó követelményeket: jogalap, hozzáférés-kezelés szerepkörönként (orvos, asszisztens, recepció), naplózás, titkosítás, mentés, megőrzési idők (HU egészségügyi dokumentáció), érintetti jogok korlátai, adatfeldolgozói szerep, DPIA szükségessége. A magyar részhez vond be a privacy-hu szerepet feladattal; PL/CZ csak kitekintés. A ⚠ jogi pontokat jelöld jogi ellenőrzésre.",
+      "department": "security",
+      "assignee": "privacy-officer",
+      "status": "todo",
+      "kind": "doc",
+      "priority": 1,
+      "dependsOn": [],
+      "createdBy": "ceo",
+      "createdAt": "2026-10-16T15:47:02.676Z",
+      "updatedAt": "2026-10-16T15:47:02.676Z",
+      "notes": []
+    },
+    {
+      "id": "T-0030",
+      "title": "Jogi keretek: EESZT-csatlakozás és orvostechnikai besorolás",
+      "description": "Új termékvonal: magánrendelőknek dobozos praxiskezelő szoftver (lásd docs/core/tulajdonosi-iranymutatas.md, 2026-10-16).\nFoglald össze a docs/legal/praxis.md fájlba: mi kell ahhoz, hogy a szoftver EESZT-hez csatlakozhasson (feltételek, tanúsítás, folyamat), és mikor számítana orvostechnikai eszköznek (MDR) – mit kell elkerülnünk az első változatban, hogy ne legyen az. Jelöld, mit kell külső jogásznak ellenőriznie.",
+      "department": "finance",
+      "assignee": "legal",
+      "status": "todo",
+      "kind": "doc",
+      "priority": 2,
+      "dependsOn": [],
+      "createdBy": "ceo",
+      "createdAt": "2026-10-16T15:47:02.676Z",
+      "updatedAt": "2026-10-16T15:47:02.676Z",
+      "notes": []
+    },
+    {
+      "id": "T-0031",
+      "title": "PRD: praxiskezelő első termékszelet",
+      "description": "Új termékvonal: magánrendelőknek dobozos praxiskezelő szoftver (lásd docs/core/tulajdonosi-iranymutatas.md, 2026-10-16).\nA piaci elemzés és az adatvédelmi követelmények alapján írd meg a docs/product/praxis/prd.md fájlt: célszegmens, personák, első szelet moduljai M/S/C prioritással (javaslat: időpontfoglalás és naptár, betegkartoték, ambuláns lap/vizitdokumentáció, számlázás a meglévő Számla modulra építve, alap riportok; EESZT-funkciók a jogi feltárás után), elfogadási feltételek, nem-célok, licenc- és csomagjavaslat. Ahol lehet, a közös platformra építs (törzsadat, számlázás, jogosultság, audit), ne kétszer fejlesszük. A végén kérj spec-jóváhagyást (request_approval).",
+      "department": "product",
+      "assignee": "product-manager",
+      "status": "todo",
+      "kind": "plan",
+      "priority": 1,
+      "dependsOn": [
+        "T-0028",
+        "T-0029"
+      ],
+      "createdBy": "ceo",
+      "createdAt": "2026-10-16T15:47:02.676Z",
+      "updatedAt": "2026-10-16T15:47:02.676Z",
+      "notes": []
+    },
+    {
+      "id": "T-0032",
+      "title": "Árazási javaslat: praxiskezelő",
+      "description": "Új termékvonal: magánrendelőknek dobozos praxiskezelő szoftver (lásd docs/core/tulajdonosi-iranymutatas.md, 2026-10-16).\nA piaci elemzés alapján készíts árazási javaslatot a docs/sales/praxis-arazas.md fájlba: csomagok (pl. egyorvosos, rendelő), örökös licenc + éves támogatás vs. bérlet, bevezetési kedvezmény. Ez javaslat, végleges árat a tulajdonos hagy jóvá.",
+      "department": "sales",
+      "assignee": "pricing-analyst",
+      "status": "todo",
+      "kind": "doc",
+      "priority": 2,
+      "dependsOn": [
+        "T-0028"
+      ],
+      "createdBy": "ceo",
+      "createdAt": "2026-10-16T15:47:02.676Z",
+      "updatedAt": "2026-10-16T15:47:02.676Z",
+      "notes": []
+    },
+    {
+      "id": "T-0033",
+      "title": "Közös platform két termékre: ERP és praxiskezelő",
+      "description": "Új termékvonal: magánrendelőknek dobozos praxiskezelő szoftver (lásd docs/core/tulajdonosi-iranymutatas.md, 2026-10-16).\nA PRD jóváhagyása után egészítsd ki a docs/dev/architecture.md-t: mely részek közösek az ERP-vel (törzsadat, számlázás, jogosultság, audit, telepítő, mentés), mi a praxiskezelő saját modulja, és hogyan kezeljük a különleges egészségügyi adatokat (elkülönített tárolás, titkosítás). Rövid ADR-ben rögzítsd.",
+      "department": "dev",
+      "assignee": "architect",
+      "status": "todo",
+      "kind": "code",
+      "priority": 2,
+      "dependsOn": [
+        "T-0031",
+        "T-0030"
+      ],
+      "createdBy": "ceo",
+      "createdAt": "2026-10-16T15:47:02.676Z",
+      "updatedAt": "2026-10-16T15:47:02.676Z",
+      "notes": []
     }
   ],
   "gates": [
@@ -988,6 +1086,55 @@
       "department": "system",
       "kind": "warn",
       "text": "Hiba T-0019 közben: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011Cg6AoV1fwnoHR632aw3nR\"}"
+    },
+    {
+      "at": "2026-10-16T15:47:02.675Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Új feladat T-0028 → Piackutató: Piaci feltárás: praxiskezelő magánrendelőknek"
+    },
+    {
+      "at": "2026-10-16T15:47:02.676Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Új feladat T-0029 → Adatvédelmi tisztviselő (DPO · EU): Egészségügyi adatok: adatvédelmi követelmények a praxiskezelőhöz"
+    },
+    {
+      "at": "2026-10-16T15:47:02.676Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Új feladat T-0030 → Jogi agent: Jogi keretek: EESZT-csatlakozás és orvostechnikai besorolás"
+    },
+    {
+      "at": "2026-10-16T15:47:02.676Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Új feladat T-0031 → Termékmenedzser: PRD: praxiskezelő első termékszelet"
+    },
+    {
+      "at": "2026-10-16T15:47:02.676Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Új feladat T-0032 → Árazási elemző: Árazási javaslat: praxiskezelő"
+    },
+    {
+      "at": "2026-10-16T15:47:02.676Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Új feladat T-0033 → Szoftverarchitekt: Közös platform két termékre: ERP és praxiskezelő"
+    },
+    {
+      "at": "2026-10-16T15:47:02.676Z",
+      "actor": "owner",
+      "department": "core",
+      "kind": "info",
+      "text": "Új termékvonal indult: praxiskezelő szoftver magánrendelőknek."
     }
   ],
   "ledger": [
