@@ -14,6 +14,7 @@ export const LABELS = {
   gate: { name: "kapu", color: "ffb347", description: "Alicya Nexus: a tulajdonos döntésére vár" },
   approved: { name: "jóváhagyva", color: "5ee6a8", description: "A tulajdonos jóváhagyta" },
   rejected: { name: "elutasítva", color: "e5534b", description: "A tulajdonos elutasította" },
+  ceo: { name: "ceo", color: "6ff3ff", description: "Alicya Nexus: beszélgetés a vezérigazgató agenttel" },
 } as const;
 
 const KIND_LABEL: Record<Gate["kind"], string> = {

@@ -59,6 +59,9 @@ const schemas = {
 
 type ToolName = keyof typeof schemas;
 
+/** A tulajdonossal folytatott beszélgetésben használható eszközök: nincs feladatlezárás és jóváhagyáskérés. */
+export const CHAT_TOOLS: readonly ToolName[] = ["privacy_lookup", "list_tasks", "read_task", "read_file", "list_files", "write_file", "create_task", "reassign_task"];
+
 const descriptions: Record<ToolName, string> = {
   privacy_lookup: `Adatvédelmi tudásbázis (GDPR és EU-s, magyar, lengyel, cseh szabályok) keresése. Témák: ${topicIds.join(", ")}. Személyes adatot érintő munka előtt használd.`,
   list_tasks: "A feladattábla listázása szűréssel.",
@@ -83,9 +86,12 @@ export interface ToolContext {
   /** Igaz, ha az aktuális feladat lezárult (kész, elakadt, jóváhagyásra vár, átvizsgálva). */
   finished: boolean;
   filesWritten: Set<string>;
+  /** Ha meg van adva, csak ezek az eszközök érhetők el (pl. beszélgetésben). */
+  allowed?: readonly ToolName[];
 }
 
-function allowedTools(role: Role, task: Task): ToolName[] {
+function allowedTools(role: Role, task: Task, allowed?: readonly ToolName[]): ToolName[] {
+  if (allowed) return allowed.filter((n) => n !== "reassign_task" || role.tier === "lead");
   const base: ToolName[] = ["privacy_lookup", "list_tasks", "read_task", "read_file", "list_files", "write_file", "create_task", "block_task"];
   if (task.kind === "review") base.push("submit_review");
   else base.push("complete_task", "request_approval");
@@ -93,8 +99,8 @@ function allowedTools(role: Role, task: Task): ToolName[] {
   return base;
 }
 
-export function toolDefinitions(role: Role, task: Task): Anthropic.Beta.BetaTool[] {
-  return allowedTools(role, task).map((name) => {
+export function toolDefinitions(role: Role, task: Task, allowed?: readonly ToolName[]): Anthropic.Beta.BetaTool[] {
+  return allowedTools(role, task, allowed).map((name) => {
     const { $schema: _ignored, ...input_schema } = z.toJSONSchema(schemas[name]) as Record<string, unknown>;
     return { name, description: descriptions[name], input_schema: input_schema as Anthropic.Beta.BetaTool.InputSchema };
   });
@@ -105,7 +111,7 @@ const fmtTask = (t: Task) =>
 
 /** Lefuttat egy eszközhívást. Hibánál a hibaüzenet visszakerül az agenthez. */
 export function runTool(ctx: ToolContext, name: string, rawInput: unknown): { content: string; isError: boolean } {
-  if (!(name in schemas) || !allowedTools(ctx.role, ctx.task).includes(name as ToolName)) {
+  if (!(name in schemas) || !allowedTools(ctx.role, ctx.task, ctx.allowed).includes(name as ToolName)) {
     return { content: `Ez az eszköz nem érhető el neked: ${name}`, isError: true };
   }
   const parsed = schemas[name as ToolName].safeParse(rawInput);

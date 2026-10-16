@@ -38,6 +38,15 @@ A cég célpiaca Magyarország, Lengyelország és Csehország, ezért az adatbi
 - **Minden személyes adatot érintő kódváltozást** a DPO is átvizsgál.
 - **Ez munkasegédlet, nem jogi tanácsadás.** A ⚠ jelölésű pontokat kiadás előtt helyi jogásznak kell ellenőriznie, és a tudásbázist legalább félévente át kell nézni (`LAST_REVIEWED`). Módosítás után futtasd az `npm run build:privacy` parancsot.
 
+## Beszélgetés a vezérigazgatóval
+
+Nyiss egy issue-t az **Üzenet a vezérigazgatónak** sablonnal (a vezérlőteremben is van rá gomb), vagy tedd rá egy issue-ra a `ceo` címkét. A vezérigazgató agent pár percen belül hozzászólásban válaszol, és minden új hozzászólásodra újra.
+
+- Kérdezheted a cég állapotáról: a feladattáblából és a dokumentumokból válaszol.
+- Adhatsz utasítást: konkrét munkát feladatként ad ki, az általános irányt a `docs/core/tulajdonosi-iranymutatas.md` fájlba írja, amit minden napi tervezés elolvas.
+- Csak a repó tulajdonosának üzeneteire válaszol. Egy válasz legfeljebb 0,5 USD (`CHAT_BUDGET_USD` változóval állítható), és a havi keretbe számít.
+- Ha épp fut egy munkanap, a válasz megvárja a végét.
+
 ## Döntés egy kapuról
 
 Nyisd meg a `kapu` címkés issue-t:
