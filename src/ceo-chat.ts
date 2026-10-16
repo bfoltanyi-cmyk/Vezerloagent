@@ -10,7 +10,7 @@ import { systemPrompt } from "./agent.js";
 import { logEvent } from "./board.js";
 import { record, spentThisMonth } from "./budget.js";
 import { gitCheckpoint } from "./checkpoint.js";
-import { loadConfig, type Config } from "./config.js";
+import { loadConfig, modelFor, type Config } from "./config.js";
 import { realGh, type Gh } from "./gates.js";
 import { ClaudeClient, type ModelClient } from "./llm.js";
 import { loadState, saveState } from "./state.js";
@@ -107,8 +107,8 @@ export async function ceoReply(opts: { config: Config; client: ModelClient; issu
   let text = "";
 
   for (let turn = 0; turn < MAX_TURNS; turn++) {
-    const res = await client.create({ model: config.models[role.tier], effort: config.effort[role.tier], system, messages, tools });
-    usd += record(s, role.id, res.model ?? config.models[role.tier], res.usage).usd;
+    const res = await client.create({ model: modelFor(config, role), effort: config.effort[role.tier], system, messages, tools });
+    usd += record(s, role.id, res.model ?? modelFor(config, role), res.usage).usd;
     if (res.stop_reason === "refusal") {
       text = "Erre a kérésre nem tudok válaszolni. Fogalmazd meg másképp, vagy kérdezz mást.";
       break;
@@ -130,8 +130,8 @@ export async function ceoReply(opts: { config: Config; client: ModelClient; issu
           { type: "text" as const, text: "Ne hívj több eszközt; válaszolj most azzal, amit eddig tudsz." },
         ],
       });
-      const last = await client.create({ model: config.models[role.tier], effort: config.effort[role.tier], system, messages, tools });
-      usd += record(s, role.id, last.model ?? config.models[role.tier], last.usage).usd;
+      const last = await client.create({ model: modelFor(config, role), effort: config.effort[role.tier], system, messages, tools });
+      usd += record(s, role.id, last.model ?? modelFor(config, role), last.usage).usd;
       text = last.content.filter((b): b is Anthropic.Beta.BetaTextBlock => b.type === "text").map((b) => b.text).join("\n").trim();
       break;
     }

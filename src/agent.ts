@@ -3,7 +3,7 @@ import { departmentById, type Role } from "../company/org.js";
 import { playbookFor } from "../company/playbook.js";
 import { addNote, blockTask, boardSummary, logEvent } from "./board.js";
 import { record } from "./budget.js";
-import type { Config } from "./config.js";
+import { modelFor, type Config } from "./config.js";
 import type { ModelClient } from "./llm.js";
 import { runTool, toolDefinitions, type ToolContext } from "./tools.js";
 import type { CompanyState, Task } from "./types.js";
@@ -64,7 +64,7 @@ export async function runAgent(opts: {
   remainingUsd: () => number;
 }): Promise<AgentRun> {
   const { state, role, task, client, config } = opts;
-  const model = config.models[role.tier];
+  const model = modelFor(config, role);
   const ctx: ToolContext = {
     state,
     role,
@@ -79,6 +79,7 @@ export async function runAgent(opts: {
   const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: "user", content: taskPrompt(state, task) }];
   let usd = 0;
   let nudged = false;
+  let wrapUp = false;
   let turns = 0;
 
   task.status = "in_progress";
@@ -92,7 +93,7 @@ export async function runAgent(opts: {
     return { outcome, turns, usd, filesWritten: [...ctx.filesWritten] };
   };
 
-  while (turns < config.maxTurnsPerTask) {
+  while (turns < config.maxTurnsPerTask + (wrapUp ? 1 : 0)) {
     if (opts.remainingUsd() <= 0) return finish("budget");
     turns++;
     const res = await client.create({ model, effort: config.effort[role.tier], system, messages, tools });
@@ -119,6 +120,12 @@ export async function runAgent(opts: {
       const r = runTool(ctx, c.name, c.input);
       return { type: "tool_result", tool_use_id: c.id, content: r.content, is_error: r.isError };
     });
+    if (!wrapUp && usd >= config.taskBudgetUsd && !ctx.finished) {
+      // Feladatkeret: ne fusson el egy feladat a napi keretből, inkább zárja le, amit eddig elkészített.
+      wrapUp = true;
+      messages.push({ role: "user", content: [...results, { type: "text", text: "Elérted a feladatra szánt keretet. Ne olvass többet: mentsd, amit eddig elkészítettél, és zárd le a feladatot most (complete_task, vagy ha valami hiányzik, block_task a hátralévőkkel)." }] });
+      continue;
+    }
     messages.push({ role: "user", content: results });
     if (ctx.finished) break;
   }

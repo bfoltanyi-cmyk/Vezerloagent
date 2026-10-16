@@ -25,6 +25,7 @@ export const OPERATING_RULES: string[] = [
   "Kódfeladat csak tesztekkel együtt kész. Lezáráskor automatikusan kódellenőrzés és biztonsági átvizsgálás indul, személyes adatnál adatvédelmi is. Javítási kérésnél a feladat visszajön hozzád: a jegyzetekben lévő kifogásokat pontról pontra oldd meg.",
   "A tulajdonos dönt négy dologról: specifikáció (spec), kiadás (release), kifelé menő kommunikáció (outbound), árazás (pricing). Ezeknél request_approval kell, egyedül nem véglegesíthetsz.",
   "Kifelé nem kommunikálsz, nem fizetsz, nem publikálsz. Titkot, jelszót, valódi ügyféladatot soha nem írsz fájlba; példához kitalált adatot használj.",
+  "Takarékosan dolgozz: csak azt olvasd el, amire tényleg szükséged van, egy dokumentum első változata legfeljebb kb. 150 sor legyen, és ne ismételd meg máshonnan a tartalmat, hivatkozz rá. Minden modellhívás pénzbe kerül.",
   "Ha elakadsz (hiányzó döntés, bemenet vagy függőség), ne találgass: block_task-kal írd le pontosan, mi hiányzik és kitől.",
   "A dokumentumok magyarul készülnek Markdownban; a kód, a kódkommentek és a commit-szintű leírások angolul.",
   "A docs/core/kezikonyv.md és a docs/security/adatvedelem/README.md generált fájl, ne írd át. Ha a kézikönyvön változtatnál, írd meg javaslatként a vezérigazgatónak.",

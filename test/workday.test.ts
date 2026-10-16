@@ -110,9 +110,10 @@ describe("munkanap", () => {
     expect(gate.issueNumber).toBe(7);
     expect(ghCalls.some((a) => a[0] === "issue" && a[1] === "create")).toBe(true);
     expect(s.ledger.length).toBeGreaterThan(0);
-    // Vezető Opust, munkatárs Sonnetet kap.
+    // Csak a vezérigazgató és az architekt kap Opust, a többi vezető és munkatárs Sonnetet.
     expect(client.requests.find((q) => q.system.includes("(ceo)"))!.model).toBe("claude-opus-5-5");
     expect(client.requests.find((q) => q.system.includes("(market-researcher)"))!.model).toBe("claude-sonnet-5-5");
+    expect(client.requests.find((q) => q.system.includes("(product-manager)"))!.model).toBe("claude-sonnet-5-5");
   });
 
   it("munka közben menti az állapotot, hogy a vezérlőterem élőben lássa", async () => {
@@ -158,5 +159,33 @@ describe("munkanap", () => {
     const r = await workday({ config, client });
     expect(r.status).toBe("over-budget");
     expect(client.requests).toHaveLength(0);
+  });
+});
+
+describe("költségkorlát feladatonként", () => {
+  it("a keret elérésekor lezárásra szólítja az agentet, és az még lezárhatja", async () => {
+    const { runAgent } = await import("../src/agent.js");
+    const { roleById } = await import("../company/org.js");
+    const { createTask, emptyState } = await import("../src/board.js");
+    const { Workspace } = await import("../src/workspace.js");
+    const root = tmp();
+    const config = { ...loadConfig({ ANTHROPIC_API_KEY: "x", TASK_BUDGET_USD: "0.001" }, root) };
+    const s = emptyState();
+    const task = createTask(s, { title: "Hosszú elemzés", description: "Valami hosszú munka, sok olvasással.", department: "product", assignee: "market-researcher" }, "system");
+    const prompts: string[] = [];
+    let n = 0;
+    const client: ModelClient = {
+      async create(req) {
+        n++;
+        const last = req.messages.at(-1)!.content;
+        prompts.push(JSON.stringify(last));
+        if (prompts.at(-1)!.includes("feladatra szánt keretet")) return msg([call("complete_task", { summary: "Részeredmény mentve, lezárva." })]);
+        return msg([call("list_tasks", {})]);
+      },
+    };
+    const run = await runAgent({ state: s, role: roleById("market-researcher")!, task, client, config, workspace: new Workspace(root), createdThisRun: { count: 0 }, remainingUsd: () => 10 });
+    expect(run.outcome).toBe("finished");
+    expect(n).toBe(2);
+    expect(task.status).toBe("done");
   });
 });
