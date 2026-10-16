@@ -78,7 +78,7 @@ async function work(s: CompanyState, config: Config, client: ModelClient, startI
     createTask(s, {
       title: `Napi tervezés (${startIso.slice(0, 10)})`,
       description:
-        "Nézd át a feladattáblát. Oldd fel az elakadt feladatokat (átadás vagy pontosítás), és ha egy részlegnek nincs érdemi munkája, hozz létre neki a termék útvonalához illő, jól körülhatárolt feladatot. A fejlesztés legyen a fókusz, a biztonság minden kódmunkát kísérjen. Ne duplikálj meglévő feladatot. A végén zárd le complete_task-kal egy rövid tervvel.",
+        "Ha van docs/core/tulajdonosi-iranymutatas.md, olvasd el először: ezek a tulajdonos utasításai, ezeket kövesd. Nézd át a feladattáblát. Oldd fel az elakadt feladatokat (átadás vagy pontosítás), és ha egy részlegnek nincs érdemi munkája, hozz létre neki a termék útvonalához illő, jól körülhatárolt feladatot. A fejlesztés legyen a fókusz, a biztonság minden kódmunkát kísérjen. Ne duplikálj meglévő feladatot. A végén zárd le complete_task-kal egy rövid tervvel.",
       department: "core",
       assignee: "ceo",
       kind: "plan",

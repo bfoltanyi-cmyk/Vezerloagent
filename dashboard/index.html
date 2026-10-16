@@ -54,6 +54,8 @@ p{margin:0}
 .chip b{color:var(--holo);font-weight:400}
 .chip.state{border-color:var(--ok);color:var(--ok)}
 .chip.state.off{border-color:var(--amber);color:var(--amber)}
+.chip.talk{color:var(--holo);text-decoration:none;border-color:var(--holo)}
+.chip.talk:hover{background:rgba(111,243,255,.08)}
 .chip.state.busy{border-color:var(--holo);color:var(--holo)}
 .chip.state::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 10px currentColor;margin-right:8px;animation:blink 1.4s infinite}
 @keyframes blink{50%{opacity:.3}}
@@ -161,6 +163,7 @@ footer{font-family:var(--f-mono);font-size:11px;color:var(--ink-3);border-top:1p
       <span class="chip state" id="state">BETÖLTÉS</span>
       <span class="chip">Munkanap <b id="runs">–</b></span>
       <span class="chip">Utolsó futás <b id="last">–</b></span>
+      <a class="chip talk" id="talk" hidden target="_blank" rel="noopener">Üzenet a vezérigazgatónak →</a>
       <span class="chip"><b id="clock">--:--:--</b></span>
     </div>
   </header>
@@ -261,6 +264,7 @@ const working = Boolean(S.meta.running && Date.now() - Date.parse(S.meta.running
 const standby = !working && Boolean(lastEvt && /API_KEY|API-kulcs/.test(lastEvt.text));
 
 // Felső sáv
+if (M.repoUrl) { $("talk").href = `${M.repoUrl}/issues/new?template=ceo.md`; $("talk").hidden = false; }
 $("runs").textContent = S.meta.runs;
 $("last").textContent = fmt(S.meta.lastRun);
 $("state").textContent = working ? "DOLGOZIK" : standby ? "KÉSZENLÉT" : "ONLINE";
