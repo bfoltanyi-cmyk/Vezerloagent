@@ -49,7 +49,9 @@ Típus: ${task.kind} · Prioritás: P${task.priority}${task.reviewOf ? ` · Átv
 
 ${task.description}
 ${notes ? `\nKorábbi jegyzetek:\n${notes}\n` : ""}
-A cég állapota: ${summary.todo} teendő, ${summary.review} átvizsgálás alatt, ${summary.awaiting_approval} jóváhagyásra vár, ${summary.blocked} elakadt, ${summary.done} kész.`;
+A cég állapota: ${summary.todo} teendő, ${summary.review} átvizsgálás alatt, ${summary.awaiting_approval} jóváhagyásra vár, ${summary.blocked} elakadt, ${summary.done} kész.${
+    s.meta.disabledDepartments?.length ? `\nKikapcsolt részlegek (nem dolgoznak, ne adj nekik feladatot, ne várj rájuk): ${s.meta.disabledDepartments.join(", ")}.` : ""
+  }`;
 }
 
 export async function runAgent(opts: {

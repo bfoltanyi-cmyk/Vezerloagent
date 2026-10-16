@@ -4,7 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { createTask, emptyState, getTask, requestGate } from "../src/board.js";
 import { GUIDANCE_FILE } from "../src/ceo-chat.js";
-import { applyDecision, decisionBody, parseCommand, parseDecisionIssue, sweepDecisionIssues } from "../src/decide.js";
+import { applyDecision, decisionBody, parseCommand, parseDecisionIssue, parseDepartmentToggle, sweepDecisionIssues } from "../src/decide.js";
 
 const t0 = new Date("2026-10-16T08:00:00Z");
 
@@ -65,4 +65,14 @@ describe("döntés a vezérlőteremből", () => {
     expect(calls.some((c) => c[1] === "close" && c[2] === "9")).toBe(true);
     expect(calls.some((c) => c[2] === "10")).toBe(false);
   });
+
+  it("a vezérlőterem részlegkapcsolóját is feldolgozza", () => {
+    const { root, s } = setup();
+    expect(parseDepartmentToggle("<!-- alicya-reszleg security off -->")).toEqual({ department: "security", enabled: false });
+    const gh = (a: string[]) => (a[1] === "list" ? JSON.stringify([{ number: 11, body: "<!-- alicya-reszleg security off -->" }]) : "");
+    const out = sweepDecisionIssues(s, root, gh, "folti");
+    expect(s.meta.disabledDepartments).toEqual(["security"]);
+    expect(out[0]).toMatch(/kikapcsolva/);
+  });
 });
+

@@ -8,7 +8,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { decideGate, logEvent } from "./board.js";
+import { decideGate, logEvent, setDepartmentEnabled } from "./board.js";
 import { gitCheckpoint } from "./checkpoint.js";
 import { GUIDANCE_FILE } from "./ceo-chat.js";
 import { loadConfig } from "./config.js";
@@ -41,6 +41,12 @@ export function parseDecisionIssue(body: string): ParsedDecision | null {
   if (!m) return null;
   const note = body.replace(/<!--[\s\S]*?-->/g, "").trim();
   return { gateId: m[1]!, decision: m[2] as Decision, note };
+}
+
+/** Részlegkapcsoló issue a vezérlőteremből: <!-- alicya-reszleg security off --> */
+export function parseDepartmentToggle(body: string): { department: string; enabled: boolean } | null {
+  const m = /<!--\s*alicya-reszleg\s+([a-z]+)\s+(on|off)\s*-->/.exec(body ?? "");
+  return m ? { department: m[1]!, enabled: m[2] === "on" } : null;
 }
 
 /** Hozzászólás a kapu issue-ján: "/jóváhagyom [megjegyzés]" vagy "/elutasítom <indoklás>". */
@@ -109,6 +115,19 @@ export function sweepDecisionIssues(s: CompanyState, root: string, gh: Gh, owner
   const list = JSON.parse(gh(["issue", "list", "--state", "open", "--author", owner, "--limit", "100", "--json", "number,body"])) as { number: number; body: string }[];
   const out: string[] = [];
   for (const i of list) {
+    const dep = parseDepartmentToggle(i.body);
+    if (dep) {
+      let msg: string;
+      try {
+        const changed = setDepartmentEnabled(s, dep.department, dep.enabled);
+        msg = changed ? `Rögzítettem: a(z) ${dep.department} részleg ${dep.enabled ? "bekapcsolva, a következő munkanaptól újra dolgozik" : "kikapcsolva, nem kap munkát és nem tartja fel a többieket"}.` : `A(z) ${dep.department} részleg már ${dep.enabled ? "be" : "ki"} volt kapcsolva.`;
+      } catch (e) {
+        msg = e instanceof Error ? e.message : String(e);
+      }
+      gh(["issue", "close", String(i.number), "--reason", "completed", "--comment", msg]);
+      out.push(msg);
+      continue;
+    }
     const d = parseDecisionIssue(i.body);
     if (!d) continue;
     const r = applyDecision(s, root, gh, d, `a vezérlőteremből, #${i.number}`);
@@ -136,7 +155,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   const n = Number(process.env.ISSUE_NUMBER);
   const comment = process.env.COMMENT_BODY;
   const s = loadState(root);
-  const before = JSON.stringify(s.gates);
+  const before = JSON.stringify([s.gates, s.meta.disabledDepartments]);
   const issue = readIssueInfo(gh, n);
   const done: string[] = [];
 
@@ -161,7 +180,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   // A vezérlőterem gombjaival nyitott döntések, a mostani és az esetleg elmaradtak is.
   done.push(...sweepDecisionIssues(s, root, gh, process.env.GITHUB_REPOSITORY_OWNER ?? ""));
 
-  if (JSON.stringify(s.gates) !== before) {
+  if (JSON.stringify([s.gates, s.meta.disabledDepartments]) !== before) {
     saveState(root, s);
     if (process.env.ALICYA_CHECKPOINT === "1") gitCheckpoint(root, process.env.WORK_BRANCH || "alicya/munka")(`Tulajdonosi döntés (issue #${n})`);
     if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, "changed=true\n");

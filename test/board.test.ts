@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { completeTask, createTask, decideGate, emptyState, getTask, requestGate, runnableTasks, seedBacklog, submitReview } from "../src/board.js";
+import { completeTask, createTask, decideGate, emptyState, getTask, requestGate, runnableTasks, seedBacklog, setDepartmentEnabled, submitReview } from "../src/board.js";
 
 const t0 = new Date("2026-10-13T08:00:00Z");
 const later = (min: number) => new Date(t0.getTime() + min * 60_000);
@@ -64,3 +64,34 @@ describe("feladattábla", () => {
     expect(getTask(s, t.id).status).toBe("done");
   });
 });
+
+describe("kikapcsolható részleg", () => {
+  it("kikapcsolt Adatbiztonság nem kap munkát, és nem tartja fel a többieket", () => {
+    const s = emptyState();
+    const sec = createTask(s, { title: "Szabályzat", description: "Biztonsági szabályzat", department: "security", assignee: "ciso" }, "ceo", t0);
+    const dev = createTask(s, { title: "Számla API", description: "REST végpontok", department: "dev", assignee: "backend-invoicing", dependsOn: [sec.id] }, "architect", t0);
+    expect(runnableTasks(s, 10).map((t) => t.id)).not.toContain(dev.id);
+    // Egy korábbi kódfeladat már átvizsgálásra vár, a biztonsági átvizsgálóval együtt.
+    const old = createTask(s, { title: "Készlet API", description: "Raktár végpontok", department: "dev", assignee: "backend-inventory" }, "architect", t0);
+    completeTask(s, old.id, "backend-inventory", "Kész a készlet API.", later(1));
+    const cr = s.tasks.find((x) => x.reviewOf === old.id && x.assignee === "code-reviewer")!;
+    submitReview(s, cr.id, "code-reviewer", "approve", "Rendben.", later(2));
+    expect(getTask(s, old.id).status).toBe("review");
+
+    expect(setDepartmentEnabled(s, "security", false, later(3))).toBe(true);
+    expect(getTask(s, old.id).status).toBe("done");
+    const ids = runnableTasks(s, 10).map((t) => t.id);
+    expect(ids).not.toContain(sec.id);
+    expect(ids).toContain(dev.id); // már nem vár a kikapcsolt részleg feladatára
+    expect(s.tasks.filter((x) => x.department === "security" && x.status === "todo").every((x) => !ids.includes(x.id))).toBe(true);
+
+    const next = createTask(s, { title: "Partner API", description: "Partnerek", department: "dev", assignee: "api-dev" }, "architect", later(4));
+    completeTask(s, next.id, "api-dev", "Kész a partner API.", later(5));
+    expect(s.tasks.filter((x) => x.reviewOf === next.id).map((x) => x.assignee)).toEqual(["code-reviewer"]);
+
+    expect(setDepartmentEnabled(s, "security", true, later(6))).toBe(true);
+    expect(runnableTasks(s, 20).map((t) => t.id)).toContain(sec.id);
+    expect(() => setDepartmentEnabled(s, "core", false)).toThrow();
+  });
+});
+

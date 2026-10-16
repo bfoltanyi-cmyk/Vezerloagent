@@ -270,6 +270,20 @@ button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:tra
 .doc a{color:var(--holo)}
 .out-empty{color:var(--ink-3);font-family:var(--f-mono);font-size:12px;padding:30px 0;text-align:center}
 /* Részleg lap */
+.dept-nav button.off{text-decoration:line-through;opacity:.55}
+.dp-switch{display:inline-flex;align-items:center;gap:10px;margin-top:12px;font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;background:transparent;border:1px solid var(--holo-3);color:var(--ink);padding:7px 12px 7px 8px;cursor:pointer}
+.dp-switch[hidden]{display:none}
+.dp-switch:hover{border-color:var(--holo)}
+.dp-switch .tr{position:relative;width:38px;height:20px;border-radius:10px;background:rgba(95,115,130,.5);transition:background .2s}
+.dp-switch .tr::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:var(--ink);transition:transform .2s}
+.dp-switch[aria-checked="true"] .tr{background:var(--ok);box-shadow:0 0 12px -2px var(--ok)}
+.dp-switch[aria-checked="true"] .tr::after{transform:translateX(18px);background:var(--void)}
+.dp-switch[disabled]{opacity:.6;cursor:wait}
+.dp-off{margin-top:10px;border:1px solid rgba(95,115,130,.7);color:var(--ink-2);padding:8px 12px;font-size:13px;background:rgba(95,115,130,.1);max-width:70ch}
+.dp-off[hidden]{display:none}
+.agent.st-off{opacity:.5;filter:grayscale(.8)}
+.agent.st-off .st{color:var(--ink-3)}
+
 .dp-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
 .dp-back{font-family:var(--f-mono);font-size:12px;background:transparent;color:var(--holo);border:1px solid var(--holo-3);padding:6px 12px;cursor:pointer;margin-bottom:10px}
 .dp-back:hover{border-color:var(--holo)}
@@ -455,6 +469,8 @@ button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:tra
         <button type="button" class="dp-back" id="dp-back">← Vezérlőterem</button>
         <h2 class="dp-title" id="dp-title">–</h2>
         <p class="dp-purpose" id="dp-purpose"></p>
+        <button type="button" class="dp-switch" id="dp-switch" role="switch" aria-checked="true" hidden><span class="tr"></span><span id="dp-switch-l">BEKAPCSOLVA</span></button>
+        <p class="dp-off" id="dp-off" hidden></p>
       </div>
       <div class="dp-nums" id="dp-nums"></div>
     </div>
@@ -511,6 +527,8 @@ const report = (isLive && state.meta.lastRun && (await live(`state/reports/${sta
 if (!org) { $("state").textContent = "NINCS ADAT"; $("state").classList.add("off"); $("voice").textContent = "Még nincs adat. Az első munkanap után itt jelenik meg a cég."; return; }
 const S = state || { tasks: [], gates: [], events: [], ledger: [], meta: { runs: 0 } };
 const roleBy = Object.fromEntries(org.roles.map((r) => [r.id, r]));
+// A tulajdonos által kikapcsolt részlegek: nem dolgoznak, a vezérlőteremben szürkén látszanak.
+const disabled = new Set((S.meta && S.meta.disabledDepartments) || []);
 const depBy = Object.fromEntries(org.departments.map((d) => [d.id, d]));
 const ST = { todo: "Teendő", in_progress: "Folyamatban", review: "Átvizsgálás", awaiting_approval: "Rád vár", blocked: "Elakadt", done: "Kész" };
 const fmt = (iso) => iso ? new Date(iso).toLocaleString("hu-HU", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : "–";
@@ -806,7 +824,7 @@ const initials = (name) => name.replace(/\(.*?\)|·.*$/g, "").trim().split(/\s+/
 const ago2 = (iso) => { if (!iso) return "–"; const m = (Date.now() - Date.parse(iso)) / 60e3; return m < 60 ? `${Math.max(1, Math.round(m))} perce` : m < 1440 ? `${Math.round(m / 60)} órája` : `${Math.round(m / 1440)} napja`; };
 const STATE = {
   busy: ["DOLGOZIK", "Most ezen dolgozik"], wait: ["RÁD VÁR", "Jóváhagyásra vár"], blocked: ["ELAKADT", "Elakadt ennél"],
-  review: ["ÁTVIZSGÁL", "Átvizsgálja"], queue: ["SORBAN", "Következő feladata"], idle: ["SZABAD", ""],
+  review: ["ÁTVIZSGÁL", "Átvizsgálja"], queue: ["SORBAN", "Következő feladata"], idle: ["SZABAD", ""], off: ["KIKAPCSOLVA", "Félretéve, amíg a részleg ki van kapcsolva"],
 };
 function agentState(r) {
   const mine = S.tasks.filter((t) => t.assignee === r.id && t.status !== "done");
@@ -834,6 +852,7 @@ function openDept(id) {
   const ids = new Set(roles.map((r) => r.id));
   const tasks = S.tasks.filter((t) => t.department === id || ids.has(t.assignee));
   $("dp-title").textContent = d.name; $("dp-purpose").textContent = d.purpose;
+  renderSwitch(id);
   const states = roles.map((r) => [r, ...agentState(r)]);
   const n = (k) => states.filter((x) => x[1] === k).length;
   const spentD = roles.reduce((a, r) => a + monthSpent(r.id), 0);
@@ -846,7 +865,7 @@ function openDept(id) {
   const order = { busy: 0, wait: 1, blocked: 2, review: 3, queue: 4, idle: 5 };
   states.sort((a, b) => (a[0].id === d.lead ? -1 : b[0].id === d.lead ? 1 : order[a[1]] - order[b[1]]));
   for (const [r, st, cur, mine] of states) {
-    const shownSt = st === "busy" && !working ? "queue" : st; // munkanapon kívül a félbehagyott munka sorban vár
+    const shownSt = disabled.has(id) ? "off" : st === "busy" && !working ? "queue" : st; // munkanapon kívül a félbehagyott munka sorban vár
     const card = el("article", "agent st-" + (shownSt === "review" ? "queue" : shownSt));
     const ah = el("div", "ah"); const an = el("div", "an");
     an.append(el("b", null, r.name), el("small", null, (r.id === d.lead ? "RÉSZLEGVEZETŐ · " : "") + (r.tier === "lead" ? "VEZETŐ" : r.tier === "worker" ? "MUNKATÁRS" : "TÖMEG")));
@@ -891,6 +910,44 @@ function openDept(id) {
   }
   scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
 }
+// Részleg ki/be: a kérés egy GitHub issue, amit a "Döntés" munkafolyamat pár percen belül rögzít.
+// Ha a chathez már összekapcsoltad a GitHubot, egy kattintás; különben a GitHubon kell elküldeni.
+const swKey = (id) => `alicya-reszleg-${id}`;
+const lsGet = (k) => { try { return localStorage.getItem(k) || ""; } catch { return ""; } };
+const lsSet = (k, v) => { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch {} };
+function renderSwitch(id) {
+  const sw = $("dp-switch"), off = $("dp-off");
+  sw.hidden = id === "core" || !M.repo;
+  const on = !disabled.has(id);
+  const [want, at] = lsGet(swKey(id)).split("|");
+  const pending = Boolean(want) && Date.now() - Number(at) < 20 * 60e3 && (want === "on") !== on;
+  sw.setAttribute("aria-checked", String(pending ? want === "on" : on));
+  sw.disabled = pending;
+  $("dp-switch-l").textContent = pending ? (want === "on" ? "BEKAPCSOLÁS…" : "KIKAPCSOLÁS…") : on ? "BEKAPCSOLVA" : "KIKAPCSOLVA";
+  off.hidden = on && !pending;
+  off.textContent = pending
+    ? "A kérést elküldtem, pár percen belül érvénybe lép, és az oldal magától frissül."
+    : "Ez a részleg ki van kapcsolva: nem kap munkát, nem költ, és a többi részleg nem vár rá (az átvizsgálásai sem kellenek a lezáráshoz). Visszakapcsolva a következő munkanaptól újra dolgozik.";
+  sw.onclick = async () => {
+    const turnOn = !on;
+    const body = `<!-- alicya-reszleg ${id} ${turnOn ? "on" : "off"} -->\n<!-- Kattints a Create / Submit gombra; a rendszer pár percen belül rögzíti. -->\n`;
+    const title = `${depBy[id].name} részleg ${turnOn ? "bekapcsolása" : "kikapcsolása"}`;
+    const token = lsGet("alicya-gh-token");
+    if (token) {
+      sw.disabled = true;
+      try {
+        const r = await fetch(`https://api.github.com/repos/${M.repo}/issues`, { method: "POST", headers: { Accept: "application/vnd.github+json", Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify({ title, body }) });
+        if (!r.ok) throw new Error(String(r.status));
+        lsSet(swKey(id), `${turnOn ? "on" : "off"}|${Date.now()}`);
+        return renderSwitch(id);
+      } catch { sw.disabled = false; }
+    }
+    lsSet(swKey(id), `${turnOn ? "on" : "off"}|${Date.now()}`);
+    window.open(`${M.repoUrl}/issues/new?${new URLSearchParams({ title, body })}`, "_blank", "noopener");
+    renderSwitch(id);
+  };
+}
+for (const b of [...$("dp-nav").children, ...$("dnav").children]) if (disabled.has(b.dataset.id)) { b.classList.add("off"); b.title = "Kikapcsolva"; }
 $("dp-back").onclick = () => showTab("main");
 $("dopen").onclick = () => openDept(sel);
 { const m = location.hash.match(/^#reszleg\/(\w+)/); if (m && depBy[m[1]]) openDept(m[1]); }
@@ -980,7 +1037,7 @@ if (M.repo) fetch(`https://api.github.com/repos/${M.repo}/releases?per_page=30`,
 
 // ── Holografikus HUD ──
 const cv = $("hud"), cx = cv.getContext("2d");
-const C = { holo: "111,243,255", amber: "255,181,71", red: "255,93,108", ok: "94,242,192" };
+const C = { holo: "111,243,255", amber: "255,181,71", red: "255,93,108", ok: "94,242,192", off: "95,115,130" };
 const rgba = (c, a) => `rgba(${C[c]},${a})`;
 let W = 0, H = 0, X = 0, Y = 0, R = 0;
 function size() {
@@ -996,7 +1053,7 @@ const orbit = deps.filter((d) => d.id !== "core");
 const angleOf = (i) => -Math.PI / 2 + (i / orbit.length) * Math.PI * 2;
 const nodePos = (d) => { if (d.id === "core") return [X, Y]; const i = orbit.indexOf(d); const a = angleOf(i); return [X + Math.cos(a) * R * 0.7, Y + Math.sin(a) * R * 0.7]; };
 const depOpen = (id) => open.filter((t) => t.department === id);
-const depState = (id) => { const l = depOpen(id); return l.some((t) => t.status === "blocked") ? "red" : l.some((t) => t.status === "awaiting_approval") ? "amber" : "holo"; };
+const depState = (id) => { if (disabled.has(id)) return "off"; const l = depOpen(id); return l.some((t) => t.status === "blocked") ? "red" : l.some((t) => t.status === "awaiting_approval") ? "amber" : "holo"; };
 
 // Impulzusok a valódi eseményekből: a legutóbbi aktív részlegek felé
 const recent = S.events.slice(-30).map((e) => e.department).filter((d) => depBy[d] && d !== "core");

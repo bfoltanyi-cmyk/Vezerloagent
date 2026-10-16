@@ -70,6 +70,30 @@ export function createTask(s: CompanyState, input: NewTask, by: string, now = ne
   return t;
 }
 
+/** Ki van-e kapcsolva a részleg (a tulajdonos döntése). */
+export const isDisabled = (s: CompanyState, department: string) => (s.meta.disabledDepartments ?? []).includes(department);
+
+/**
+ * Részleg ki- vagy bekapcsolása. Kikapcsolt részleg nem kap munkát, az átvizsgálásai nem kellenek
+ * a lezáráshoz, és a tőle függő feladatok sem várnak rá.
+ */
+export function setDepartmentEnabled(s: CompanyState, department: string, enabled: boolean, now = new Date()): boolean {
+  const dep = DEPARTMENTS.find((d) => d.id === department);
+  if (!dep) throw new Error(`Ismeretlen részleg: ${department}`);
+  if (department === "core") throw new Error("Az Alicya Core nem kapcsolható ki.");
+  if (isDisabled(s, department) === !enabled) return false;
+  const list = new Set(s.meta.disabledDepartments ?? []);
+  if (enabled) list.delete(department);
+  else list.add(department);
+  s.meta.disabledDepartments = [...list];
+  logEvent(s, { actor: "owner", department: dep.id, kind: "info", text: `${dep.name} részleg ${enabled ? "bekapcsolva" : "kikapcsolva"}.` }, now);
+  if (!enabled) {
+    // A rá váró átvizsgálások már nem tartják fel a feladatokat.
+    for (const t of s.tasks) if (t.status === "review") settleReview(s, t.id, now);
+  }
+  return true;
+}
+
 export function addNote(t: Task, by: string, text: string, now = new Date()): void {
   t.notes.push({ at: iso(now), by, text });
   t.updatedAt = iso(now);
@@ -92,8 +116,14 @@ export function completeTask(s: CompanyState, id: string, by: string, summary: s
   if (t.kind === "code") {
     setStatus(t, "review", now);
     t.reviewRound = (t.reviewRound ?? 0) + 1;
-    const reviewers = ["code-reviewer", "appsec"];
-    if (touchesPersonalData(t, summary)) reviewers.push("privacy-officer");
+    const all = ["code-reviewer", "appsec"];
+    if (touchesPersonalData(t, summary)) all.push("privacy-officer");
+    const reviewers = all.filter((r) => !isDisabled(s, roleById(r)!.department));
+    if (reviewers.length === 0) {
+      setStatus(t, "done", now);
+      logEvent(s, { actor: by, department: t.department, kind: "info", text: `Kész: ${t.id} ${t.title}` }, now);
+      return t;
+    }
     for (const reviewer of reviewers) {
       const role = roleById(reviewer)!;
       const rt = createTask(
@@ -158,7 +188,8 @@ export function submitReview(
 function settleReview(s: CompanyState, targetId: string, now: Date): void {
   const target = getTask(s, targetId);
   if (target.status !== "review") return;
-  const latestRound = s.tasks.filter((x) => x.reviewOf === targetId && x.reviewRound === target.reviewRound);
+  // Kikapcsolt részleg átvizsgálása nem kell a lezáráshoz.
+  const latestRound = s.tasks.filter((x) => x.reviewOf === targetId && x.reviewRound === target.reviewRound && !isDisabled(s, x.department));
   if (latestRound.length > 0 && latestRound.every((x) => x.status === "done" && x.notes.some((n) => n.text.startsWith("Jóváhagyva")))) {
     setStatus(target, "done", now);
     logEvent(s, { actor: "system", department: target.department, kind: "info", text: `Kész és átvizsgálva: ${target.id} ${target.title}` }, now);
@@ -235,7 +266,12 @@ export function decideGate(
 }
 
 const isReady = (s: CompanyState, t: Task) =>
-  t.status === "todo" && t.dependsOn.every((d) => s.tasks.find((x) => x.id === d)?.status === "done");
+  t.status === "todo" &&
+  !isDisabled(s, t.department) &&
+  t.dependsOn.every((d) => {
+    const dep = s.tasks.find((x) => x.id === d);
+    return dep?.status === "done" || (dep !== undefined && isDisabled(s, dep.department));
+  });
 
 /** A következő elvégezhető feladatok: prioritás, majd életkor szerint. */
 export function runnableTasks(s: CompanyState, limit: number): Task[] {

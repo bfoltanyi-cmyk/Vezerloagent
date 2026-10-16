@@ -62,6 +62,10 @@ A legegyszerűbb a vezérlőterem **Jóváhagyási panelje**: minden döntésre 
 
 A kapu issue-ján is dönthetsz: `/jóváhagyom [megjegyzés]` vagy `/elutasítom <indoklás>` hozzászólással, illetve a `jóváhagyva` / `elutasítva` címkével vagy a lezárással. Mindegyiket azonnal rögzíti a rendszer; ha valami miatt elmaradna, a következő munkanap pótolja. Csak a repó tulajdonosának döntései számítanak.
 
+## Részleg ki- és bekapcsolása
+
+A részleg lapján (kattints a részleg ikonjára a körben) kapcsolóval ki- és bekapcsolhatod a részleget (az Alicya Core kivételével). Kikapcsolva a részleg nem kap munkát és nem költ, a többi részleg nem vár rá, és az átvizsgálásai sem kellenek a feladatok lezárásához. Ha a chathez már összekapcsoltad a GitHubot, egy kattintás; különben a GitHubon kell elküldeni a kitöltött kérést. A `Döntés` munkafolyamat pár percen belül rögzíti.
+
 ## Kész szoftverek
 
 Amikor a tulajdonos jóváhagy egy kiadási (`release`) kaput, a rendszer GitHub Release-t készít: a termék kódja, a kiadási jegyzet és a dokumentáció egy letölthető csomagban. A vezérlőterem **Kész szoftverek** fülén ezek letölthetők, alatta pedig termékvonalanként (ERP, Praxis) látszik, hol tart a munka a piackutatástól a kiadásig.
