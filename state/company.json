@@ -79,7 +79,7 @@
       "description": "A PRD alapján tervezd meg a termék architektúráját (NestJS + PostgreSQL + React, moduláris monolit) a docs/dev/architecture.md fájlba, hozd létre a product/ alatti vázat, és bontsd fejlesztői feladatokra a munkát.",
       "department": "dev",
       "assignee": "architect",
-      "status": "blocked",
+      "status": "todo",
       "kind": "code",
       "priority": 1,
       "dependsOn": [
@@ -87,12 +87,17 @@
       ],
       "createdBy": "ceo",
       "createdAt": "2026-10-13T05:57:15.602Z",
-      "updatedAt": "2026-10-16T15:34:19.994Z",
+      "updatedAt": "2026-10-16T15:42:34.448Z",
       "notes": [
         {
           "at": "2026-10-16T15:34:19.994Z",
           "by": "architect",
           "text": "Elakadt: Elfogyott a keret, a feladat félkész. Kész: docs/dev/architecture.md (modulok, adatmodell, API, jogosultság, DPIA-értékelés, feladatlista a 9. pontban); ADR-0001…0004 (docs/dev/adr/); a backend alapja: package.json, tsconfig, shared/money (bigint, half-up, 5 Ft-os kerekítés) és shared/auth (alapból tiltó guard, beépített szerepkörök), mindkettő tesztekkel. A teszteket még nem futtattam. Hátravan: 1) main.ts, app.module.ts, modulvázak (platform/licensing/masterdata/invoicing/inventory/nav-connector/reports), shared/country és privacy interfészek; 2) db/migrations/0001_baseline up/down; 3) frontend váz + hu.json; 4) installer: compose, .env.example helyőrzőkkel; licensing/README; product/README frissítése; 5) az architecture.md 9. pontjában szereplő 12 fejlesztői feladat létrehozása. A következő körben folytatom."
+        },
+        {
+          "at": "2026-10-16T15:42:34.448Z",
+          "by": "system",
+          "text": "Visszanyitva: a feladatkeret miatt jelölődött elakadtnak; a mentett fájlokból folytatódik."
         }
       ]
     },
