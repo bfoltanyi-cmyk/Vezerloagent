@@ -1,5 +1,6 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { departmentById, type Role } from "../company/org.js";
+import { playbookFor } from "../company/playbook.js";
 import { addNote, blockTask, boardSummary, logEvent } from "./board.js";
 import { record } from "./budget.js";
 import type { Config } from "./config.js";
@@ -34,7 +35,10 @@ Munkaszabályok:
 - Kifelé (ügyfélnek, nyilvánosságnak) nem kommunikálsz; amit kifelé szánnál, vázlatként írd meg és kérj "outbound" jóváhagyást.
 - Ha a munkád másik szerep feladata is, hozz létre neki jól körülhatárolt feladatot (create_task). Ne gyárts fölösleges feladatot.
 - A végén mindig zárd le a feladatot pontosan egy eszközzel: complete_task, submit_review, request_approval vagy block_task.
-- Légy tömör: a fájlokba írd a részleteket, az összefoglalóba csak a lényeget.`;
+- Légy tömör: a fájlokba írd a részleteket, az összefoglalóba csak a lényeget.
+
+# Kézikönyv
+${playbookFor(role)}`;
 }
 
 function taskPrompt(s: CompanyState, task: Task): string {

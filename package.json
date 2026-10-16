@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "build:dashboard": "tsx src/build-dashboard.ts",
-    "build:privacy": "tsx src/build-privacy-docs.ts"
+    "build:privacy": "tsx src/build-privacy-docs.ts",
+    "build:handbook": "tsx src/build-handbook.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",

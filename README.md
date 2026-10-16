@@ -29,6 +29,10 @@ A szervezet a [`company/org.ts`](company/org.ts) fájlban van leírva. Új agent
 6. **Mentés.** Minden munka az `alicya/munka` ágra kerül, és egy nyitott pull requestben vár. A `main` ágra semmi nem kerül nélküled.
 7. **Napi jelentés** a `state/reports/` alatt és a vezérlőteremben.
 
+## Kézikönyv: így gyártunk dobozos szoftvert
+
+Minden agent a rendszerpromptjában kapja meg a cég kézikönyvét: mit jelent nálunk a dobozos termék (telepítő, licenckulcsos kiadások, frissítés, HU/PL/CZ lokalizáció), a termék nyolc fázisú életciklusát a kapukkal, a részlege munkarendjét, a saját bemenetét, kimenetét és azt, hogy kinek adja tovább a munkát. Forrás: [`company/playbook.ts`](company/playbook.ts), olvasható formában [`docs/core/kezikonyv.md`](docs/core/kezikonyv.md). Módosítás után futtasd az `npm run build:handbook` parancsot.
+
 ## Adatvédelmi modul (EU, HU, PL, CZ)
 
 A cég célpiaca Magyarország, Lengyelország és Csehország, ezért az adatbiztonsági részlegben egy EU-s adatvédelmi tisztviselő (DPO) és három országos szakértő dolgozik. A munkájukat egy tudásbázis segíti: [`company/privacy/knowledge.ts`](company/privacy/knowledge.ts), olvasható formában [`docs/security/adatvedelem/README.md`](docs/security/adatvedelem/README.md).
