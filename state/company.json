@@ -2,7 +2,7 @@
   "version": 1,
   "meta": {
     "runs": 12,
-    "nextTask": 25,
+    "nextTask": 28,
     "nextGate": 2,
     "lastRun": "2026-10-16T15:27:56.186Z",
     "running": "2026-10-16T15:31:16.772Z"
@@ -240,14 +240,21 @@
       "description": "Írd meg a docs/dev/fejlesztesi-szabalyok.md fájlt, hogy a T-0004 utáni fejlesztői feladatok egységes szabályok szerint induljanak:\n- Kódkonvenciók (TypeScript strict, NestJS modulhatárok a moduláris monolitban, React), elnevezések, angol kód és komment.\n- Branch- és commitszabály, PR-méret, kódellenőrzési folyamat (code-reviewer + appsec).\n- Tesztelési elvárások: unit/integráció/e2e, minimális lefedettség, tesztadat csak álnevesített (GDPR 25. cikk).\n- Adatbázis-migrációk szabályai (PostgreSQL), visszafelé kompatibilitás.\n- Definition of Done: tesztek zöldek, biztonsági ellenőrzés lefutott, nincs titok a repóban, személyes adatmezőnél dokumentált cél/jogalap/megőrzés (privacy_lookup: alapelvek), dokumentáció frissítve.\nIgazodj a CISO biztonsági alapszabályzatához (T-0003, docs/security/policy.md); ha az még nincs kész, hivatkozz rá, ne írd meg helyette.\nElfogadás: tömör, ellenőrzőlistaként használható DoD; nem ütközik a T-0003 szabályzattal.",
       "department": "dev",
       "assignee": "tech-lead",
-      "status": "todo",
+      "status": "review",
       "kind": "code",
       "priority": 1,
       "dependsOn": [],
       "createdBy": "ceo",
       "createdAt": "2026-10-13T10:35:34.063Z",
-      "updatedAt": "2026-10-13T10:35:34.063Z",
-      "notes": []
+      "updatedAt": "2026-10-16T15:37:38.636Z",
+      "notes": [
+        {
+          "at": "2026-10-16T15:37:38.636Z",
+          "by": "tech-lead",
+          "text": "Elkészült a docs/dev/fejlesztesi-szabalyok.md: kódkonvenciók (TS strict, NestJS modulhatárok, React, pénz/idő), branch/commit/PR-szabály (≤400 sor), review-folyamat (code-reviewer + appsec/privacy/supply-chain a policy 8.2 szerint), tesztelési szintek és lefedettségi küszöbök (80/70%, kritikus kód 90%), álnevesített tesztadat (GDPR 25.), PostgreSQL migrációs szabályok (up/down, N-1 kompatibilitás, expand/contract), ellenőrzőlista-szerű DoD. A T-0003 policy.md-re hivatkozik, nem ismétli és nem ütközik vele. Az ADR-ek tartalmát nem olvastam át részletesen, csak hivatkozom rájuk (0001, 0002, 0004)."
+        }
+      ],
+      "reviewRound": 1
     },
     {
       "id": "T-0013",
@@ -439,6 +446,57 @@
       "createdBy": "system",
       "createdAt": "2026-10-16T15:36:36.149Z",
       "updatedAt": "2026-10-16T15:36:36.149Z",
+      "notes": [],
+      "reviewRound": 1
+    },
+    {
+      "id": "T-0025",
+      "title": "Átvizsgálás: Fejlesztési szabályok és Definition of Done",
+      "description": "Vizsgáld át a(z) T-0012 feladat változásait (Kódellenőr). A fejlesztő összefoglalója: Elkészült a docs/dev/fejlesztesi-szabalyok.md: kódkonvenciók (TS strict, NestJS modulhatárok, React, pénz/idő), branch/commit/PR-szabály (≤400 sor), review-folyamat (code-reviewer + appsec/privacy/supply-chain a policy 8.2 szerint), tesztelési szintek és lefedettségi küszöbök (80/70%, kritikus kód 90%), álnevesített tesztadat (GDPR 25.), PostgreSQL migrációs szabályok (up/down, N-1 kompatibilitás, expand/contract), ellenőrzőlista-szerű DoD. A T-0003 policy.md-re hivatkozik, nem ismétli és nem ütközik vele. Az ADR-ek tartalmát nem olvastam át részletesen, csak hivatkozom rájuk (0001, 0002, 0004).",
+      "department": "dev",
+      "assignee": "code-reviewer",
+      "status": "todo",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0012",
+      "createdBy": "system",
+      "createdAt": "2026-10-16T15:37:38.636Z",
+      "updatedAt": "2026-10-16T15:37:38.636Z",
+      "notes": [],
+      "reviewRound": 1
+    },
+    {
+      "id": "T-0026",
+      "title": "Átvizsgálás: Fejlesztési szabályok és Definition of Done",
+      "description": "Vizsgáld át a(z) T-0012 feladat változásait (Alkalmazásbiztonsági auditor). A fejlesztő összefoglalója: Elkészült a docs/dev/fejlesztesi-szabalyok.md: kódkonvenciók (TS strict, NestJS modulhatárok, React, pénz/idő), branch/commit/PR-szabály (≤400 sor), review-folyamat (code-reviewer + appsec/privacy/supply-chain a policy 8.2 szerint), tesztelési szintek és lefedettségi küszöbök (80/70%, kritikus kód 90%), álnevesített tesztadat (GDPR 25.), PostgreSQL migrációs szabályok (up/down, N-1 kompatibilitás, expand/contract), ellenőrzőlista-szerű DoD. A T-0003 policy.md-re hivatkozik, nem ismétli és nem ütközik vele. Az ADR-ek tartalmát nem olvastam át részletesen, csak hivatkozom rájuk (0001, 0002, 0004).",
+      "department": "security",
+      "assignee": "appsec",
+      "status": "todo",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0012",
+      "createdBy": "system",
+      "createdAt": "2026-10-16T15:37:38.636Z",
+      "updatedAt": "2026-10-16T15:37:38.636Z",
+      "notes": [],
+      "reviewRound": 1
+    },
+    {
+      "id": "T-0027",
+      "title": "Átvizsgálás: Fejlesztési szabályok és Definition of Done",
+      "description": "Vizsgáld át adatvédelmi szempontból a(z) T-0012 feladat változásait: jogalap, adattakarékosság, megőrzés, érintetti jogok, naplózás, és az EU, HU, PL, CZ szabályok (privacy_lookup). A fejlesztő összefoglalója: Elkészült a docs/dev/fejlesztesi-szabalyok.md: kódkonvenciók (TS strict, NestJS modulhatárok, React, pénz/idő), branch/commit/PR-szabály (≤400 sor), review-folyamat (code-reviewer + appsec/privacy/supply-chain a policy 8.2 szerint), tesztelési szintek és lefedettségi küszöbök (80/70%, kritikus kód 90%), álnevesített tesztadat (GDPR 25.), PostgreSQL migrációs szabályok (up/down, N-1 kompatibilitás, expand/contract), ellenőrzőlista-szerű DoD. A T-0003 policy.md-re hivatkozik, nem ismétli és nem ütközik vele. Az ADR-ek tartalmát nem olvastam át részletesen, csak hivatkozom rájuk (0001, 0002, 0004).",
+      "department": "security",
+      "assignee": "privacy-officer",
+      "status": "todo",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0012",
+      "createdBy": "system",
+      "createdAt": "2026-10-16T15:37:38.636Z",
+      "updatedAt": "2026-10-16T15:37:38.636Z",
       "notes": [],
       "reviewRound": 1
     }
@@ -871,6 +929,34 @@
       "department": "system",
       "kind": "info",
       "text": "Új feladat T-0024 → Adatvédelmi tisztviselő (DPO · EU): Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció"
+    },
+    {
+      "at": "2026-10-16T15:36:37.432Z",
+      "actor": "tech-lead",
+      "department": "dev",
+      "kind": "info",
+      "text": "Tech lead dolgozik: T-0012 Fejlesztési szabályok és Definition of Done"
+    },
+    {
+      "at": "2026-10-16T15:37:38.636Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0025 → Kódellenőr: Átvizsgálás: Fejlesztési szabályok és Definition of Done"
+    },
+    {
+      "at": "2026-10-16T15:37:38.636Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0026 → Alkalmazásbiztonsági auditor: Átvizsgálás: Fejlesztési szabályok és Definition of Done"
+    },
+    {
+      "at": "2026-10-16T15:37:38.636Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0027 → Adatvédelmi tisztviselő (DPO · EU): Átvizsgálás: Fejlesztési szabályok és Definition of Done"
     }
   ],
   "ledger": [
@@ -1333,6 +1419,46 @@
       "cacheReadTokens": 8528,
       "cacheWriteTokens": 6957,
       "usd": 0.0224421
+    },
+    {
+      "at": "2026-10-16T15:36:39.082Z",
+      "role": "tech-lead",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 4,
+      "outputTokens": 148,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 7330,
+      "usd": 0.019813
+    },
+    {
+      "at": "2026-10-16T15:36:39.923Z",
+      "role": "tech-lead",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 55,
+      "cacheReadTokens": 7330,
+      "cacheWriteTokens": 733,
+      "usd": 0.0038525
+    },
+    {
+      "at": "2026-10-16T15:37:34.446Z",
+      "role": "tech-lead",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 6585,
+      "cacheReadTokens": 8063,
+      "cacheWriteTokens": 13583,
+      "usd": 0.1014241
+    },
+    {
+      "at": "2026-10-16T15:37:38.636Z",
+      "role": "tech-lead",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 363,
+      "cacheReadTokens": 21646,
+      "cacheWriteTokens": 6624,
+      "usd": 0.024523200000000002
     }
   ]
 }
