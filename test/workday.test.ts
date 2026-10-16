@@ -188,4 +188,27 @@ describe("költségkorlát feladatonként", () => {
     expect(n).toBe(2);
     expect(task.status).toBe("done");
   });
+
+  it("ha a keretnél nem kész, a feladat nyitva marad a következő munkanapra", async () => {
+    const { runAgent } = await import("../src/agent.js");
+    const { roleById } = await import("../company/org.js");
+    const { createTask, emptyState } = await import("../src/board.js");
+    const { Workspace } = await import("../src/workspace.js");
+    const root = tmp();
+    const config = { ...loadConfig({ ANTHROPIC_API_KEY: "x", TASK_BUDGET_USD: "0.001" }, root) };
+    const s = emptyState();
+    const task = createTask(s, { title: "Hosszú elemzés", description: "Valami hosszú munka, sok olvasással.", department: "product", assignee: "market-researcher" }, "system");
+    let n = 0;
+    const client: ModelClient = {
+      async create(req) {
+        n++;
+        if (JSON.stringify(req.messages.at(-1)!.content).includes("feladatra szánt keretet")) return msg([]);
+        return msg([call("list_tasks", {})]);
+      },
+    };
+    const run = await runAgent({ state: s, role: roleById("market-researcher")!, task, client, config, workspace: new Workspace(root), createdThisRun: { count: 0 }, remainingUsd: () => 10 });
+    expect(run.outcome).toBe("unfinished");
+    expect(n).toBe(2);
+    expect(task.status).toBe("todo");
+  });
 });
