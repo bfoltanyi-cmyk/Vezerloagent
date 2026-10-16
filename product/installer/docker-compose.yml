@@ -1,0 +1,65 @@
+# Skeleton - completed in the devops installer task (install.sh, update.sh, backup/restore).
+# Secrets are generated per installation by install.sh into ./secrets (mode 0600); never committed.
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: erp
+      POSTGRES_USER_FILE: /run/secrets/db_admin_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_admin_password
+    secrets: [db_admin_user, db_admin_password]
+    volumes: [db-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d erp"]
+      interval: 10s
+    networks: [internal]
+
+  app:
+    image: ${ERP_IMAGE}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      APP_ROLE: api
+      DATABASE_URL_FILE: /run/secrets/database_url
+    secrets: [database_url]
+    depends_on:
+      db: { condition: service_healthy }
+    networks: [internal]
+
+  worker:
+    image: ${ERP_IMAGE}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      APP_ROLE: worker
+      DATABASE_URL_FILE: /run/secrets/database_url
+    secrets: [database_url]
+    depends_on:
+      db: { condition: service_healthy }
+    networks: [internal, egress]
+
+  proxy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment:
+      ERP_DOMAIN: ${ERP_DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+    depends_on: [app]
+    networks: [internal, egress]
+
+secrets:
+  db_admin_user: { file: ./secrets/db_admin_user }
+  db_admin_password: { file: ./secrets/db_admin_password }
+  database_url: { file: ./secrets/database_url }
+
+volumes:
+  db-data:
+  caddy-data:
+
+networks:
+  internal: { internal: true }
+  egress: {}
