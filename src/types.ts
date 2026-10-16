@@ -44,6 +44,8 @@ export interface Gate {
   createdAt: string;
   decidedAt?: string;
   decisionNote?: string;
+  /** A közzétett GitHub Release címkéje, ha a kiadási kapu már kiment. */
+  releaseTag?: string;
 }
 
 export interface CompanyEvent {
@@ -67,7 +69,7 @@ export interface LedgerEntry {
 
 export interface CompanyState {
   version: 1;
-  meta: { runs: number; lastRun?: string; nextTask: number; nextGate: number; /** A most futó munkanap kezdete. */ running?: string };
+  meta: { runs: number; lastRun?: string; nextTask: number; nextGate: number; /** A most futó munkanap kezdete. */ running?: string; /** A tulajdonos által kikapcsolt részlegek: nem dolgoznak, és nem tartják fel a többieket. */ disabledDepartments?: string[] };
   tasks: Task[];
   gates: Gate[];
   events: CompanyEvent[];

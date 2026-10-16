@@ -71,6 +71,11 @@ jobs:
             git commit -m "Munkanap: ${{ steps.workday.outputs.tasks }} feladat, ${{ steps.workday.outputs.usd }} USD"
           fi
           git push origin "$WORK_BRANCH"
+
+      - name: Jóváhagyott kiadások közzététele
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: npm run release
           if [ -z "$(gh pr list --head "$WORK_BRANCH" --state open --json number --jq '.[0].number')" ] && [ -n "$(git log origin/main..HEAD --oneline)" ]; then
             gh pr create --head "$WORK_BRANCH" --base main \
               --title "Alicya Nexus: folyamatban lévő munka" \

@@ -11,6 +11,7 @@ import {
   reassignTask,
   requestGate,
   submitReview,
+  isDisabled,
 } from "./board.js";
 import { formatRule, JURISDICTIONS, lookup, TOPIC_NAMES, type Topic } from "../company/privacy/knowledge.js";
 import type { CompanyState, Task } from "./types.js";
@@ -149,6 +150,7 @@ function execute(ctx: ToolContext, name: ToolName, input: any): string {
     case "create_task": {
       if (ctx.createdThisRun.count >= MAX_NEW_TASKS_PER_RUN) throw new Error("Ebben a munkanapban már elég új feladat született; a többit vedd fel később.");
       if (s.tasks.filter((t) => t.status !== "done").length >= MAX_OPEN_TASKS) throw new Error("Túl sok a nyitott feladat; előbb a meglévőket kell lezárni.");
+      if (isDisabled(s, input.department)) throw new Error(`A(z) ${input.department} részleget a tulajdonos kikapcsolta; most ne adj neki feladatot.`);
       const t = createTask(
         s,
         {
