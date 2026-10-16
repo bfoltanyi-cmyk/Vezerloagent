@@ -2,7 +2,7 @@
   "version": 1,
   "meta": {
     "runs": 13,
-    "nextTask": 34,
+    "nextTask": 42,
     "nextGate": 2,
     "lastRun": "2026-10-16T15:31:16.772Z",
     "running": "2026-10-16T15:47:58.174Z"
@@ -88,7 +88,7 @@
       ],
       "createdBy": "ceo",
       "createdAt": "2026-10-13T05:57:15.602Z",
-      "updatedAt": "2026-10-16T15:49:34.102Z",
+      "updatedAt": "2026-10-16T15:50:26.211Z",
       "notes": [
         {
           "at": "2026-10-16T15:34:19.994Z",
@@ -102,6 +102,11 @@
         },
         {
           "at": "2026-10-16T15:49:34.102Z",
+          "by": "system",
+          "text": "Nem fejeződött be ebben a munkanapban, folytatódik."
+        },
+        {
+          "at": "2026-10-16T15:50:26.211Z",
           "by": "system",
           "text": "Nem fejeződött be ebben a munkanapban, folytatódik."
         }
@@ -612,6 +617,140 @@
       "createdBy": "ceo",
       "createdAt": "2026-10-16T15:47:02.676Z",
       "updatedAt": "2026-10-16T15:47:02.676Z",
+      "notes": []
+    },
+    {
+      "id": "T-0034",
+      "title": "DB alapok: sémák, RLS, DB-szerepkörök, változatlansági triggerek, sorszámkör, migrációfuttató",
+      "description": "Alap: docs/dev/architecture.md 4. és 8. pont, ADR-0002, product/db/migrations/0001_baseline. Készítsd el: 1) migrációfuttató (up/down, platform.schema_migration, tranzakcióban, erp_migrator szerepkörrel); 2) platform alaptáblák (company, user, role, role_permission, user_role, session, audit_log append-only, setting, secret, outbox); 3) RLS minden tenant-táblán app.company_id munkamenet-változóval + NestJS TransactionContext, ami beállítja; 4) változatlansági trigger-sablon (issued bizonylat UPDATE/DELETE tiltás); 5) number_sequence + hézagmentes foglaló függvény (SELECT … FOR UPDATE, SEQUENCE tilos). Elfogadás: minden migráció up+down fut üres DB-n; integrációs teszt: másik company_id adata RLS-sel nem látszik; párhuzamos sorszámfoglalás hézag- és duplikátummentes; erp_app nem tud UPDATE/DELETE-et az audit_log-on.",
+      "department": "dev",
+      "assignee": "db-engineer",
+      "status": "todo",
+      "kind": "code",
+      "priority": 1,
+      "dependsOn": [],
+      "createdBy": "architect",
+      "createdAt": "2026-10-16T15:49:50.877Z",
+      "updatedAt": "2026-10-16T15:49:50.877Z",
+      "notes": []
+    },
+    {
+      "id": "T-0035",
+      "title": "Platform modul: hitelesítés, felhasználó/szerepkör, PermissionGuard, auditnapló, titoktár",
+      "description": "Alap: architecture.md 2., 5., 6. pont; PRD P-1…P-7; product/backend/src/shared/auth. Készítsd el a src/modules/platform-ot: munkamenet-süti alapú bejelentkezés (HttpOnly, Secure, SameSite=Strict), Argon2id, próbálkozás-korlátozás, TOTP; felhasználó- és szerepkör-CRUD (beépített 5 szerepkör + egyedi); globális PermissionGuard bekötése; AuditService.record() append-only; SecretVault (AES-256-GCM boríték, mesterkulcs Docker secretből); RFC 9457 hibaformátum közös filterként. Elfogadás: egység+integrációs tesztek, minden végponthoz negatív jogosultsági teszt (AC-19), migráció up/down, OpenAPI frissítve; naplóban nincs jelszó/token.",
+      "department": "dev",
+      "assignee": "api-dev",
+      "status": "todo",
+      "kind": "code",
+      "priority": 1,
+      "dependsOn": [
+        "T-0034"
+      ],
+      "createdBy": "architect",
+      "createdAt": "2026-10-16T15:50:04.872Z",
+      "updatedAt": "2026-10-16T15:50:04.872Z",
+      "notes": []
+    },
+    {
+      "id": "T-0036",
+      "title": "Telepítő, titkosított mentés/visszaállítás és frissítő szkript",
+      "description": "Alap: architecture.md 1. és 8. pont, product/installer/ (docker-compose.yml, env.example). Készítsd el: install.sh (telepítésenként véletlen titkok ./secrets alá 0600-val, compose indítás, első indításkor varázsló), titkosított mentés és visszaállítás (pg_dump + titkosítás), update.sh (image-aláírás ellenőrzés → kötelező mentés → migráció up → hiba esetén automatikus visszaállítás), Caddy proxy-konfig. Elfogadás: tiszta Linux VM-en szakember nélkül 30 percen belül működő rendszer (NF-2); szándékosan elrontott migrációnál a frissítés visszaáll; fájlban nincs titok; dokumentált lépések product/installer/README.md-ben.",
+      "department": "dev",
+      "assignee": "devops",
+      "status": "todo",
+      "kind": "code",
+      "priority": 2,
+      "dependsOn": [
+        "T-0034",
+        "T-0013"
+      ],
+      "createdBy": "architect",
+      "createdAt": "2026-10-16T15:50:04.873Z",
+      "updatedAt": "2026-10-16T15:50:04.873Z",
+      "notes": []
+    },
+    {
+      "id": "T-0037",
+      "title": "Fenyegetésmodell: architektúra és NAV-csatoló",
+      "description": "Alap: docs/dev/architecture.md, ADR-0001…0004, docs/security/policy.md, T-0011 eredménye. Készíts STRIDE fenyegetésmodellt docs/security/threat-model.md-be: bizalmi határok (böngésző–proxy–app–db, worker–NAV/SMTP), tenant-elszigetelés (RLS), munkamenet-kezelés, titoktár, licencellenőrzés megkerülése, frissítési lánc, NAV technikai felhasználó kulcsai. Elfogadás: fenyegetésenként kockázat és intézkedés; az architektúrát módosító javaslatok külön listában, a felelős fejlesztői feladatra hivatkozva.",
+      "department": "security",
+      "assignee": "appsec",
+      "status": "todo",
+      "kind": "code",
+      "priority": 2,
+      "dependsOn": [],
+      "createdBy": "architect",
+      "createdAt": "2026-10-16T15:50:04.873Z",
+      "updatedAt": "2026-10-16T15:50:04.873Z",
+      "notes": []
+    },
+    {
+      "id": "T-0038",
+      "title": "Licencellenőrzés (offline Ed25519) és funkciókapcsolók",
+      "description": "Alap: architecture.md 8. pont, product/licensing/README.md, src/modules/licensing. Készítsd el: licencfájl beolvasás és Ed25519-ellenőrzés internet nélkül (nyilvános kulcs az image-ben), LicenseService.isEnabled(feature) és limits() (felhasználó, raktár), @RequiresFeature dekorátor/guard, licencfeltöltés végpont a platform-adminnak. Elfogadás: tesztek érvényes, lejárt frissítési jogú, manipulált és hiányzó licencre; limit túllépésnél stabil hibakód; privát kulcs nincs a repóban (teszthez futás közben generált kulcspár).",
+      "department": "dev",
+      "assignee": "api-dev",
+      "status": "todo",
+      "kind": "code",
+      "priority": 2,
+      "dependsOn": [
+        "T-0035"
+      ],
+      "createdBy": "architect",
+      "createdAt": "2026-10-16T15:50:14.294Z",
+      "updatedAt": "2026-10-16T15:50:14.294Z",
+      "notes": []
+    },
+    {
+      "id": "T-0039",
+      "title": "Törzsadatok modul: cég, partner, cikk, áfa-kulcs, deviza + CSV/XLSX import",
+      "description": "Alap: architecture.md 2., 4. pont (masterdata séma), PRD TD-1…TD-7, shared/country (HU adószám-validátor). Készítsd el a src/modules/masterdata-t: partner (típusok, címek, kapcsolattartó), cikk (készletkezelt/szolgáltatás, VTSZ/SZJ, EAN, raktáronkénti minimumkészlet), vat_rate NAV-kóddal és mentességi jogcímmel, currency_rate, bank_account; CSV/XLSX import előnézettel és soronkénti hibalistával. Publikus: PartnerReader, ItemReader, VatRateReader. Magánszemély partnerhez PersonalDataProvider regisztráció (shared/privacy). Elfogadás: tesztek, migráció up/down, OpenAPI, negatív jogosultsági tesztek, RLS-teszt.",
+      "department": "dev",
+      "assignee": "backend-accounting",
+      "status": "todo",
+      "kind": "code",
+      "priority": 1,
+      "dependsOn": [
+        "T-0035"
+      ],
+      "createdBy": "architect",
+      "createdAt": "2026-10-16T15:50:14.294Z",
+      "updatedAt": "2026-10-16T15:50:14.294Z",
+      "notes": []
+    },
+    {
+      "id": "T-0040",
+      "title": "Készletkezelés modul: raktár, bizonylatok, mozgóátlagár, leltár, minimumkészlet",
+      "description": "Alap: architecture.md 3., 4. pont (inventory séma, mozgóátlagár-képlet), PRD K-1…K-10. Készítsd el a src/modules/inventory-t: raktár (allow_negative), bevét/kiadás/átvezetés bizonylatok változatlanul (javítás ellenbizonylattal), stock_movement napló, stock_balance mozgóátlagárral (numeric, half-up, 4 tizedes), leltár, minimumkészlet-riasztás outbox-eseménnyel. Publikus: StockService.issueForInvoice(tx,…), returnForCorrection(tx,…), StockReader. Elfogadás: AC-11 (elégtelen készlet → 409 INSUFFICIENT_STOCK, visszagördülés), AC-12 (átlagár-példák), AC-14; párhuzamos kiadás tesztje; migráció up/down, OpenAPI.",
+      "department": "dev",
+      "assignee": "backend-inventory",
+      "status": "todo",
+      "kind": "code",
+      "priority": 1,
+      "dependsOn": [
+        "T-0039"
+      ],
+      "createdBy": "architect",
+      "createdAt": "2026-10-16T15:50:20.678Z",
+      "updatedAt": "2026-10-16T15:50:20.678Z",
+      "notes": []
+    },
+    {
+      "id": "T-0041",
+      "title": "Számlázás modul: számla, sztornó, módosító, díjbekérő, sorszámkör, PDF, e-mail, fizetés",
+      "description": "Alap: architecture.md 3., 4., 5. pont, PRD SZ-*, shared/money. Készítsd el a src/modules/invoicing-t: kiállítás egy tranzakcióban (sorszámfoglalás + mentés + StockService.issueForInvoice + outbox InvoiceIssued), Idempotency-Key; sztornó, módosító, díjbekérő → számla konverzió, előleg; partner-pillanatkép; kerekítés shared/money-val (soronként, áfaösszesítő, 5 Ft-os készpénzes kerekítés); PDF a HU országcsomag sablonjával; e-mail küldés naplóval; fizetési státusz. Elfogadás: AC-3 (hézagmentes sorszám párhuzamosan), AC-4 (kiállított számla módosítása → 409 INVOICE_IMMUTABLE + audit), AC-6 (NAV-hiba nem blokkol), AC-11; migráció up/down, OpenAPI, negatív jogosultsági tesztek.",
+      "department": "dev",
+      "assignee": "backend-invoicing",
+      "status": "todo",
+      "kind": "code",
+      "priority": 1,
+      "dependsOn": [
+        "T-0040",
+        "T-0039"
+      ],
+      "createdBy": "architect",
+      "createdAt": "2026-10-16T15:50:26.211Z",
+      "updatedAt": "2026-10-16T15:50:26.211Z",
       "notes": []
     }
   ],
@@ -1148,6 +1287,69 @@
       "department": "dev",
       "kind": "info",
       "text": "Szoftverarchitekt dolgozik: T-0004 Architektúra és repó-struktúra"
+    },
+    {
+      "at": "2026-10-16T15:49:35.528Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Szoftverarchitekt dolgozik: T-0004 Architektúra és repó-struktúra"
+    },
+    {
+      "at": "2026-10-16T15:49:50.877Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Új feladat T-0034 → Adatbázis-mérnök: DB alapok: sémák, RLS, DB-szerepkörök, változatlansági triggerek, sorszámkör, migrációfuttató"
+    },
+    {
+      "at": "2026-10-16T15:50:04.872Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Új feladat T-0035 → API fejlesztő: Platform modul: hitelesítés, felhasználó/szerepkör, PermissionGuard, auditnapló, titoktár"
+    },
+    {
+      "at": "2026-10-16T15:50:04.873Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Új feladat T-0036 → DevOps mérnök: Telepítő, titkosított mentés/visszaállítás és frissítő szkript"
+    },
+    {
+      "at": "2026-10-16T15:50:04.873Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Új feladat T-0037 → Alkalmazásbiztonsági auditor: Fenyegetésmodell: architektúra és NAV-csatoló"
+    },
+    {
+      "at": "2026-10-16T15:50:14.294Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Új feladat T-0038 → API fejlesztő: Licencellenőrzés (offline Ed25519) és funkciókapcsolók"
+    },
+    {
+      "at": "2026-10-16T15:50:14.294Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Új feladat T-0039 → Backend fejlesztő · Könyvelés: Törzsadatok modul: cég, partner, cikk, áfa-kulcs, deviza + CSV/XLSX import"
+    },
+    {
+      "at": "2026-10-16T15:50:20.678Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Új feladat T-0040 → Backend fejlesztő · Készlet: Készletkezelés modul: raktár, bizonylatok, mozgóátlagár, leltár, minimumkészlet"
+    },
+    {
+      "at": "2026-10-16T15:50:26.211Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Új feladat T-0041 → Backend fejlesztő · Számlázás: Számlázás modul: számla, sztornó, módosító, díjbekérő, sorszámkör, PDF, e-mail, fizetés"
     }
   ],
   "ledger": [
@@ -1850,6 +2052,86 @@
       "cacheReadTokens": 25839,
       "cacheWriteTokens": 2927,
       "usd": 0.026410799999999998
+    },
+    {
+      "at": "2026-10-16T15:49:38.136Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 4,
+      "outputTokens": 124,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 7472,
+      "usd": 0.039856
+    },
+    {
+      "at": "2026-10-16T15:49:40.533Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 144,
+      "cacheReadTokens": 7472,
+      "cacheWriteTokens": 6864,
+      "usd": 0.038702400000000005
+    },
+    {
+      "at": "2026-10-16T15:49:43.284Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 188,
+      "cacheReadTokens": 14336,
+      "cacheWriteTokens": 2198,
+      "usd": 0.0176252
+    },
+    {
+      "at": "2026-10-16T15:49:50.876Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 696,
+      "cacheReadTokens": 16534,
+      "cacheWriteTokens": 699,
+      "usd": 0.0207298
+    },
+    {
+      "at": "2026-10-16T15:50:04.872Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 1400,
+      "cacheReadTokens": 17233,
+      "cacheWriteTokens": 777,
+      "usd": 0.0353396
+    },
+    {
+      "at": "2026-10-16T15:50:14.294Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 951,
+      "cacheReadTokens": 18010,
+      "cacheWriteTokens": 1676,
+      "usd": 0.03101
+    },
+    {
+      "at": "2026-10-16T15:50:20.678Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 525,
+      "cacheReadTokens": 19686,
+      "cacheWriteTokens": 1151,
+      "usd": 0.0202002
+    },
+    {
+      "at": "2026-10-16T15:50:26.211Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 578,
+      "cacheReadTokens": 20837,
+      "cacheWriteTokens": 609,
+      "usd": 0.018780400000000003
     }
   ]
 }
