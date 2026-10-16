@@ -1,11 +1,10 @@
 {
   "version": 1,
   "meta": {
-    "runs": 11,
+    "runs": 12,
     "nextTask": 19,
     "nextGate": 2,
-    "lastRun": "2026-10-16T14:31:52.764Z",
-    "running": "2026-10-16T15:27:56.186Z"
+    "lastRun": "2026-10-16T15:27:56.186Z"
   },
   "tasks": [
     {
@@ -666,6 +665,20 @@
       "department": "product",
       "kind": "gate",
       "text": "G-001 jóváhagyva: PRD jóváhagyás: „Számla + Készlet Start\" (első termékszelet)"
+    },
+    {
+      "at": "2026-10-16T15:27:58.008Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Szoftverarchitekt dolgozik: T-0004 Architektúra és repó-struktúra"
+    },
+    {
+      "at": "2026-10-16T15:27:58.168Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "warn",
+      "text": "Hiba T-0004 közben: 401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011Cg69n8gAH3qWjmaKefDXC\"}"
     }
   ],
   "ledger": [
