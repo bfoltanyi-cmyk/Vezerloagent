@@ -34,7 +34,7 @@
       "description": "A piackutatás alapján írd meg a termékleírást a docs/product/prd.md fájlba: célfelhasználó, modulok, elfogadási feltételek, nem-célok, licencmodell javaslat. Ha kész, kérj spec jóváhagyást.",
       "department": "product",
       "assignee": "product-manager",
-      "status": "awaiting_approval",
+      "status": "done",
       "kind": "doc",
       "priority": 1,
       "dependsOn": [
@@ -42,8 +42,14 @@
       ],
       "createdBy": "ceo",
       "createdAt": "2026-10-13T05:57:15.602Z",
-      "updatedAt": "2026-10-13T10:39:06.451Z",
-      "notes": [],
+      "updatedAt": "2026-10-16T15:24:09.467Z",
+      "notes": [
+        {
+          "at": "2026-10-16T15:24:09.467Z",
+          "by": "owner",
+          "text": "Jóváhagyva"
+        }
+      ],
       "gateId": "G-001"
     },
     {
@@ -330,9 +336,11 @@
       "summary": "Fájl: docs/product/prd.md (a market.md és az adatvédelmi tudásbázis alapján).\n\nTartalom: célszegmens (3–25 fős magyar KKV áruforgalommal + adatszuverenitásra érzékeny cégek), 4 persona; modulok azonosítóval és M/S/C prioritással: törzsadatok, számlázás, NAV Online Számla 3.0 (tartós outbox, magánszemélynél név/cím nem megy ki, titkosított kulcsok), készlet (több raktár, gördülő átlagár, minimum készlet, leltár), riportok/könyvelői export, platform (RBAC, auditnapló, mentés, Docker telepítő, érintetti kérelem, 8 éves HU megőrzés törlés helyett korlátozással, nincs telemetria). 27 tesztelhető elfogadási feltétel, nem-funkcionális követelmények (pl. NF-7 PL/CZ bővíthetőség), nem-célok (főkönyv, bér/HR, PL/CZ, webshop, POS, SaaS, MI), roadmap vázlat.\n\nLicencjavaslat: örökös licenc cégenként + évi kb. 18–22% frissítési/támogatási díj, Start/Pro csomag, offline licencfájl, kötelező „hazatelefonálás” nélkül. Az árakat nem rögzítettük, ezt a T-0016/T-0015 adja.\n\nDöntést kér (10. fejezet): 1) örökös licenc vagy éves bérlet; 2) bekerüljön-e az MVP-be az előlegszámla (SZ-5) és a készletfoglalás (K-8); 3) melyik könyvelőprogram exportja legyen az első; 4) az auditnapló megőrzési ideje (privacy-hu dönt).\n\nKockázatok: a ⚠ jelölt jogi pontokat még nem ellenőrizte jogász, erre létrehoztam a T-0017 feladatot (legal). A megőrzési értékeket a T-0007 hagyja jóvá. A jóváhagyás nyitja meg a T-0004 architektúra-feladatot.",
       "taskId": "T-0002",
       "requestedBy": "product-manager",
-      "status": "pending",
+      "status": "approved",
       "createdAt": "2026-10-13T10:39:06.451Z",
-      "issueNumber": 2
+      "issueNumber": 2,
+      "decidedAt": "2026-10-16T15:24:09.467Z",
+      "decisionNote": ""
     }
   ],
   "events": [
@@ -650,6 +658,13 @@
       "department": "system",
       "kind": "warn",
       "text": "Hiba T-0006 közben: 401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011Cg65WFYFWqrpLgksoi5iu\"}"
+    },
+    {
+      "at": "2026-10-16T15:24:09.467Z",
+      "actor": "owner",
+      "department": "product",
+      "kind": "gate",
+      "text": "G-001 jóváhagyva: PRD jóváhagyás: „Számla + Készlet Start\" (első termékszelet)"
     }
   ],
   "ledger": [
