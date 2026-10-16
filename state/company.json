@@ -4,7 +4,10 @@
     "runs": 14,
     "nextTask": 47,
     "nextGate": 2,
-    "lastRun": "2026-10-16T15:47:58.174Z"
+    "lastRun": "2026-10-16T15:47:58.174Z",
+    "disabledDepartments": [
+      "security"
+    ]
   },
   "tasks": [
     {
@@ -1527,6 +1530,13 @@
       "department": "core",
       "kind": "info",
       "text": "Vezérigazgató válaszolt a tulajdonosnak (issue #4)."
+    },
+    {
+      "at": "2026-10-16T21:53:24.657Z",
+      "actor": "owner",
+      "department": "security",
+      "kind": "info",
+      "text": "Adatbiztonság részleg kikapcsolva."
     }
   ],
   "ledger": [
