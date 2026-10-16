@@ -2,7 +2,7 @@
   "version": 1,
   "meta": {
     "runs": 12,
-    "nextTask": 19,
+    "nextTask": 22,
     "nextGate": 2,
     "lastRun": "2026-10-16T15:27:56.186Z",
     "running": "2026-10-16T15:31:16.772Z"
@@ -120,18 +120,23 @@
       "description": "A privacy_lookup tudásbázis és a docs/security/adatvedelem/README.md alapján írd meg a docs/security/privacy/requirements.md fájlba az ERP adatvédelmi követelményeit: adatkategóriák és jogalapok modulonként, érintetti kérelem funkció, megőrzési profil-modell, naplózás, különleges adatok kezelése, DPA-sablon váza. A fejlesztésnek szánt teendőket hozd létre feladatként az architektnek.",
       "department": "security",
       "assignee": "privacy-officer",
-      "status": "todo",
+      "status": "done",
       "kind": "doc",
       "priority": 1,
       "dependsOn": [],
       "createdBy": "ciso",
       "createdAt": "2026-10-13T06:51:54.268Z",
-      "updatedAt": "2026-10-13T10:52:40.351Z",
+      "updatedAt": "2026-10-16T15:35:25.660Z",
       "notes": [
         {
           "at": "2026-10-13T10:52:40.351Z",
           "by": "system",
           "text": "Megszakítva: elfogyott a munkanap kerete."
+        },
+        {
+          "at": "2026-10-16T15:35:25.660Z",
+          "by": "privacy-officer",
+          "text": "Megírtam a docs/security/privacy/requirements.md fájlt. Tartalma: modulonkénti adatkategóriák és jogalapok, érintetti kérelem funkció, megőrzési profil-modell HU/PL/CZ alapértékekkel, naplózás, különleges adatok kezelése, DPA-váz és az R1–R11 termékkövetelmények. Az architektnek három feladatot hoztam létre: T-0019, T-0020 és T-0021. Nyitott pont: a CZ bérszámfejtési és HR megőrzési idők, valamint a HU/PL/CZ HR-akták pontos ideje nincs a tudásbázisban, ezeket az országos szakértőknek kell kiegészíteniük. A ⚠ jelölésű pontokat jogásznak kell jóváhagynia."
         }
       ]
     },
@@ -332,6 +337,51 @@
       "createdBy": "ciso",
       "createdAt": "2026-10-13T10:44:28.715Z",
       "updatedAt": "2026-10-13T10:44:28.715Z",
+      "notes": []
+    },
+    {
+      "id": "T-0019",
+      "title": "Adatvédelmi adatmodell: osztályozási metaadat, megőrzési motor, érintetti kérelem (R1–R3)",
+      "description": "Forrás: docs/security/privacy/requirements.md (2., 3., 4., 8. pont, R1–R3, R6). Az architecture.md-be és ADR-be vidd be: (1) mezőszintű adatosztályozási metaadat a sémában (cél, jogalap, megőrzési kategória, különleges jelző) és ebből generált nyilvántartás; (2) PersonDataProvider felület, amit minden modul implementál az érintetti kérelemhez (keresés, JSON/CSV export, helyesbítés, korlátozás, törlés/anonimizálás, határidő-figyelés); (3) megőrzési profil-modell országonként (HU/PL/CZ), lejárati ütemező, restricted állapot, jogi tartás. Bontsd fejlesztői feladatokra (backend, db-engineer). Elfogadás: modulhatárok és API-szerződés leírva, DPIA-szükségesség jelölve.",
+      "department": "dev",
+      "assignee": "architect",
+      "status": "todo",
+      "kind": "code",
+      "priority": 1,
+      "dependsOn": [],
+      "createdBy": "privacy-officer",
+      "createdAt": "2026-10-16T15:35:22.411Z",
+      "updatedAt": "2026-10-16T15:35:22.411Z",
+      "notes": []
+    },
+    {
+      "id": "T-0020",
+      "title": "Naplózás és különleges adatok védelme: architektúra (R4, R5, R7, R11)",
+      "description": "Forrás: docs/security/privacy/requirements.md (5., 6. pont). Tervezd meg: append-only hozzáférési és adminisztrációs napló (személyes adat érték nélkül, hash-lánc), incidensnapló és riasztás az ügyfél adminjának, támogatási hozzáférés ügyfél-engedéllyel; HR-különleges adat mezőszintű titkosítása (AES-256-GCM, kulcs a kulcstárban, forgatás) külön hr.special.* jogosultsággal, olvasás-naplózással, maszkolt riport/export. Illeszd a jogosultsági modellbe, és bontsd fejlesztői feladatokra tesztkövetelménnyel. Egyeztess a CISO-val a kulcskezelésről.",
+      "department": "dev",
+      "assignee": "architect",
+      "status": "todo",
+      "kind": "code",
+      "priority": 1,
+      "dependsOn": [],
+      "createdBy": "privacy-officer",
+      "createdAt": "2026-10-16T15:35:22.411Z",
+      "updatedAt": "2026-10-16T15:35:22.411Z",
+      "notes": []
+    },
+    {
+      "id": "T-0021",
+      "title": "Álnevesítés, adatexport, hozzájárulás-nyilvántartás: architektúra (R8–R10)",
+      "description": "Forrás: docs/security/privacy/requirements.md (R8, R9, R10). Tervezd meg: álnevesítő eszköz teszt-/demóadathoz és álnevesített riportnézet; teljes adatexport nyílt formátumban szolgáltatóváltáshoz; marketing-hozzájárulás nyilvántartás (idő, forrás, csatorna, visszavonás). Írd be az architecture.md-be, bontsd fejlesztői feladatokra. Elfogadás: adatmodell és API-szerződés leírva.",
+      "department": "dev",
+      "assignee": "architect",
+      "status": "todo",
+      "kind": "code",
+      "priority": 2,
+      "dependsOn": [],
+      "createdBy": "privacy-officer",
+      "createdAt": "2026-10-16T15:35:22.411Z",
+      "updatedAt": "2026-10-16T15:35:22.411Z",
       "notes": []
     }
   ],
@@ -700,6 +750,41 @@
       "department": "dev",
       "kind": "warn",
       "text": "T-0004 elakadt: Elfogyott a keret, a feladat félkész. Kész: docs/dev/architecture.md (modulok, adatmodell, API, jogosultság, DPIA-értékelés, feladatlista a 9. pontban); ADR-0001…0004 (docs/dev/adr/); a backend alapja: package.json, tsconfig, shared/money (bigint, half-up, 5 Ft-os kerekítés) és shared/auth (alapból tiltó guard, beépített szerepkörök), mindkettő tesztekkel. A teszteket még nem futtattam. Hátravan: 1) main.ts, app.module.ts, modulvázak (platform/licensing/masterdata/invoicing/inventory/nav-connector/reports), shared/country és privacy interfészek; 2) db/migrations/0001_baseline up/down; 3) frontend váz + hu.json; 4) installer: compose, .env.example helyőrzőkkel; licensing/README; product/README frissítése; 5) az architecture.md 9. pontjában szereplő 12 fejlesztői feladat létrehozása. A következő körben folytatom."
+    },
+    {
+      "at": "2026-10-16T15:34:21.462Z",
+      "actor": "privacy-officer",
+      "department": "security",
+      "kind": "info",
+      "text": "Adatvédelmi tisztviselő (DPO · EU) dolgozik: T-0006 Adatvédelmi követelmények az ERP-hez (EU)"
+    },
+    {
+      "at": "2026-10-16T15:35:22.411Z",
+      "actor": "privacy-officer",
+      "department": "security",
+      "kind": "info",
+      "text": "Új feladat T-0019 → Szoftverarchitekt: Adatvédelmi adatmodell: osztályozási metaadat, megőrzési motor, érintetti kérelem (R1–R3)"
+    },
+    {
+      "at": "2026-10-16T15:35:22.411Z",
+      "actor": "privacy-officer",
+      "department": "security",
+      "kind": "info",
+      "text": "Új feladat T-0020 → Szoftverarchitekt: Naplózás és különleges adatok védelme: architektúra (R4, R5, R7, R11)"
+    },
+    {
+      "at": "2026-10-16T15:35:22.411Z",
+      "actor": "privacy-officer",
+      "department": "security",
+      "kind": "info",
+      "text": "Új feladat T-0021 → Szoftverarchitekt: Álnevesítés, adatexport, hozzájárulás-nyilvántartás: architektúra (R8–R10)"
+    },
+    {
+      "at": "2026-10-16T15:35:25.660Z",
+      "actor": "privacy-officer",
+      "department": "security",
+      "kind": "info",
+      "text": "Kész: T-0006 Adatvédelmi követelmények az ERP-hez (EU)"
     }
   ],
   "ledger": [
@@ -1072,6 +1157,56 @@
       "cacheReadTokens": 50820,
       "cacheWriteTokens": 3730,
       "usd": 0.04027
+    },
+    {
+      "at": "2026-10-16T15:34:22.969Z",
+      "role": "privacy-officer",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 4,
+      "outputTokens": 99,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 7235,
+      "usd": 0.0190855
+    },
+    {
+      "at": "2026-10-16T15:34:24.867Z",
+      "role": "privacy-officer",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 176,
+      "cacheReadTokens": 7235,
+      "cacheWriteTokens": 438,
+      "usd": 0.004306
+    },
+    {
+      "at": "2026-10-16T15:35:12.859Z",
+      "role": "privacy-officer",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 6027,
+      "cacheReadTokens": 7673,
+      "cacheWriteTokens": 14664,
+      "usd": 0.0984686
+    },
+    {
+      "at": "2026-10-16T15:35:22.410Z",
+      "role": "privacy-officer",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 1323,
+      "cacheReadTokens": 22337,
+      "cacheWriteTokens": 6059,
+      "usd": 0.0328489
+    },
+    {
+      "at": "2026-10-16T15:35:25.659Z",
+      "role": "privacy-officer",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 332,
+      "cacheReadTokens": 28396,
+      "cacheWriteTokens": 1599,
+      "usd": 0.0130007
     }
   ]
 }
