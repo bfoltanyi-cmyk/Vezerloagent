@@ -9,7 +9,7 @@ export function gitCheckpoint(root: string, branch: string): Checkpoint {
   const git = (...args: string[]) => execFileSync("git", args, { cwd: root, stdio: "pipe" });
   return (message) => {
     try {
-      git("add", "state", "docs", "product");
+      git("add", "-A", "state", "docs", "product", "branding");
       try {
         git("diff", "--cached", "--quiet");
         return;

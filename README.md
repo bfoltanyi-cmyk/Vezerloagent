@@ -62,6 +62,10 @@ A legegyszerűbb a vezérlőterem **Jóváhagyási panelje**: minden döntésre 
 
 A kapu issue-ján is dönthetsz: `/jóváhagyom [megjegyzés]` vagy `/elutasítom <indoklás>` hozzászólással, illetve a `jóváhagyva` / `elutasítva` címkével vagy a lezárással. Mindegyiket azonnal rögzíti a rendszer; ha valami miatt elmaradna, a következő munkanap pótolja. Csak a repó tulajdonosának döntései számítanak.
 
+## Dizájn és márkázott változatok
+
+A Dizájn részleg (dizájnvezető, UI dizájner, márkázási dizájner, grafikus) tervezi a kész szoftverek kinézetét: design system a `docs/design/` alatt, tokenekkel, amiket a frontend közvetlenül használ. Ha egy ügyfél a saját nevével és logójával kéri a szoftvert, a vezérlőterem **Kész szoftverek** fülén (vagy a Dizájn részleg lapján) a **Márkázott változat kérése** űrlap kitölt egy GitHub kérést; ebbe húzod bele a logót. A rendszer elmenti a `branding/<ügyfél>/` mappába, és a márkázási dizájner elkészíti az ügyfél témáját.
+
 ## Részleg ki- és bekapcsolása
 
 A részleg lapján (kattints a részleg ikonjára a körben) kapcsolóval ki- és bekapcsolhatod a részleget (az Alicya Core kivételével). Kikapcsolva a részleg nem kap munkát és nem költ, a többi részleg nem vár rá, és az átvizsgálásai sem kellenek a feladatok lezárásához. Ha a chathez már összekapcsoltad a GitHubot, egy kattintás; különben a GitHubon kell elküldeni a kitöltött kérést. A `Döntés` munkafolyamat pár percen belül rögzíti.

@@ -32,9 +32,9 @@ Változat: 2026-10-16. Ez a fájl a `company/playbook.ts` alapján készül (`np
 | 1. Piac és termékötlet | Kinek, milyen fájdalmat oldunk meg, és mennyit fizetnének érte. | Piackutató, Termékmenedzser, Árazási elemző | docs/product/market.md | Célszegmens, versenytársak, árszint és a top 10 igény forrásokkal. | – |
 | 2. Specifikáció | Pontosan mit építünk ebben a kiadásban. | Termékmenedzser, UX tervező, Jogi agent, Adatvédelmi tisztviselő (DPO · EU) | docs/product/prd.md, docs/product/ux/ | PRD modulokkal, M/S/C prioritással, mérhető elfogadási feltételekkel; a tulajdonos jóváhagyta. | spec |
 | 3. Architektúra | Hogyan építjük meg úgy, hogy dobozolható és bővíthető legyen. | Szoftverarchitekt, Adatbázis-mérnök, Titok- és hozzáférés-kezelő, Adatvédelmi tisztviselő (DPO · EU), DevOps mérnök | docs/dev/architecture.md, docs/dev/adr/, docs/dev/conventions.md | Adatmodell, modulhatárok, API-szerződések, jogosultsági modell, DPIA szükségesség, fejlesztői feladatokra bontva. | – |
-| 4. Fejlesztés | Működő, tesztelt modulok. | Tech lead, Backend fejlesztő · Számlázás, Backend fejlesztő · Készlet, Backend fejlesztő · Könyvelés, Backend fejlesztő · HR, Integrációs fejlesztő · NAV, API fejlesztő, Adatbázis-mérnök, Frontend fejlesztő · Alap, Frontend fejlesztő · Riportok | product/backend/, product/frontend/, product/db/migrations/ | Minden feladat tesztekkel, kódellenőrzéssel, biztonsági és (ha kell) adatvédelmi jóváhagyással. | – |
+| 4. Fejlesztés | Működő, tesztelt modulok. | Dizájnvezető, UI dizájner, Grafikus, Tech lead, Backend fejlesztő · Számlázás, Backend fejlesztő · Készlet, Backend fejlesztő · Könyvelés, Backend fejlesztő · HR, Integrációs fejlesztő · NAV, API fejlesztő, Adatbázis-mérnök, Frontend fejlesztő · Alap, Frontend fejlesztő · Riportok | docs/design/, product/backend/, product/frontend/, product/db/migrations/ | Minden feladat tesztekkel, kódellenőrzéssel, biztonsági és (ha kell) adatvédelmi jóváhagyással. | – |
 | 5. Minőségbiztosítás | Bizonyítani, hogy a PRD teljesül és a termék stabil. | QA vezető, Tesztautomatizáló, Elfogadási tesztelő, Teljesítménytesztelő, Behatolásteszt-tervező | docs/dev/qa/ | Minden elfogadási feltétel lefedve, nincs nyitott kritikus hiba, teljesítmény- és biztonsági teszt lefutott. | – |
-| 6. Dobozolás | Telepíthető, licencelhető, frissíthető termék. | DevOps mérnök, Kiadásfelelős, Dokumentátor, Jogi agent, Ellátásilánc-figyelő | product/installer/, product/licensing/, docs/dev/release/, felhasználói kézikönyv és telepítési útmutató | Tiszta gépen telepíthető, a licenckiadások működnek, frissítés és visszaállítás kipróbálva, SBOM és licenclista kész, EULA vázlat kész. | – |
+| 6. Dobozolás | Telepíthető, licencelhető, frissíthető termék. | DevOps mérnök, Kiadásfelelős, Dokumentátor, Jogi agent, Ellátásilánc-figyelő, Márkázási dizájner | product/installer/, product/licensing/, docs/dev/release/, felhasználói kézikönyv és telepítési útmutató | Tiszta gépen telepíthető, a licenckiadások működnek, frissítés és visszaállítás kipróbálva, SBOM és licenclista kész, EULA vázlat kész. | – |
 | 7. Kiadás | Kiadásjelölt a tulajdonos elé. | Kiadásfelelős, Biztonsági igazgató (CISO), QA vezető, Adatvédelmi tisztviselő (DPO · EU) | docs/dev/release/<verzió>.md | Kiadási jegyzet, QA- és biztonsági jóváhagyás, a CISO nem élt vétóval; a tulajdonos jóváhagyta. | release |
 | 8. Piacra vitel és támogatás | Eladni, bevezetni, és a visszajelzést visszavinni a termékbe. | Árazási elemző, Márkastratéga, Kampánymenedzser, Tartalomíró, Sales vezető, Ajánlatíró, Ügyfélsiker vezető, Tudásbázis-szerkesztő | docs/sales/, docs/marketing/, docs/support/ | Jóváhagyott árazás és kampány, ajánlatsablonok, bevezetési csomag, tudásbázis; a hibajegyek feladatként visszakerülnek a fejlesztéshez. | pricing |
 
@@ -169,6 +169,22 @@ Bevezetés, súgó, hibajegyek visszacsatolása a fejlesztésnek.
 |---|---|---|---|---|
 | Ügyfélsiker vezető | Bevezetési folyamatot és támogatási szinteket tervezel. | termék, kiadási jegyzet | docs/support/onboarding.md, SLA és támogatási szintek | tudásbázis-szerkesztő, fejlesztés |
 | Tudásbázis-szerkesztő | GYIK-et és súgócikkeket írsz a kézikönyv alapján. | felhasználói kézikönyv | GYIK és súgócikkek a docs/support/kb/ alatt | ügyfélsiker vezető |
+
+## Dizájn
+
+A kész szoftverek kinézete: design system, felületek, ikonok, és ügyfélre szabott változatok a cég logójával és nevével.
+
+- A design system a docs/design/ alatt él: színek, tipográfia, térközök, komponensek, ikonok; tokenekben (docs/design/tokens.json), hogy a frontend közvetlenül használhassa. A frontend fejlesztők ezt építik be.
+- Ügyfélre szabott változat csak a tulajdonos által feltöltött adatokból készül (branding/<ügyfél>/: brand.json és a logó). Más cég logóját, nevét soha nem találod ki és nem használod.
+- A márkázás csak a felszínt érinti: logó, név, színek, bejelentkező kép, számlakép fejléc, dokumentáció borítója. A működés minden ügyfélnél ugyanaz, és az olvashatóság (kontraszt) nem sérülhet.
+- Minden képi elem SVG vagy szövegesen leírt; a felületterveket Markdown-ban, ASCII-vázlattal és tokenekkel adod le.
+
+| Szerep | Feladat | Bemenet | Kimenet | Továbbadja |
+|---|---|---|---|---|
+| Dizájnvezető | Te felelsz a termékek kinézetéért: vizuális irány, design system, és kiadás előtt jóváhagyod a felületeket. | PRD, UX folyamatok, márkastratégia | docs/design/README.md (vizuális irány), docs/design/tokens.json, felület-jóváhagyás kiadás előtt | UI dizájner, frontend fejlesztők |
+| UI dizájner | Képernyőket és komponenseket tervezel a design systemre: elrendezés, színek, tipográfia, állapotok, akadálymentesség. | UX folyamatok, design system | docs/design/screens/<modul>.md képernyőtervek és komponensek | frontend fejlesztők, dizájnvezető |
+| Márkázási dizájner | Ügyfélre szabott változatot készítesz: az ügyfél logója, neve és színei a felületen, a bejelentkezésnél, a számlaképen és a dokumentációban. | branding/<ügyfél>/brand.json és logó, design system | branding/<ügyfél>/theme.json (színek, logóhasználat), branding/<ügyfél>/README.md (mi hol jelenik meg) | frontend fejlesztők, kiadásfelelős |
+| Grafikus | Ikonokat, illusztrációkat és a telepítő, a dokumentáció és a csomagolás grafikai elemeit készíted SVG-ben. | design system | docs/design/icons/ és illusztrációk SVG-ben | UI dizájner, technikai író |
 
 ## Pénzügy & jog
 

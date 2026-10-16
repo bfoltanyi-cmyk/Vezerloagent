@@ -12,8 +12,9 @@ export class Workspace {
   constructor(private readonly root: string) {}
 
   private allowedRoots(access: Access, mode: "read" | "write"): string[] {
-    if (mode === "read") return ["docs", "product"];
+    if (mode === "read") return ["docs", "product", "branding"];
     if (access === "code") return ["docs", "product"];
+    if (access === "design") return ["docs", "branding"];
     if (access === "docs") return ["docs"];
     return [];
   }

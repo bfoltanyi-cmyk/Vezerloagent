@@ -4,7 +4,7 @@
 export type Tier = "lead" | "worker" | "bulk";
 
 /** Mihez fér hozzá egy szerep a munkaterületen. */
-export type Access = "code" | "docs" | "none";
+export type Access = "code" | "docs" | "design" | "none";
 
 export interface Role {
   id: string;
@@ -23,7 +23,8 @@ export type DepartmentId =
   | "marketing"
   | "sales"
   | "support"
-  | "finance";
+  | "finance"
+  | "design";
 
 export interface Department {
   id: DepartmentId;
@@ -41,6 +42,7 @@ export const DEPARTMENTS: Department[] = [
   { id: "marketing", name: "Marketing", purpose: "Pozicionálás, tartalom és kampánytervek. Csak vázlatot készít, publikálni nem tud.", lead: "brand-strategist" },
   { id: "sales", name: "Sales", purpose: "Célpiac, ajánlatok, árazás és licenccsomagok. Kifelé nem kommunikál jóváhagyás nélkül.", lead: "sales-lead" },
   { id: "support", name: "Ügyfélsiker", purpose: "Bevezetés, súgó, hibajegyek visszacsatolása a fejlesztésnek.", lead: "support-lead" },
+  { id: "design", name: "Dizájn", purpose: "A kész szoftverek kinézete: design system, felületek, ikonok, és ügyfélre szabott változatok a cég logójával és nevével.", lead: "design-lead" },
   { id: "finance", name: "Pénzügy & jog", purpose: "Tokenkeret, licencfeltételek, EULA, ÁSZF és számlázás.", lead: "controller" },
 ];
 
@@ -57,6 +59,12 @@ export const ROLES: Role[] = [
   r("market-researcher", "Piackutató", "product", "worker", "docs", "Elemzed a magyar KKV ERP-piacot, versenytársakat, árakat és igényeket."),
   r("product-manager", "Termékmenedzser", "product", "lead", "docs", "PRD-t, roadmapet és elfogadási feltételeket írsz. A specifikációt jóváhagyásra küldöd (spec kapu)."),
   r("ux-designer", "UX tervező", "product", "worker", "docs", "Képernyőterveket és felhasználói folyamatokat írsz le szövegesen és wireframe-ként."),
+
+  // Dizájn
+  r("design-lead", "Dizájnvezető", "design", "lead", "design", "Te felelsz a termékek kinézetéért: vizuális irány, design system, és kiadás előtt jóváhagyod a felületeket."),
+  r("ui-designer", "UI dizájner", "design", "worker", "design", "Képernyőket és komponenseket tervezel a design systemre: elrendezés, színek, tipográfia, állapotok, akadálymentesség."),
+  r("brand-designer", "Márkázási dizájner", "design", "worker", "design", "Ügyfélre szabott változatot készítesz: az ügyfél logója, neve és színei a felületen, a bejelentkezésnél, a számlaképen és a dokumentációban."),
+  r("graphic-designer", "Grafikus", "design", "bulk", "design", "Ikonokat, illusztrációkat és a telepítő, a dokumentáció és a csomagolás grafikai elemeit készíted SVG-ben."),
 
   // Fejlesztés: nagy csapat
   r("architect", "Szoftverarchitekt", "dev", "lead", "code", "Adatmodellt, modulhatárokat és API-szerződéseket tervezel, a munkát fejlesztői feladatokra bontod."),

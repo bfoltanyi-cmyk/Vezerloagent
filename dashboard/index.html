@@ -329,6 +329,28 @@ button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:tra
 @media (max-width:600px){.dp-cols .tracks{grid-template-columns:minmax(0,1fr)}}
 .dept-open{margin-top:12px;font-family:var(--f-mono);font-size:12px;background:transparent;color:var(--holo);border:1px solid var(--holo);padding:7px 12px;cursor:pointer;width:100%}
 .dept-open:hover{background:rgba(111,243,255,.08)}
+/* Márkázás */
+.br{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:900px){.br{grid-template-columns:minmax(0,1fr)}}
+.br form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px 14px}
+@media (max-width:600px){.br form{grid-template-columns:minmax(0,1fr)}}
+.br label{display:flex;flex-direction:column;gap:4px;font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.br label.wide{grid-column:1/-1}
+.br input,.br select,.br textarea{background:rgba(2,10,18,.8);border:1px solid var(--holo-3);color:var(--ink);font-family:var(--f-body);font-size:14px;padding:8px 10px;letter-spacing:0;text-transform:none}
+.br input:focus,.br select:focus,.br textarea:focus{outline:none;border-color:var(--holo)}
+.br .colors{display:flex;gap:8px}
+.br input[type=color]{width:56px;height:36px;padding:2px;cursor:pointer}
+.br .acts{grid-column:1/-1}
+.br .hint{grid-column:1/-1;font-size:12px;color:var(--ink-3)}
+.br-sent{grid-column:1/-1;color:var(--ok);font-size:13px}
+.br-sent[hidden]{display:none}
+.brands{display:flex;flex-direction:column;gap:8px}
+.brand{display:flex;gap:12px;align-items:center;padding:8px 10px;border:1px solid var(--holo-3);background:rgba(6,22,38,.5)}
+.brand img,.brand .ph{flex:none;width:48px;height:48px;object-fit:contain;background:#fff;padding:4px}
+.brand .ph{display:grid;place-items:center;background:var(--holo-3);color:var(--ink);font-family:var(--f-display);font-weight:700}
+.brand b{display:block;font-size:14px}
+.brand small{display:block;font-family:var(--f-mono);font-size:10px;color:var(--ink-3)}
+
 /* Kész szoftverek */
 .rel-grid{display:flex;flex-direction:column;gap:14px}
 .rel{border:1px solid rgba(94,242,192,.45);background:linear-gradient(160deg,rgba(94,242,192,.07),rgba(4,16,28,.5));padding:16px 18px;display:flex;flex-direction:column;gap:10px;
@@ -457,6 +479,22 @@ button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:tra
       <div class="panel-h"><h2>Letölthető kiadások</h2><span class="label" id="rel-sum"></span></div>
       <div class="panel-b"><div class="rel-grid" id="rel-list"><p class="empty">Betöltés…</p></div></div>
     </section>
+    <section class="panel" id="br-panel">
+      <div class="panel-h"><h2>Márkázott változat kérése</h2><span class="label">dizájncsapat</span></div>
+      <div class="panel-b br">
+        <form id="br-form">
+          <label class="wide">Cégnév (így jelenik meg a szoftverben)<input id="br-name" required autocomplete="organization" placeholder="pl. Kovács és Társa Kft."></label>
+          <label>Termék<select id="br-product"><option>Alicya ERP</option><option>Alicya Praxis</option></select></label>
+          <label>Cég színei<span class="colors"><input type="color" id="br-c1" value="#0a3d62" aria-label="Fő szín"><input type="color" id="br-c2" value="#f6b93b" aria-label="Kiemelő szín"></span></label>
+          <label class="wide">Kapcsolattartó (nem kötelező)<input id="br-contact" placeholder="név, e-mail"></label>
+          <label class="wide">Megjegyzés (nem kötelező)<textarea id="br-note" rows="2" placeholder="pl. a számlaképen is legyen rajta a logó"></textarea></label>
+          <div class="acts"><button type="submit" class="btn yes">Tovább a logó feltöltéséhez →</button></div>
+          <p class="hint">A gomb a GitHubon megnyit egy kitöltött kérést: húzd bele a logót (PNG vagy SVG), várd meg, amíg feltöltődik, aztán Create / Submit. A rendszer elmenti, és a dizájncsapat elkészíti a márkázott változatot.</p>
+          <p class="br-sent" id="br-sent" hidden>Megnyitottam a kérést. Ha elküldöd, pár percen belül itt megjelenik az ügyfél.</p>
+        </form>
+        <div><span class="label">Márkázott ügyfelek</span><div class="brands" id="br-list"><p class="empty">Betöltés…</p></div></div>
+      </div>
+    </section>
     <section class="panel">
       <div class="panel-h"><h2>Úton a kiadás felé</h2><span class="label">termékvonalak</span></div>
       <div class="panel-b"><div class="pipes" id="pipes"></div></div>
@@ -471,6 +509,7 @@ button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:tra
         <p class="dp-purpose" id="dp-purpose"></p>
         <button type="button" class="dp-switch" id="dp-switch" role="switch" aria-checked="true" hidden><span class="tr"></span><span id="dp-switch-l">BEKAPCSOLVA</span></button>
         <p class="dp-off" id="dp-off" hidden></p>
+        <button type="button" class="dept-open" id="dp-brand" hidden style="width:auto;margin-left:8px">Márkázott változat kérése →</button>
       </div>
       <div class="dp-nums" id="dp-nums"></div>
     </div>
@@ -853,6 +892,7 @@ function openDept(id) {
   const tasks = S.tasks.filter((t) => t.department === id || ids.has(t.assignee));
   $("dp-title").textContent = d.name; $("dp-purpose").textContent = d.purpose;
   renderSwitch(id);
+  $("dp-brand").hidden = id !== "design";
   const states = roles.map((r) => [r, ...agentState(r)]);
   const n = (k) => states.filter((x) => x[1] === k).length;
   const spentD = roles.reduce((a, r) => a + monthSpent(r.id), 0);
@@ -949,6 +989,7 @@ function renderSwitch(id) {
 }
 for (const b of [...$("dp-nav").children, ...$("dnav").children]) if (disabled.has(b.dataset.id)) { b.classList.add("off"); b.title = "Kikapcsolva"; }
 $("dp-back").onclick = () => showTab("main");
+$("dp-brand").onclick = () => { showTab("rel"); setTimeout(() => $("br-panel").scrollIntoView({ behavior: reduce ? "auto" : "smooth" }), 50); };
 $("dopen").onclick = () => openDept(sel);
 { const m = location.hash.match(/^#reszleg\/(\w+)/); if (m && depBy[m[1]]) openDept(m[1]); }
 
@@ -962,7 +1003,7 @@ const STAGES = [
   ["research", "Piackutatás", ["market-researcher", "pricing-analyst"]],
   ["spec", "Specifikáció", ["product-manager", "ux-designer", "legal", "privacy-officer", "privacy-hu", "privacy-pl", "privacy-cz"]],
   ["arch", "Architektúra", ["architect", "tech-lead"]],
-  ["build", "Fejlesztés", ["backend-invoicing", "backend-inventory", "backend-accounting", "backend-hr", "integration-dev", "api-dev", "db-engineer", "frontend-core", "frontend-reports", "code-reviewer", "appsec"]],
+  ["build", "Fejlesztés", ["design-lead", "ui-designer", "graphic-designer", "brand-designer", "backend-invoicing", "backend-inventory", "backend-accounting", "backend-hr", "integration-dev", "api-dev", "db-engineer", "frontend-core", "frontend-reports", "code-reviewer", "appsec"]],
   ["test", "Tesztelés", ["qa-lead", "test-automation", "acceptance-tester", "performance-tester", "pentest-planner"]],
   ["package", "Dobozolás", ["devops", "tech-writer", "supply-chain"]],
   ["release", "Kiadás", ["release-manager", "ciso"]],
@@ -1004,7 +1045,7 @@ function renderPipes() {
 let relLoaded = false;
 async function loadReleases() {
   if (relLoaded) return; relLoaded = true;
-  renderPipes();
+  renderPipes(); loadBrands();
   const list = $("rel-list");
   let rels = null;
   if (M.repo) { try { const r = await fetch(`https://api.github.com/repos/${M.repo}/releases?per_page=30`, { cache: "no-store" }); if (r.ok) rels = await r.json(); } catch {} }
@@ -1034,6 +1075,46 @@ async function loadReleases() {
 }
 // Darabszám a fülön, a lap megnyitása nélkül is.
 if (M.repo) fetch(`https://api.github.com/repos/${M.repo}/releases?per_page=30`, { cache: "no-store" }).then((r) => (r.ok ? r.json() : [])).then((r) => { const n = r.filter((x) => !x.draft).length; if (n) $("rel-count").textContent = String(n); }).catch(() => {});
+
+// ── Márkázott változat kérése: a cég neve és logója a dizájncsapatnak ──
+// A gomb egy kitöltött GitHub issue-t nyit; oda húzod be a logót, a "Döntés" munkafolyamat elmenti
+// a branding/<ügyfél>/ mappába, és feladatot ad a márkázási dizájnernek.
+$("br-form").onsubmit = (e) => {
+  e.preventDefault();
+  const v = (id) => $(id).value.trim();
+  const company = v("br-name");
+  if (!company) { $("br-name").focus(); return; }
+  const colors = [$("br-c1").value, $("br-c2").value].join(", ");
+  const body = `<!-- alicya-markazas -->
+Cégnév: ${company}
+Termék: ${$("br-product").value}
+Színek: ${colors}
+Kapcsolattartó: ${v("br-contact")}
+Megjegyzés: ${v("br-note").replace(/\n+/g, " ")}
+
+<!-- Húzd ide a logót (PNG vagy SVG, legfeljebb 5 MB), várd meg, amíg feltöltődik, aztán kattints a Create / Submit gombra. -->
+`;
+  window.open(`${M.repoUrl}/issues/new?${new URLSearchParams({ title: `Márkázási kérés: ${company}`, body })}`, "_blank", "noopener");
+  $("br-sent").hidden = false;
+};
+async function loadBrands() {
+  const box = $("br-list"); if (!M.repo) return;
+  let dirs = [];
+  try { const r = await fetch(`https://api.github.com/repos/${M.repo}/contents/branding?ref=${encodeURIComponent(branch)}`, { cache: "no-store" }); if (r.ok) dirs = (await r.json()).filter((x) => x.type === "dir"); } catch {}
+  box.innerHTML = "";
+  if (!dirs.length) { box.append(el("p", "empty", "Még nincs márkázott ügyfél.")); return; }
+  for (const d of dirs) {
+    const brand = await live(`branding/${d.name}/brand.json`);
+    const card = el("div", "brand");
+    const logo = brand && brand.logos && brand.logos[0];
+    if (logo) { const img = el("img"); img.alt = `${brand.company} logója`; img.loading = "lazy"; img.src = `https://raw.githubusercontent.com/${M.repo}/${branch}/branding/${d.name}/${logo}`; card.append(img); }
+    else card.append(el("span", "ph", (brand?.company || d.name).slice(0, 2).toUpperCase()));
+    const t = el("div"); t.append(el("b", null, brand?.company || d.name), el("small", null, `${brand?.product || ""} · ${brand?.requestedAt ? fmt(brand.requestedAt) : ""}`));
+    const task = S.tasks.find((x) => x.title === `Márkázott változat: ${brand?.company}`);
+    if (task) t.append(el("small", null, `${task.id} · ${ST[task.status]}`));
+    card.append(t); box.append(card);
+  }
+}
 
 // ── Holografikus HUD ──
 const cv = $("hud"), cx = cv.getContext("2d");

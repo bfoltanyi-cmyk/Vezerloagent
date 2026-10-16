@@ -13,6 +13,7 @@ import { loadConfig, type Config } from "./config.js";
 import { githubAvailable, openIssues, realGh, syncDecisions, type Gh } from "./gates.js";
 import { gitCheckpoint, type Checkpoint } from "./checkpoint.js";
 import { sweepDecisionIssues } from "./decide.js";
+import { sweepBrandingIssues } from "./branding.js";
 import { ClaudeClient, type ModelClient } from "./llm.js";
 import { loadState, saveState } from "./state.js";
 import type { CompanyState } from "./types.js";
@@ -36,6 +37,7 @@ export async function workday(opts: { config: Config; client?: ModelClient; gh?:
     syncDecisions(s, opts.gh);
     try {
       sweepDecisionIssues(s, config.rootDir, opts.gh, process.env.GITHUB_REPOSITORY_OWNER ?? "");
+      await sweepBrandingIssues(s, config.rootDir, opts.gh, process.env.GITHUB_REPOSITORY_OWNER ?? "");
     } catch (e) {
       logEvent(s, { actor: "system", department: "system", kind: "warn", text: `A döntés-issue-kat nem sikerült beolvasni: ${e instanceof Error ? e.message.split("\n")[0] : String(e)}` });
     }

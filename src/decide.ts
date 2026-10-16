@@ -9,6 +9,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { decideGate, logEvent, setDepartmentEnabled } from "./board.js";
+import { sweepBrandingIssues } from "./branding.js";
 import { gitCheckpoint } from "./checkpoint.js";
 import { GUIDANCE_FILE } from "./ceo-chat.js";
 import { loadConfig } from "./config.js";
@@ -155,7 +156,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   const n = Number(process.env.ISSUE_NUMBER);
   const comment = process.env.COMMENT_BODY;
   const s = loadState(root);
-  const before = JSON.stringify([s.gates, s.meta.disabledDepartments]);
+  const before = JSON.stringify(s);
   const issue = readIssueInfo(gh, n);
   const done: string[] = [];
 
@@ -179,8 +180,10 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   }
   // A vezérlőterem gombjaival nyitott döntések, a mostani és az esetleg elmaradtak is.
   done.push(...sweepDecisionIssues(s, root, gh, process.env.GITHUB_REPOSITORY_OWNER ?? ""));
+  // Márkázási kérések logóval.
+  done.push(...(await sweepBrandingIssues(s, root, gh, process.env.GITHUB_REPOSITORY_OWNER ?? "")));
 
-  if (JSON.stringify([s.gates, s.meta.disabledDepartments]) !== before) {
+  if (JSON.stringify(s) !== before) {
     saveState(root, s);
     if (process.env.ALICYA_CHECKPOINT === "1") gitCheckpoint(root, process.env.WORK_BRANCH || "alicya/munka")(`Tulajdonosi döntés (issue #${n})`);
     if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, "changed=true\n");
