@@ -80,7 +80,7 @@
       "description": "A PRD alapján tervezd meg a termék architektúráját (NestJS + PostgreSQL + React, moduláris monolit) a docs/dev/architecture.md fájlba, hozd létre a product/ alatti vázat, és bontsd fejlesztői feladatokra a munkát.",
       "department": "dev",
       "assignee": "architect",
-      "status": "todo",
+      "status": "blocked",
       "kind": "code",
       "priority": 1,
       "dependsOn": [
@@ -88,8 +88,14 @@
       ],
       "createdBy": "ceo",
       "createdAt": "2026-10-13T05:57:15.602Z",
-      "updatedAt": "2026-10-13T05:57:15.602Z",
-      "notes": []
+      "updatedAt": "2026-10-16T15:34:19.994Z",
+      "notes": [
+        {
+          "at": "2026-10-16T15:34:19.994Z",
+          "by": "architect",
+          "text": "Elakadt: Elfogyott a keret, a feladat félkész. Kész: docs/dev/architecture.md (modulok, adatmodell, API, jogosultság, DPIA-értékelés, feladatlista a 9. pontban); ADR-0001…0004 (docs/dev/adr/); a backend alapja: package.json, tsconfig, shared/money (bigint, half-up, 5 Ft-os kerekítés) és shared/auth (alapból tiltó guard, beépített szerepkörök), mindkettő tesztekkel. A teszteket még nem futtattam. Hátravan: 1) main.ts, app.module.ts, modulvázak (platform/licensing/masterdata/invoicing/inventory/nav-connector/reports), shared/country és privacy interfészek; 2) db/migrations/0001_baseline up/down; 3) frontend váz + hu.json; 4) installer: compose, .env.example helyőrzőkkel; licensing/README; product/README frissítése; 5) az architecture.md 9. pontjában szereplő 12 fejlesztői feladat létrehozása. A következő körben folytatom."
+        }
+      ]
     },
     {
       "id": "T-0005",
@@ -680,6 +686,20 @@
       "department": "system",
       "kind": "warn",
       "text": "Hiba T-0004 közben: 401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011Cg69n8gAH3qWjmaKefDXC\"}"
+    },
+    {
+      "at": "2026-10-16T15:31:18.485Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Szoftverarchitekt dolgozik: T-0004 Architektúra és repó-struktúra"
+    },
+    {
+      "at": "2026-10-16T15:34:19.994Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "warn",
+      "text": "T-0004 elakadt: Elfogyott a keret, a feladat félkész. Kész: docs/dev/architecture.md (modulok, adatmodell, API, jogosultság, DPIA-értékelés, feladatlista a 9. pontban); ADR-0001…0004 (docs/dev/adr/); a backend alapja: package.json, tsconfig, shared/money (bigint, half-up, 5 Ft-os kerekítés) és shared/auth (alapból tiltó guard, beépített szerepkörök), mindkettő tesztekkel. A teszteket még nem futtattam. Hátravan: 1) main.ts, app.module.ts, modulvázak (platform/licensing/masterdata/invoicing/inventory/nav-connector/reports), shared/country és privacy interfészek; 2) db/migrations/0001_baseline up/down; 3) frontend váz + hu.json; 4) installer: compose, .env.example helyőrzőkkel; licensing/README; product/README frissítése; 5) az architecture.md 9. pontjában szereplő 12 fejlesztői feladat létrehozása. A következő körben folytatom."
     }
   ],
   "ledger": [
@@ -962,6 +982,96 @@
       "cacheReadTokens": 57686,
       "cacheWriteTokens": 146,
       "usd": 0.3322752
+    },
+    {
+      "at": "2026-10-16T15:31:21.326Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 4,
+      "outputTokens": 163,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 6954,
+      "usd": 0.038046
+    },
+    {
+      "at": "2026-10-16T15:31:23.261Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 165,
+      "cacheReadTokens": 6954,
+      "cacheWriteTokens": 479,
+      "usd": 0.0070938
+    },
+    {
+      "at": "2026-10-16T15:31:26.101Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 142,
+      "cacheReadTokens": 7433,
+      "cacheWriteTokens": 13305,
+      "usd": 0.07085960000000001
+    },
+    {
+      "at": "2026-10-16T15:31:29.612Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 273,
+      "cacheReadTokens": 20738,
+      "cacheWriteTokens": 874,
+      "usd": 0.0139856
+    },
+    {
+      "at": "2026-10-16T15:33:02.874Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 9143,
+      "cacheReadTokens": 21612,
+      "cacheWriteTokens": 14455,
+      "usd": 0.2594654
+    },
+    {
+      "at": "2026-10-16T15:33:25.646Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 2139,
+      "cacheReadTokens": 36067,
+      "cacheWriteTokens": 9172,
+      "usd": 0.0958614
+    },
+    {
+      "at": "2026-10-16T15:33:47.781Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 2992,
+      "cacheReadTokens": 45239,
+      "cacheWriteTokens": 2378,
+      "usd": 0.0807858
+    },
+    {
+      "at": "2026-10-16T15:34:12.519Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 3459,
+      "cacheReadTokens": 47617,
+      "cacheWriteTokens": 3203,
+      "usd": 0.09472639999999999
+    },
+    {
+      "at": "2026-10-16T15:34:19.993Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 4,
+      "outputTokens": 572,
+      "cacheReadTokens": 50820,
+      "cacheWriteTokens": 3730,
+      "usd": 0.04027
     }
   ]
 }

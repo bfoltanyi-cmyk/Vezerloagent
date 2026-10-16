@@ -1,0 +1,116 @@
+# Architektúra – „Számla + Készlet Start" (MVP)
+
+| | |
+|---|---|
+| Feladat | T-0004 |
+| Alap | `docs/product/prd.md` (T-0002), `docs/security/policy.md` (T-0003) |
+| Döntések | `docs/dev/adr/` (ADR-0001…0004) |
+| Kódszabályok, DoD | `docs/dev/conventions.md` (T-0012, tech-lead) |
+| Továbbadva | tech-lead és fejlesztők (feladatok: 9. pont) |
+
+## 1. Áttekintés
+
+Egyetlen telepíthető alkalmazás (moduláris monolit, ADR-0001) két futási módban, ugyanabból az image-ből:
+- `APP_ROLE=api` – NestJS REST API + a lefordított React felület kiszolgálása,
+- `APP_ROLE=worker` – háttérfeladatok: NAV-outbox, értesítések, megőrzési futások, mentés-ütemező.
+
+Konténerek (Docker Compose): `app` (api), `worker`, `db` (PostgreSQL 16), `proxy` (Caddy: TLS, Let's Encrypt vagy saját tanúsítvány). Nincs Redis/üzenetsor: a sor és az outbox PostgreSQL-táblában él (`SELECT … FOR UPDATE SKIP LOCKED`), így a telepítés egyszerű marad (NF-2).
+
+```
+React SPA ──HTTPS──> proxy ──> app (api) ──┐
+                                           ├── PostgreSQL (sémák modulonként)
+                          worker ──────────┘──> NAV / SMTP / frissítés-ellenőrzés (allowlist, AC-26)
+```
+
+## 2. Modulok és határok
+
+Repó: `product/backend/src/modules/<modul>/`. Modul más modul tábláját **nem olvassa és nem írja**; csak annak exportált szolgáltatásán (`<Modul>PublicService`) vagy eseményen keresztül kommunikál. Közös kód: `src/shared/` (pénz, jogosultság, tenant-kontextus, események, országcsomag-interfész). Kikényszerítés: ESLint `no-restricted-imports` (T-0013).
+
+| Modul | DB-séma | Felelősség (PRD) | Publikus API mások felé |
+|---|---|---|---|
+| `platform` | `platform` | felhasználó, szerepkör, hitelesítés, auditnapló, beállítások, titoktár, érintetti kérelem, megőrzés, mentés-ütemezés (P-1…P-15) | `AuthContext`, `AuditService.record()`, `SecretVault`, `PrivacyRegistry` |
+| `licensing` | – (fájl) | offline licencellenőrzés, funkciókapcsolók, felhasználó-/raktárlimit | `LicenseService.isEnabled(feature)`, `limits()` |
+| `masterdata` | `masterdata` | cég, partner, cikk, áfa-kulcs, deviza, import (TD-1…7) | `PartnerReader`, `ItemReader`, `VatRateReader` |
+| `invoicing` | `invoicing` | számla, sztornó, módosító, díjbekérő, sorszámkör, PDF, e-mail, fizetési státusz (SZ-*) | `InvoiceReader`; események: `InvoiceIssued`, `InvoiceCorrected` |
+| `inventory` | `inventory` | raktár, bizonylatok, mozgóátlagár, leltár, minimumkészlet (K-*) | `StockService.issueForInvoice()`, `returnForCorrection()`, `StockReader` |
+| `nav-connector` | `nav` | HU e-számla csatoló: XML, outbox, státusz, napló (NAV-*) | implementálja a `EInvoiceConnector` interfészt (ADR-0004) |
+| `reports` | – (csak olvasás) | R-1…R-7, könyvelői export | – (csak a többiek `*Reader` szolgáltatásait használja) |
+
+Függési irány (körmentes): `platform`, `licensing` ← `masterdata` ← `inventory` ← `invoicing` → `nav-connector` (eseményen át); `reports` mindenkit olvas, őt senki.
+
+## 3. Modulközi kommunikáció és tranzakciók
+
+- **Szinkron, egy tranzakcióban** (NF-3): számla-kiállítás = sorszámfoglalás + számla mentés + `StockService.issueForInvoice()` + outbox-sor, egyetlen DB-tranzakcióban. A tranzakciót a hívó (invoicing) nyitja; a `TransactionContext`-et a publikus szolgáltatások paraméterként kapják. Elégtelen készletnél (AC-11) a teljes kiállítás visszagördül, `409 INSUFFICIENT_STOCK` + elérhető mennyiség.
+- **Aszinkron, outbox** (ADR-0003): `InvoiceIssued`/`InvoiceCorrected` → `platform.outbox` sor → worker → `nav-connector`. NAV-hiba nem blokkolja a számlázást (NAV-3, AC-6). Exponenciális várakozás, max. 24 óra után „beavatkozás kell" állapot és riasztás.
+- **Minimumkészlet-riasztás** (AC-14): a mozgás tranzakciójában `StockBelowMinimum` esemény az outboxba, worker 30 mp-es ciklusban dolgozza fel.
+
+## 4. Adatmodell (fő entitások)
+
+Minden tábla: `id uuid`, `company_id uuid NOT NULL` (tenant, ADR-0002), `created_at/updated_at timestamptz` (UTC), `created_by`. Pénz: `bigint` minor unitban (`*_minor`) + `currency char(3)`; egységár és mennyiség `numeric(19,4)`; árfolyam `numeric(18,6)`. Lebegőpontos típus tilos.
+
+| Séma | Táblák (lényeg) |
+|---|---|
+| platform | `company`, `user`, `role`, `role_permission`, `user_role`, `session`, `audit_log` (append-only), `setting`, `secret` (AES-256-GCM boríték), `outbox`, `dsr_request`, `restriction` (korlátozott rekordok: entitás, ok, lejárat), `retention_run` |
+| masterdata | `partner` (típus: `domestic_company`/`eu_company`/`foreign`/`private_person`), `partner_address`, `contact_person`, `item` (készletkezelt, szolgáltatás jelző, VTSZ/SZJ, EAN), `item_min_stock` (raktáranként), `vat_rate` (+ NAV-kód, mentességi jogcím), `currency_rate`, `bank_account` |
+| invoicing | `number_sequence` (sorszámkör: prefix, év, telephely, `next_value`), `invoice` (típus: `normal`/`storno`/`modification`/`proforma`/`advance`, `original_invoice_id`, partner-**pillanatkép** JSON), `invoice_line`, `invoice_vat_summary`, `payment`, `email_dispatch_log` |
+| inventory | `warehouse` (`allow_negative`), `stock_document` (típus, saját sorszám, `reverses_document_id`), `stock_movement` (cikk, raktár, ± mennyiség, egységköltség), `stock_balance` (cikk×raktár: mennyiség, mozgóátlagár), `stocktake`, `stocktake_line`; előkészítve: `lot_id`/`serial_id` NULL-képes oszlopok (K-10) |
+| nav | `nav_submission` (számla, művelet, `transaction_id`, státusz, próbálkozás), `nav_log` (XML-kérés/válasz titok nélkül, 8 év), `nav_error_hint` (hibakód → magyar teendő) |
+
+Kulcsszabályok:
+- **Hézagmentes sorszám** (SZ-2, AC-3): `number_sequence` sor `SELECT … FOR UPDATE` a kiállítási tranzakcióban; PostgreSQL `SEQUENCE` tilos (hézagot hagy).
+- **Változatlanság** (SZ-2, AC-4, K-2): `issued` állapotú `invoice`/`invoice_line` és minden `stock_document` UPDATE/DELETE-jét trigger tiltja; a változó állapot (NAV-státusz, fizetés) külön táblában él. Javítás csak sztornó/módosító/ellenbizonylat.
+- **Partner-pillanatkép:** a számla a kiállításkori partneradatot másolja (törzsadat-változás nem írja át a bizonylatot); érintetti exportban és korlátozásban szerepel.
+- **Mozgóátlagár** (K-4, AC-12): bevételezéskor `új_átlag = (készlet×átlag + menny×ár) / (készlet+menny)`, 4 tizedesre kerekítve, banker's rounding nélkül (half-up); kiadás átlagáron. Visszamenőleges készletérték (R-1, AC-17) a `stock_movement` naplóból számolódik.
+- **Kerekítés** (NF-3): soronként nettó → áfa → bruttó minor unitra half-up; áfaösszesítő kulcsonként; készpénzes 5 Ft-os kerekítés külön sor (SZ-6 ⚠). Egy helyen: `shared/money`.
+
+## 5. API-szerződések
+
+- REST, prefix `/api/v1/<modul>/…`, JSON; OpenAPI 3.1 generálva (`@nestjs/swagger`), a `docs/dev/api/openapi.json` a CI-ban frissül és diffelődik.
+- Hiba: RFC 9457 `application/problem+json`, stabil `code` mező (pl. `INVOICE_IMMUTABLE`, `INSUFFICIENT_STOCK`, `SEQUENCE_CONFLICT`), magyar üzenet i18n-kulcsból.
+- Kiállítás idempotens: `Idempotency-Key` fejléc a `POST /invoicing/invoices/{id}/issue` hívásra.
+- Lapozás: kurzor alapú (`?cursor=&limit=` max. 200), szűrés whitelistelt mezőkre (NF-1).
+- Kiállított bizonylatra `PUT/PATCH/DELETE` → `409 INVOICE_IMMUTABLE` + auditbejegyzés (AC-4).
+- Fő végpontok: `masterdata/partners|items|vat-rates|imports`; `invoicing/invoices` (+`/issue`, `/storno`, `/modify`, `/pdf`, `/send`, `/payments`), `invoicing/proformas/{id}/convert`; `inventory/warehouses|documents|balances|stocktakes|alerts`; `nav/submissions` (+`/retry`); `reports/*` (+`?format=csv|xlsx|xml`); `platform/users|roles|audit|settings|secrets|dsr|backups`.
+- Enterprise nyilvános API (később): ugyanez a felület API-kulccsal, licenckapcsolóval.
+
+## 6. Jogosultsági modell
+
+- Hitelesítés: munkamenet-süti (`HttpOnly`, `Secure`, `SameSite=Strict`), Argon2id, próbálkozás-korlátozás, TOTP (P-2). Nincs JWT a böngészőben.
+- Engedélyek `modul.erőforrás.művelet` formában (pl. `invoicing.invoice.issue`), lista: `src/shared/auth/permissions.ts`. Szerepkör = engedélyhalmaz; a PRD öt beépített szerepköre ott definiált, egyedi szerepkör a felületről.
+- **Alapból tiltás:** globális `PermissionGuard`; engedély nélküli végpont 403-at ad. `@Public()` csak a bejelentkezésre és a health-re.
+- Objektumszint: minden lekérdezés `company_id`-re szűr (repository-réteg) **és** PostgreSQL RLS (`app.company_id` munkamenet-változó) – kettős védelem (ADR-0002).
+- Korlátozott (zárolt) rekordot csak `privacy.restricted.read` engedély lát (AC-22).
+- Minden engedélyhez negatív teszt (AC-19).
+
+## 7. Személyes adatok, adatvédelem
+
+Adatkörök: PRD 3.7. Megoldás:
+- **`PrivacyRegistry`:** minden személyes adatot tároló modul regisztrál egy `PersonalDataProvider`-t (`search`, `export`, `rectify`, `restrict`, `anonymize`) és a mezőit (cél, jogalap, kategória, megőrzés) – ebből készül az érintetti keresés/export (P-8, AC-21) és a nyilvántartás-vázlat (P-10).
+- **Megőrzési profil** az országcsomagból (HU: számla 8 év); megőrzésen belül törlés → `restriction`, lejárat után anonimizálás adminisztrátori jóváhagyással (P-9).
+- Technikai naplóban csak azonosító; központi redaktor (policy 4.2, 7.2). NAV-XML magánszemélynél név/cím nélkül (NAV-5).
+- **DPIA:** az MVP-ben nincs különleges adat, munkavállalói megfigyelés vagy profilalkotás, ezért előzetes értékelés szerint DPIA nem kötelező; az auditnapló felhasználói tevékenységet rögzít, ezt a privacy-officer erősítse meg (T-0006). A HR-szelet előtt DPIA kell.
+
+## 8. Lokalizáció, licenc, telepítés
+
+- **Országcsomag** (ADR-0004, NF-7): `CountryPack` interfész – adószám-validátor, áfa-szabályok, `EInvoiceConnector`, megőrzési profil, számlasablon, kerekítés. MVP: `hu`; `pl` (KSeF) és `cz` a magot nem érinti.
+- **i18n:** backend és frontend üzenetkulcsok (`hu.json`), dátum UTC-ben tárolva, megjelenítés `Europe/Budapest` szerint.
+- **Licenc:** Ed25519-tel aláírt JSON licencfájl (cég adószám, kiadás, funkciók, limitek, lejárat a frissítési jogra), a nyilvános kulcs az image-ben; nincs hazatelefonálás. Részletek: `product/licensing/README.md`.
+- **Telepítő:** `product/installer/` – `install.sh` generál telepítésenként véletlen titkokat (`0600` env-fájl/Docker secret), elindítja a compose-t, első indításkor varázsló. Frissítés: `update.sh` = aláírás-ellenőrzés → kötelező titkosított mentés → migráció (`up`) → hiba esetén visszaállítás. Migrációk: `product/db/migrations/NNNN_<név>.up.sql` / `.down.sql`.
+- DB-szerepkörök: `erp_migrator` (DDL), `erp_app` (DML, nincs UPDATE/DELETE a `platform.audit_log`-on), nem superuser.
+
+## 9. Fejlesztői feladatok
+
+| Feladat | Szerep | Függ |
+|---|---|---|
+| DB alapok: sémák, RLS, DB-szerepkörök, változatlansági triggerek, sorszámkör, migrációfuttató | db-engineer | – |
+| Platform: hitelesítés, felhasználó/szerepkör, PermissionGuard, auditnapló, titoktár | api-dev | DB alapok |
+| Licencellenőrzés és funkciókapcsolók | api-dev | platform |
+| Törzsadatok + CSV/XLSX import | backend-accounting | platform |
+| Készletkezelés | backend-inventory | törzsadatok |
+| Számlázás (+PDF, e-mail) | backend-invoicing | készlet, törzsadatok |
+| NAV-csatoló (HU országcsomag) | integration-dev | T-0011, számlázás |
+| Riportok és könyvelői export | backend-accounting | számlázás, készlet |
+| PrivacyRegistry, érintetti kérelem, megőrzés | backend-hr | platform |
+| Frontend váz, design system, i18n, bejelentkezés | frontend-core | platform |
+| Telepítő, mentés/visszaállítás, frissítő | devops | DB alapok, T-0013 |
+| Fenyegetésmodell (architektúra + NAV) | appsec | – |
