@@ -85,14 +85,15 @@ Kulcsszabályok:
 ## 7. Személyes adatok, adatvédelem
 
 Adatkörök: PRD 3.7. Megoldás:
-- **`PrivacyRegistry`:** minden személyes adatot tároló modul regisztrál egy `PersonalDataProvider`-t (`search`, `export`, `rectify`, `restrict`, `anonymize`) és a mezőit (cél, jogalap, kategória, megőrzés) – ebből készül az érintetti keresés/export (P-8, AC-21) és a nyilvántartás-vázlat (P-10).
+- **`PrivacyRegistry`:** minden személyes adatot tároló modul regisztrál egy `PersonalDataProvider`-t (`search`, `export`, `rectify`, `restrict`, `anonymize`) és a mezőit (cél, jogalap, kategória, megőrzés) – ebből készül az érintetti keresés/export (P-8, AC-21) és a nyilvántartás-vázlat (P-10). Interfészek: `src/shared/privacy/`.
 - **Megőrzési profil** az országcsomagból (HU: számla 8 év); megőrzésen belül törlés → `restriction`, lejárat után anonimizálás adminisztrátori jóváhagyással (P-9).
 - Technikai naplóban csak azonosító; központi redaktor (policy 4.2, 7.2). NAV-XML magánszemélynél név/cím nélkül (NAV-5).
 - **DPIA:** az MVP-ben nincs különleges adat, munkavállalói megfigyelés vagy profilalkotás, ezért előzetes értékelés szerint DPIA nem kötelező; az auditnapló felhasználói tevékenységet rögzít, ezt a privacy-officer erősítse meg (T-0006). A HR-szelet előtt DPIA kell.
+- A részletes adatvédelmi architektúra (osztályozás, megőrzési motor, érintetti kérelem, naplózás) külön feladatokban: T-0019, T-0020, T-0021.
 
 ## 8. Lokalizáció, licenc, telepítés
 
-- **Országcsomag** (ADR-0004, NF-7): `CountryPack` interfész – adószám-validátor, áfa-szabályok, `EInvoiceConnector`, megőrzési profil, számlasablon, kerekítés. MVP: `hu`; `pl` (KSeF) és `cz` a magot nem érinti.
+- **Országcsomag** (ADR-0004, NF-7): `CountryPack` interfész (`src/shared/country/`) – adószám-validátor, áfa-szabályok, `EInvoiceConnector`, megőrzési profil, számlasablon, kerekítés. MVP: `hu`; `pl` (KSeF) és `cz` a magot nem érinti.
 - **i18n:** backend és frontend üzenetkulcsok (`hu.json`), dátum UTC-ben tárolva, megjelenítés `Europe/Budapest` szerint.
 - **Licenc:** Ed25519-tel aláírt JSON licencfájl (cég adószám, kiadás, funkciók, limitek, lejárat a frissítési jogra), a nyilvános kulcs az image-ben; nincs hazatelefonálás. Részletek: `product/licensing/README.md`.
 - **Telepítő:** `product/installer/` – `install.sh` generál telepítésenként véletlen titkokat (`0600` env-fájl/Docker secret), elindítja a compose-t, első indításkor varázsló. Frissítés: `update.sh` = aláírás-ellenőrzés → kötelező titkosított mentés → migráció (`up`) → hiba esetén visszaállítás. Migrációk: `product/db/migrations/NNNN_<név>.up.sql` / `.down.sql`.
@@ -100,17 +101,23 @@ Adatkörök: PRD 3.7. Megoldás:
 
 ## 9. Fejlesztői feladatok
 
-| Feladat | Szerep | Függ |
-|---|---|---|
-| DB alapok: sémák, RLS, DB-szerepkörök, változatlansági triggerek, sorszámkör, migrációfuttató | db-engineer | – |
-| Platform: hitelesítés, felhasználó/szerepkör, PermissionGuard, auditnapló, titoktár | api-dev | DB alapok |
-| Licencellenőrzés és funkciókapcsolók | api-dev | platform |
-| Törzsadatok + CSV/XLSX import | backend-accounting | platform |
-| Készletkezelés | backend-inventory | törzsadatok |
-| Számlázás (+PDF, e-mail) | backend-invoicing | készlet, törzsadatok |
-| NAV-csatoló (HU országcsomag) | integration-dev | T-0011, számlázás |
-| Riportok és könyvelői export | backend-accounting | számlázás, készlet |
-| PrivacyRegistry, érintetti kérelem, megőrzés | backend-hr | platform |
-| Frontend váz, design system, i18n, bejelentkezés | frontend-core | platform |
-| Telepítő, mentés/visszaállítás, frissítő | devops | DB alapok, T-0013 |
-| Fenyegetésmodell (architektúra + NAV) | appsec | – |
+| Feladat | Szerep | Függ | Azonosító |
+|---|---|---|---|
+| DB alapok: sémák, RLS, DB-szerepkörök, változatlansági triggerek, sorszámkör, migrációfuttató | db-engineer | – | T-0034 |
+| Platform: hitelesítés, felhasználó/szerepkör, PermissionGuard, auditnapló, titoktár | api-dev | T-0034 | T-0035 |
+| Telepítő, mentés/visszaállítás, frissítő | devops | T-0034, T-0013 | T-0036 |
+| Fenyegetésmodell (architektúra + NAV) | appsec | – | T-0037 |
+| Licencellenőrzés és funkciókapcsolók | api-dev | T-0035 | T-0038 |
+| Törzsadatok + CSV/XLSX import | backend-accounting | T-0035 | T-0039 |
+| Készletkezelés | backend-inventory | T-0039 | T-0040 |
+| Számlázás (+PDF, e-mail) | backend-invoicing | T-0040, T-0039 | T-0041 |
+| PrivacyRegistry, érintetti kérelem, megőrzés | backend-hr, db-engineer | – | T-0019 bontja |
+| NAV-csatoló (HU országcsomag) | integration-dev | T-0011, T-0041 | *létrehozandó* (9.1) |
+| Riportok és könyvelői export | backend-accounting | T-0041, T-0040 | *létrehozandó* (9.1) |
+| Frontend váz, design system, i18n, bejelentkezés | frontend-core | T-0035 | *létrehozandó* (9.1) |
+
+### 9.1 Még létrehozandó feladatok (napi feladatkorlát miatt elhalasztva)
+
+- **NAV-csatoló** – `modules/nav-connector/`, séma `nav`. `EInvoiceConnector` NAV Online Számla 3.0-ra (T-0011 alapján); outbox-feldolgozás a workerben (SKIP LOCKED, exponenciális várakozás, 24 óra után „beavatkozás kell" + riasztás); `nav_submission`, `nav_log` (titok nélkül), `nav_error_hint`; `POST /api/v1/nav/submissions/{id}/retry`; magánszemélynél név/cím nélküli XML; technikai kulcs csak `SecretVault`-ból. Elfogadás: DoD, NAV-mockkal tesztelt siker/hiba/időtúllépés/újrapróbálás, AC-6.
+- **Riportok** – `modules/reports/`, csak `*Reader` szolgáltatásokon át; visszamenőleges készletérték a mozgásnaplóból (AC-17); `?format=csv|xlsx|xml`, kurzoros lapozás; engedélyek negatív teszttel. Elfogadás: DoD, ismert kimenetű tesztadat.
+- **Frontend váz** – `product/frontend/`: router, design system, problem+json hibakezelés i18n-kulccsal, bejelentkezés sütivel (nincs token localStorage-ban), TOTP, jogosultságfüggő menü; dátum `Europe/Budapest`, pénz minor unitból. Elfogadás: komponens- és egységtesztek, akadálymentességi alapok, statikus build.
