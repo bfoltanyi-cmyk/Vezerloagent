@@ -2,7 +2,7 @@
 // A tulajdonos írja az issue-t és a hozzászólásokat, a vezérigazgató hozzászólásban válaszol,
 // és amit kell, feladatként vagy irányelvként rögzít, hogy a munkanapok is lássák.
 
-import type Anthropic from "@anthropic-ai/sdk";
+import Anthropic from "@anthropic-ai/sdk";
 import fs from "node:fs";
 import { pathToFileURL } from "node:url";
 import { roleById } from "../company/org.js";
@@ -183,8 +183,13 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
     if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `Válasz az issue #${n}-re, ${r.usd.toFixed(3)} USD.\n`);
   })().catch((e) => {
     console.error(e);
+    const auth = e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError;
     try {
-      say("Valami hiba történt válaszírás közben. Próbáld újra egy új hozzászólással.");
+      say(
+        auth
+          ? "Nem tudok válaszolni, mert az Anthropic nem fogadja el az API-kulcsot (érvénytelen vagy visszavont). Cseréld le az `ANTHROPIC_API_KEY` titkot a repó beállításaiban, aztán írj ide újra."
+          : "Valami hiba történt válaszírás közben. Próbáld újra egy új hozzászólással.",
+      );
     } catch {}
     process.exit(1);
   });
