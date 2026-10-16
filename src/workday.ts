@@ -9,12 +9,13 @@ import { roleById } from "../company/org.js";
 import { runAgent } from "./agent.js";
 import { boardSummary, createTask, logEvent, runnableTasks, seedBacklog, seedPrivacyBacklog } from "./board.js";
 import { compactLedger, spentSince, spentThisMonth } from "./budget.js";
-import { loadConfig, type Config } from "./config.js";
+import { loadConfig, missingKeysText, type Config } from "./config.js";
 import { githubAvailable, openIssues, realGh, syncDecisions, type Gh } from "./gates.js";
 import { gitCheckpoint, type Checkpoint } from "./checkpoint.js";
 import { sweepDecisionIssues } from "./decide.js";
 import { sweepBrandingIssues } from "./branding.js";
-import { ClaudeClient, type ModelClient } from "./llm.js";
+import type { ModelClient } from "./llm.js";
+import { MultiClient } from "./providers.js";
 import { loadState, saveState } from "./state.js";
 import type { CompanyState } from "./types.js";
 import { Workspace } from "./workspace.js";
@@ -44,12 +45,13 @@ export async function workday(opts: { config: Config; client?: ModelClient; gh?:
   }
 
   const result: WorkdayResult = { status: "worked", tasksRun: 0, usd: 0, files: [] };
+  s.meta.models = { strategic: config.strategic.model, strategicRoles: config.strategic.roles, ...config.models, inbox: config.inboxModel };
 
   if (spentThisMonth(s, now) >= config.monthlyBudgetUsd) {
     logEvent(s, { actor: "controller", department: "finance", kind: "warn", text: `Elérte a havi keretet (${config.monthlyBudgetUsd} USD); a cég a hónap végéig pihen.` }, now);
     result.status = "over-budget";
   } else if (config.dryRun || !opts.client) {
-    logEvent(s, { actor: "system", department: "system", kind: "warn", text: "Nincs beállítva ANTHROPIC_API_KEY, ezért a cég csak a táblát frissítette, munka nem folyt." }, now);
+    logEvent(s, { actor: "system", department: "system", kind: "warn", text: `${missingKeysText(config) || "Próbafutás (DRY_RUN)"}, ezért a cég csak a táblát frissítette, munka nem folyt.` }, now);
     result.status = "dry-run";
   } else {
     // Köztes mentés: a vezérlőterem élőben látja, hogy dolgozik a cég, és mi készült el.
@@ -156,7 +158,7 @@ function writeReport(root: string, s: CompanyState, startIso: string, r: Workday
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   const config = loadConfig();
   const gh = githubAvailable() ? realGh : undefined;
-  const client = config.dryRun ? undefined : new ClaudeClient();
+  const client = config.dryRun ? undefined : new MultiClient();
   const checkpoint = process.env.ALICYA_CHECKPOINT === "1" ? gitCheckpoint(config.rootDir, process.env.WORK_BRANCH || "alicya/munka") : undefined;
   workday({ config, client, gh, checkpoint })
     .then((r) => {

@@ -16,8 +16,31 @@ export interface Usage {
   cache_creation_input_tokens?: number | null;
 }
 
+type Price = { input: number; output: number; cacheRead: number };
+
+/** Saját árak a MODEL_PRICES változóból (JSON: {"openai:gpt-5-mini": {"input": 0.25, "output": 2, "cacheRead": 0.025}}). */
+function overrides(): Record<string, Price> {
+  try {
+    const v = JSON.parse(process.env.MODEL_PRICES || "{}") as Record<string, Partial<Price>>;
+    return Object.fromEntries(
+      Object.entries(v)
+        .filter(([, p]) => p && Number.isFinite(p.input) && Number.isFinite(p.output))
+        .map(([k, p]) => [k, { input: p.input!, output: p.output!, cacheRead: Number.isFinite(p.cacheRead) ? p.cacheRead! : p.input! }]),
+    );
+  } catch {
+    return {};
+  }
+}
+
+export function priceOf(model: string): Price {
+  const own = overrides();
+  // A szolgáltató előtagja nélkül is keresünk (pl. "openai:gpt-5-mini" → "gpt-5-mini").
+  const bare = model.includes(":") ? model.slice(model.indexOf(":") + 1) : model;
+  return own[model] ?? own[bare] ?? PRICES[model] ?? PRICES[bare] ?? FALLBACK_PRICE;
+}
+
 export function costUsd(model: string, u: Usage): number {
-  const p = PRICES[model] ?? FALLBACK_PRICE;
+  const p = priceOf(model);
   const cacheRead = u.cache_read_input_tokens ?? 0;
   const cacheWrite = u.cache_creation_input_tokens ?? 0;
   return (u.input_tokens * p.input + cacheWrite * p.input * 1.25 + cacheRead * p.cacheRead + u.output_tokens * p.output) / 1_000_000;

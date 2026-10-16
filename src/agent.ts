@@ -3,7 +3,7 @@ import { departmentById, type Role } from "../company/org.js";
 import { playbookFor } from "../company/playbook.js";
 import { addNote, blockTask, boardSummary, logEvent } from "./board.js";
 import { record } from "./budget.js";
-import { modelFor, type Config } from "./config.js";
+import { modelFor, personalDataAllowed, type Config } from "./config.js";
 import type { ModelClient } from "./llm.js";
 import { runTool, toolDefinitions, type ToolContext } from "./tools.js";
 import type { CompanyState, Task } from "./types.js";
@@ -75,6 +75,7 @@ export async function runAgent(opts: {
     createdThisRun: opts.createdThisRun,
     finished: false,
     filesWritten: new Set(),
+    personalData: personalDataAllowed(config, model),
   };
   const tools = toolDefinitions(role, task);
   const system = systemPrompt(role);

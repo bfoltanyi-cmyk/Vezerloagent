@@ -10,9 +10,10 @@ import { systemPrompt } from "./agent.js";
 import { logEvent } from "./board.js";
 import { record, spentThisMonth } from "./budget.js";
 import { gitCheckpoint } from "./checkpoint.js";
-import { loadConfig, modelFor, type Config } from "./config.js";
+import { loadConfig, missingKeysText, modelFor, personalDataAllowed, type Config } from "./config.js";
 import { realGh, type Gh } from "./gates.js";
-import { ClaudeClient, type ModelClient } from "./llm.js";
+import type { ModelClient } from "./llm.js";
+import { MultiClient } from "./providers.js";
 import { loadState, saveState } from "./state.js";
 import { CHAT_TOOLS, runTool, toolDefinitions, type ToolContext } from "./tools.js";
 import type { Task } from "./types.js";
@@ -99,6 +100,7 @@ export async function ceoReply(opts: { config: Config; client: ModelClient; issu
     createdThisRun: { count: 0 },
     finished: false,
     filesWritten: new Set(),
+    personalData: personalDataAllowed(config, modelFor(config, role)),
     allowed: CHAT_TOOLS,
   };
   const tools = toolDefinitions(role, task, CHAT_TOOLS);
@@ -170,12 +172,12 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   (async () => {
     const issue = readIssue(gh, n);
     if (!toMessages(issue, owner)) return console.log("Nincs megválaszolatlan üzenet.");
-    if (config.dryRun) return say("Most nem tudok válaszolni, mert nincs beállítva az `ANTHROPIC_API_KEY` titok a repóban.");
+    if (config.dryRun) return say(`Most nem tudok válaszolni: ${missingKeysText(config) || "próbafutás van beállítva"}.`);
     const s = loadState(config.rootDir);
     const left = config.monthlyBudgetUsd - spentThisMonth(s);
     if (left <= 0) return say(`Ebben a hónapban elfogyott a keret (${config.monthlyBudgetUsd} USD), ezért a hónap végéig nem tudok válaszolni.`);
     const maxUsd = Math.min(left, Number(process.env.CHAT_BUDGET_USD) || 0.5);
-    const r = await ceoReply({ config, client: new ClaudeClient(), issue, owner, maxUsd });
+    const r = await ceoReply({ config, client: new MultiClient(), issue, owner, maxUsd });
     if (!r) return;
     say(r.text);
     if (process.env.ALICYA_CHECKPOINT === "1") gitCheckpoint(config.rootDir, process.env.WORK_BRANCH || "alicya/munka")(`Vezérigazgató válasza (issue #${n})`);

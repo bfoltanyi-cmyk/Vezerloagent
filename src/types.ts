@@ -69,7 +69,7 @@ export interface LedgerEntry {
 
 export interface CompanyState {
   version: 1;
-  meta: { runs: number; lastRun?: string; nextTask: number; nextGate: number; /** A most futó munkanap kezdete. */ running?: string; /** A tulajdonos által kikapcsolt részlegek: nem dolgoznak, és nem tartják fel a többieket. */ disabledDepartments?: string[] };
+  meta: { runs: number; lastRun?: string; nextTask: number; nextGate: number; /** A most futó munkanap kezdete. */ running?: string; /** A tulajdonos által kikapcsolt részlegek: nem dolgoznak, és nem tartják fel a többieket. */ disabledDepartments?: string[]; /** A legutóbbi munkanap modelljei szintenként (a vezérlőteremnek). */ models?: { strategic: string; strategicRoles: string[]; lead: string; worker: string; bulk: string; inbox: string } };
   tasks: Task[];
   gates: Gate[];
   events: CompanyEvent[];

@@ -1006,6 +1006,9 @@ function showMail(id, scroll) {
 }
 
 // ── Részleg lap: minden agent, ki min dolgozik, a részleg feladatai és naplója ──
+// Melyik modellen dolgozik az agent (a legutóbbi munkanap beállítása szerint).
+const modelOf = (r) => { const m = S.meta.models; if (!m) return ""; return m.strategicRoles?.includes(r.id) ? m.strategic : m[r.tier] || ""; };
+const providerLabel = (spec) => { const p = spec.includes(":") ? spec.slice(0, spec.indexOf(":")).toLowerCase() : "anthropic"; return ({ anthropic: "Claude", claude: "Claude", openai: "OpenAI", kimi: "Kimi", moonshot: "Kimi" })[p] || p; };
 const monthSpent = (roleId) => S.ledger.filter((e) => e.role === roleId && e.at.startsWith(month)).reduce((a, e) => a + e.usd, 0);
 const initials = (name) => name.replace(/\(.*?\)|·.*$/g, "").trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
 const ago2 = (iso) => { if (!iso) return "–"; const m = (Date.now() - Date.parse(iso)) / 60e3; return m < 60 ? `${Math.max(1, Math.round(m))} perce` : m < 1440 ? `${Math.round(m / 60)} órája` : `${Math.round(m / 1440)} napja`; };
@@ -1056,7 +1059,9 @@ function openDept(id) {
     const shownSt = disabled.has(id) ? "off" : st === "busy" && !working ? "queue" : st; // munkanapon kívül a félbehagyott munka sorban vár
     const card = el("article", "agent st-" + (shownSt === "review" ? "queue" : shownSt));
     const ah = el("div", "ah"); const an = el("div", "an");
-    an.append(el("b", null, r.name), el("small", null, (r.id === d.lead ? "RÉSZLEGVEZETŐ · " : "") + (r.tier === "lead" ? "VEZETŐ" : r.tier === "worker" ? "MUNKATÁRS" : "TÖMEG")));
+    const mdl = modelOf(r), sm = el("small", null, (r.id === d.lead ? "RÉSZLEGVEZETŐ · " : "") + (r.tier === "lead" ? "VEZETŐ" : r.tier === "worker" ? "MUNKATÁRS" : "TÖMEG") + (mdl ? ` · ${providerLabel(mdl)}` : ""));
+    if (mdl) sm.title = `Modell: ${mdl}`;
+    an.append(el("b", null, r.name), sm);
     ah.append(el("span", "av", initials(r.name)), an, el("span", "st", STATE[shownSt][0])); card.append(ah);
     if (cur) {
       const now = el("div", "now");
