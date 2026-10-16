@@ -106,10 +106,6 @@ p{margin:0}
 button:focus-visible,canvas:focus-visible,a:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 
 /* Kapuk és napló */
-.gate{padding:10px 0;border-top:1px solid rgba(111,243,255,.08);display:flex;flex-direction:column;gap:4px}
-.gate:first-child{border-top:0}
-.gate .t{font-weight:600}
-.gate .s{color:var(--ink-2);font-size:12px}
 .tag{font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;padding:2px 7px;width:max-content}
 .tag.pending{background:var(--amber);color:var(--void);box-shadow:0 0 14px rgba(255,181,71,.45)}
 .tag.approved{background:var(--ok);color:var(--void)}
@@ -146,6 +142,42 @@ a{color:var(--holo)}
 .card.blocked{border-left-color:var(--red);background:linear-gradient(90deg,rgba(255,93,108,.1),transparent)}
 .card.done{opacity:.6}
 
+/* Jóváhagyási panel */
+.decide.hot{border-color:rgba(255,181,71,.55);box-shadow:inset 0 0 50px rgba(255,181,71,.06),0 0 30px -10px rgba(255,181,71,.35)}
+.decide.hot .panel-h h2{color:var(--amber);text-shadow:0 0 12px rgba(255,181,71,.5)}
+.decide.hot::before{background:linear-gradient(90deg,var(--amber),transparent)}
+.dcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,460px),1fr));gap:14px}
+.dcards.one{grid-template-columns:minmax(0,860px)}
+.dcard{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border:1px solid rgba(255,181,71,.35);background:linear-gradient(160deg,rgba(255,181,71,.07),rgba(4,16,28,.4));min-width:0}
+.dcard.sent{border-color:var(--holo-3);background:rgba(111,243,255,.04)}
+.dcard .top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.dcard .age{font-family:var(--f-mono);font-size:11px;color:var(--ink-3);margin-left:auto}
+.dcard h3{font-size:19px;font-weight:700;color:var(--ink);letter-spacing:.02em;line-height:1.25}
+.dcard .meta{font-family:var(--f-mono);font-size:11px;color:var(--ink-2);display:flex;gap:14px;flex-wrap:wrap}
+.dcard .meta b{color:var(--holo);font-weight:400}
+.dcard .sum{font-size:13px;color:var(--ink-2);white-space:pre-wrap;overflow-wrap:anywhere;max-height:7.5em;overflow:hidden;position:relative}
+.dcard .sum.open{max-height:none}
+.dcard .sum:not(.open)::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2.5em;background:linear-gradient(transparent,rgba(16,30,40,.95))}
+.dcard .more{align-self:flex-start;background:none;border:0;padding:0;color:var(--holo);font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;cursor:pointer}
+.dcard .files{display:flex;gap:8px;flex-wrap:wrap}
+.dcard .files a{font-family:var(--f-mono);font-size:11px;padding:3px 8px;border:1px solid var(--holo-3);text-decoration:none}
+.dcard .files a:hover{border-color:var(--holo)}
+.acts{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{font-family:var(--f-display);font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;padding:9px 18px;border:1px solid;cursor:pointer;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);transition:background .15s,box-shadow .15s}
+.btn.yes{color:var(--void);background:var(--ok);border-color:var(--ok);box-shadow:0 0 18px -4px var(--ok)}
+.btn.yes:hover{box-shadow:0 0 26px -2px var(--ok)}
+.btn.no{color:var(--red);border-color:var(--red);background:rgba(255,93,108,.06)}
+.btn.no:hover{background:rgba(255,93,108,.16)}
+.btn.ask{color:var(--holo);border-color:var(--holo-3);background:transparent;font-size:13px}
+.btn.ask:hover{border-color:var(--holo)}
+.dcard .hint{font-size:11px;color:var(--ink-3)}
+.dcard .sentmsg{font-family:var(--f-mono);font-size:12px;color:var(--holo)}
+.ghist{margin-top:14px;display:flex;flex-direction:column;gap:6px}
+.ghist:empty{display:none}
+.ghist .row{display:flex;gap:10px;align-items:baseline;font-size:12px;color:var(--ink-2);border-top:1px solid rgba(111,243,255,.08);padding-top:6px;flex-wrap:wrap}
+.ghist .row .n{color:var(--ink-3);font-family:var(--f-mono);font-size:11px;flex-basis:100%}
+.ghist .row .n:empty{display:none}
+
 .alert{border:1px solid var(--amber);color:var(--amber);padding:10px 14px;font-size:13px;background:rgba(255,181,71,.06);clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
 pre.report{margin:0;white-space:pre-wrap;font-family:var(--f-mono);font-size:12px;color:var(--ink-2);max-height:300px;overflow:auto}
 footer{font-family:var(--f-mono);font-size:11px;color:var(--ink-3);border-top:1px solid var(--holo-3);padding-top:12px}
@@ -170,6 +202,11 @@ footer{font-family:var(--f-mono);font-size:11px;color:var(--ink-3);border-top:1p
 
   <div class="alert" id="alert" hidden></div>
 
+  <section class="panel decide" id="decide" aria-labelledby="decide-h">
+    <div class="panel-h"><h2 id="decide-h">Jóváhagyási panel</h2><span class="label" id="gcount"></span></div>
+    <div class="panel-b"><div class="dcards" id="gates"></div><div class="ghist" id="ghist"></div></div>
+  </section>
+
   <div class="stage">
     <aside class="side">
       <section class="panel">
@@ -190,10 +227,6 @@ footer{font-family:var(--f-mono);font-size:11px;color:var(--ink-3);border-top:1p
     </div>
 
     <aside class="side">
-      <section class="panel">
-        <div class="panel-h"><h2>Rád vár</h2><span class="label" id="gcount"></span></div>
-        <div class="panel-b" id="gates"></div>
-      </section>
       <section class="panel">
         <div class="panel-h"><h2>Napló</h2><span class="label">élő</span></div>
         <div class="panel-b"><div class="feed" id="feed"></div></div>
@@ -335,15 +368,75 @@ function select(id) {
 }
 select(sel);
 
-// Kapuk
-$("gcount").textContent = `${pending.length} függőben`;
-const gates = [...S.gates].sort((a, b) => (a.status === "pending" ? 0 : 1) - (b.status === "pending" ? 0 : 1) || b.createdAt.localeCompare(a.createdAt)).slice(0, 8);
-if (!gates.length) $("gates").append(el("p", "empty", "Nincs döntésre váró kérdés."));
-for (const g of gates) {
-  const box = el("div", "gate");
-  box.append(el("span", "tag " + g.status, g.status === "pending" ? "DÖNTÉSRE VÁR" : g.status === "approved" ? "JÓVÁHAGYVA" : "ELUTASÍTVA"), el("span", "t", `${g.id} · ${g.title}`), el("span", "s", g.summary.length > 160 ? g.summary.slice(0, 160) + "…" : g.summary));
-  if (g.issueNumber && M.repoUrl) { const a = el("a", null, "Döntés a GitHubon →"); a.href = `${M.repoUrl}/issues/${g.issueNumber}`; a.target = "_blank"; a.rel = "noopener"; box.append(a); }
-  $("gates").append(box);
+// Jóváhagyási panel. A gombok a GitHubon egy előre kitöltött döntést nyitnak; a "Döntés" munkafolyamat
+// rögzíti, lezárja a kaput, és újraépíti a vezérlőtermet. Böngészőben nincs token, így nincs mit ellopni.
+const KIND = { spec: "SPECIFIKÁCIÓ", release: "KIADÁS", outbound: "KIFELÉ MENŐ", pricing: "ÁRAZÁS" };
+const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+const ago = (iso) => { const h = (Date.now() - Date.parse(iso)) / 3600e3; return h < 1 ? "most kérte" : h < 24 ? `${Math.floor(h)} órája vár` : `${Math.floor(h / 24)} napja vár`; };
+const decisionUrl = (g, d) => {
+  const hint = d === "approved"
+    ? "Ide írhatsz megjegyzést vagy feltételt a csapatnak (nem kötelező), aztán kattints a Create / Submit gombra."
+    : "Írd ide, mi a gond, és mit kérsz helyette, aztán kattints a Create / Submit gombra.";
+  const q = new URLSearchParams({
+    title: `[${g.id}] Döntés: ${d === "approved" ? "jóváhagyva" : "elutasítva"} · ${g.title}`.slice(0, 240),
+    body: `<!-- alicya-dontes ${g.id} ${d} -->\n<!-- ${hint} -->\n\n`,
+    labels: "döntés",
+  });
+  return `${M.repoUrl}/issues/new?${q}`;
+};
+const link = (text, href, cls) => { const a = el("a", cls, text); a.href = href; a.target = "_blank"; a.rel = "noopener"; return a; };
+const fileLinks = (text) => [...new Set(text.match(/\b(?:docs|product|state)\/[\w./-]+\.\w+/g) || [])].slice(0, 6);
+
+$("gcount").textContent = pending.length ? `${pending.length} döntés vár rád` : "nincs nyitott döntés";
+if (pending.length) $("decide").classList.add("hot");
+if (pending.length === 1) $("gates").classList.add("one");
+if (!pending.length) $("gates").append(el("p", "empty", "Most nincs döntésre váró kérdés. Ha a csapat jóváhagyást kér, itt jelenik meg."));
+for (const g of [...pending].sort((a, b) => a.createdAt.localeCompare(b.createdAt))) {
+  const card = el("article", "dcard");
+  const top = el("div", "top");
+  top.append(el("span", "tag pending", KIND[g.kind] || "DÖNTÉS"), el("span", "label", g.id), el("span", "age", ago(g.createdAt)));
+  const task = S.tasks.find((t) => t.id === g.taskId);
+  const who = roleBy[g.requestedBy];
+  const meta = el("div", "meta");
+  const m1 = el("span", null, "Kérte: "); m1.append(el("b", null, who ? `${who.name} (${(depBy[who.department] || {}).name || who.department})` : g.requestedBy));
+  const m2 = el("span", null, "Feladat: "); m2.append(el("b", null, task ? `${task.id} · ${task.title}` : g.taskId));
+  meta.append(m1, m2);
+  const sum = el("div", "sum", g.summary);
+  card.append(top, el("h3", null, g.title), meta, sum);
+  if (g.summary.length > 320) {
+    const more = el("button", "more", "TELJES LEÍRÁS ▾"); more.type = "button";
+    more.onclick = () => { const o = sum.classList.toggle("open"); more.textContent = o ? "KEVESEBB ▴" : "TELJES LEÍRÁS ▾"; };
+    card.append(more);
+  } else sum.classList.add("open");
+  const files = fileLinks(g.summary);
+  if (files.length && M.repoUrl) {
+    const f = el("div", "files");
+    for (const p of files) f.append(link(p, `${M.repoUrl}/blob/${encodeURIComponent(M.workBranch || "alicya/munka")}/${p}`));
+    card.append(f);
+  }
+  const key = `alicya-dontes-${g.id}`;
+  // Az elküldés jelzése fél óráig él: utána a valós állapot számít (pl. indoklás nélküli elutasítás).
+  const [sent, sentAt] = (store.get(key) || "").split("|");
+  if (sent && Date.now() - Number(sentAt) < 30 * 60e3) { card.classList.add("sent"); card.append(el("p", "sentmsg", `Döntés elküldve (${sent === "approved" ? "jóváhagyás" : "elutasítás"}). Rögzítés után pár percen belül itt is megjelenik.`)); }
+  if (M.repoUrl) {
+    const acts = el("div", "acts");
+    const yes = link("✓ Jóváhagyom", decisionUrl(g, "approved"), "btn yes");
+    const no = link("✕ Elutasítom", decisionUrl(g, "rejected"), "btn no");
+    yes.onclick = () => store.set(key, `approved|${Date.now()}`);
+    no.onclick = () => store.set(key, `rejected|${Date.now()}`);
+    const ask = link("Kérdezem a vezérigazgatót", `${M.repoUrl}/issues/new?${new URLSearchParams({ template: "ceo.md", title: `Kérdés a(z) ${g.id} döntésről: ${g.title}`.slice(0, 240) })}`, "btn ask");
+    acts.append(yes, no, ask);
+    if (g.issueNumber) acts.append(link("GitHub issue →", `${M.repoUrl}/issues/${g.issueNumber}`));
+    card.append(acts, el("p", "hint", "A gomb a GitHubon megnyit egy kész döntést. Írhatsz hozzá megjegyzést, ezt minden agent megkapja; az elutasításhoz írd meg, mi a gond. A Create / Submit után a rendszer magától rögzíti."));
+  } else card.append(el("p", "hint", "A döntéshez a vezérlőteremnek a GitHub repó címére van szüksége."));
+  $("gates").append(card);
+}
+const decided = S.gates.filter((g) => g.status !== "pending").sort((a, b) => (b.decidedAt || "").localeCompare(a.decidedAt || "")).slice(0, 6);
+if (decided.length) $("ghist").append(el("span", "label", "Korábbi döntések"));
+for (const g of decided) {
+  const row = el("div", "row");
+  row.append(el("span", "tag " + g.status, g.status === "approved" ? "JÓVÁHAGYVA" : "ELUTASÍTVA"), el("span", null, `${g.id} · ${g.title}`), el("span", "label", fmt(g.decidedAt)), el("span", "n", g.decisionNote ? `„${g.decisionNote.slice(0, 200)}${g.decisionNote.length > 200 ? "…" : ""}”` : ""));
+  $("ghist").append(row);
 }
 
 // Napló

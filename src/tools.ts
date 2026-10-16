@@ -18,6 +18,7 @@ import type { Workspace } from "./workspace.js";
 
 export const MAX_NEW_TASKS_PER_RUN = 8;
 export const MAX_OPEN_TASKS = 80;
+export const READ_CHUNK = 30_000;
 
 const depIds = DEPARTMENTS.map((d) => d.id) as [string, ...string[]];
 const roleIds = ROLES.map((r) => r.id) as [string, ...string[]];
@@ -44,7 +45,7 @@ const schemas = {
     depends_on: z.array(z.string()).max(10).optional(),
   }),
   reassign_task: z.object({ task_id: z.string(), assignee: z.enum(roleIds) }),
-  read_file: z.object({ path: z.string() }),
+  read_file: z.object({ path: z.string(), offset: z.number().int().min(0).optional().describe("Hányadik karaktertől olvass (hosszú fájl folytatásához).") }),
   write_file: z.object({ path: z.string(), content: z.string() }),
   list_files: z.object({ path: z.string().optional().describe("Pl. docs vagy product/src") }),
   complete_task: z.object({ summary: z.string().min(10).max(2000).describe("Mit csináltál, mely fájlokat érintetted.") }),
@@ -167,8 +168,13 @@ function execute(ctx: ToolContext, name: ToolName, input: any): string {
       reassignTask(s, input.task_id, input.assignee, role.id);
       return `Átadva: ${fmtTask(getTask(s, input.task_id))}`;
     }
-    case "read_file":
-      return ctx.workspace.read(input.path, role.access);
+    case "read_file": {
+      // Hosszú fájlból egyszerre csak egy szelet: a teljes fájl minden további körben újra pénzbe kerülne.
+      const all = ctx.workspace.read(input.path, role.access);
+      const from = input.offset ?? 0;
+      const part = all.slice(from, from + READ_CHUNK);
+      return from + READ_CHUNK < all.length ? `${part}\n…[folytatás: read_file offset=${from + READ_CHUNK}, összesen ${all.length} karakter]` : part;
+    }
     case "list_files": {
       const files = ctx.workspace.list(input.path ?? "", role.access);
       return files.length ? files.join("\n") : "Üres.";

@@ -29,6 +29,10 @@ A szervezet a [`company/org.ts`](company/org.ts) fájlban van leírva. Új agent
 6. **Mentés.** Minden munka az `alicya/munka` ágra kerül, és egy nyitott pull requestben vár. A `main` ágra semmi nem kerül nélküled.
 7. **Napi jelentés** a `state/reports/` alatt és a vezérlőteremben.
 
+## Kézikönyv: így gyártunk dobozos szoftvert
+
+Minden agent a rendszerpromptjában kapja meg a cég kézikönyvét: mit jelent nálunk a dobozos termék (telepítő, licenckulcsos kiadások, frissítés, HU/PL/CZ lokalizáció), a termék nyolc fázisú életciklusát a kapukkal, a részlege munkarendjét, a saját bemenetét, kimenetét és azt, hogy kinek adja tovább a munkát. Forrás: [`company/playbook.ts`](company/playbook.ts), olvasható formában [`docs/core/kezikonyv.md`](docs/core/kezikonyv.md). Módosítás után futtasd az `npm run build:handbook` parancsot.
+
 ## Adatvédelmi modul (EU, HU, PL, CZ)
 
 A cég célpiaca Magyarország, Lengyelország és Csehország, ezért az adatbiztonsági részlegben egy EU-s adatvédelmi tisztviselő (DPO) és három országos szakértő dolgozik. A munkájukat egy tudásbázis segíti: [`company/privacy/knowledge.ts`](company/privacy/knowledge.ts), olvasható formában [`docs/security/adatvedelem/README.md`](docs/security/adatvedelem/README.md).
@@ -49,12 +53,12 @@ Nyiss egy issue-t az **Üzenet a vezérigazgatónak** sablonnal (a vezérlőtere
 
 ## Döntés egy kapuról
 
-Nyisd meg a `kapu` címkés issue-t:
+A legegyszerűbb a vezérlőterem **Jóváhagyási panelje**: minden döntésre váró kérés kártyán látszik (ki kérte, melyik feladathoz, a teljes leírás és a hivatkozott fájlok).
 
-- **Jóváhagyás:** tedd rá a `jóváhagyva` címkét, vagy zárd le (Close as completed).
-- **Elutasítás:** írd meg hozzászólásban, mi a gond, és tedd rá az `elutasítva` címkét (vagy Close as not planned). A hozzászólásod visszakerül a feladathoz.
+- **✓ Jóváhagyom** vagy **✕ Elutasítom:** a GitHubon megnyit egy kész döntést. Írhatsz hozzá megjegyzést (elutasításnál kötelező), aztán Create / Submit. A `Döntés` munkafolyamat pár percen belül rögzíti, lezárja a kapu issue-ját, újraépíti a vezérlőtermet, és a megjegyzésedet beírja a `docs/core/tulajdonosi-iranymutatas.md` fájlba, amit minden agent követ.
+- **Kérdezem a vezérigazgatót:** új beszélgetést nyit a döntésről, mielőtt határoznál.
 
-A döntést a következő munkanap olvassa be.
+A kapu issue-ján is dönthetsz: `/jóváhagyom [megjegyzés]` vagy `/elutasítom <indoklás>` hozzászólással, illetve a `jóváhagyva` / `elutasítva` címkével vagy a lezárással. Mindegyiket azonnal rögzíti a rendszer; ha valami miatt elmaradna, a következő munkanap pótolja. Csak a repó tulajdonosának döntései számítanak.
 
 ## Beállítás
 
@@ -71,13 +75,13 @@ A keret elérésekor a cég leáll a hónap végéig.
 
 ## Modellek
 
-| Szint | Modell | Kik |
+| Kik | Modell | Erőfeszítés |
 |---|---|---|
-| Vezető | `claude-opus-5-5` | részlegvezetők, architekt, tech lead, QA vezető, CISO |
-| Munkatárs | `claude-sonnet-5-5` | fejlesztők, tesztelők, auditorok |
-| Tömeg | `claude-haiku-5-5` | dokumentáció, tartalom, tudásbázis |
+| Vezérigazgató, architekt | `claude-opus-5-5` | közepes |
+| Többi vezető és munkatárs | `claude-sonnet-5-5` | közepes |
+| Tömeg (dokumentáció, tartalom) | `claude-haiku-5-5` | alacsony |
 
-Felülírható a `MODEL_LEAD`, `MODEL_WORKER`, `MODEL_BULK` környezeti változókkal. Az Opus és Sonnet hívások szerveroldali tartalék modellt használnak, ha a modell biztonsági okból visszautasítana egy kérést.
+Felülírható a `MODEL_STRATEGIC`, `MODEL_LEAD`, `MODEL_WORKER`, `MODEL_BULK` környezeti változókkal. Egy feladat legfeljebb 8 kört és `TASK_BUDGET_USD` (alapból 0,60 USD) költést kap; a keretnél az agent lezárja a munkát. Az Opus és Sonnet hívások szerveroldali tartalék modellt használnak, ha a modell biztonsági okból visszautasítana egy kérést.
 
 ## Biztonsági korlátok
 
