@@ -9,7 +9,7 @@ const MAX_FILE_BYTES = 200_000;
 const MAX_LIST = 400;
 
 export class Workspace {
-  constructor(private readonly root: string) {}
+  constructor(readonly root: string) {}
 
   private allowedRoots(access: Access, mode: "read" | "write"): string[] {
     if (mode === "read") return ["docs", "product", "branding"];

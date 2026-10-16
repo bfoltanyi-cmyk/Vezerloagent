@@ -1,0 +1,71 @@
+# A cég postafiókjának figyelése: új levelek kiolvasása IMAP-on, a fontos adatok kinyerése,
+# és ahol teendő van, feladat a megfelelő részlegnek. A levelek titkosítva kerülnek a
+# state/inbox.enc.json-ba (a repó nyilvános). Amíg a titkok nincsenek beállítva, nem tesz semmit.
+name: Posta
+
+on:
+  schedule:
+    - cron: "*/30 6-18 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: alicya-workday
+  cancel-in-progress: false
+
+env:
+  WORK_BRANCH: alicya/munka
+
+jobs:
+  inbox:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Be van állítva a postafiók?
+        id: cfg
+        env:
+          IMAP_HOST: ${{ secrets.IMAP_HOST }}
+          INBOX_PASSPHRASE: ${{ secrets.INBOX_PASSPHRASE }}
+        run: |
+          if [ -n "$IMAP_HOST" ] && [ -n "$INBOX_PASSPHRASE" ]; then echo "ok=true" >> "$GITHUB_OUTPUT"
+          else echo "A postafiók titkai még nincsenek beállítva; kihagyva." >> "$GITHUB_STEP_SUMMARY"; fi
+
+      - uses: actions/checkout@v4
+        if: steps.cfg.outputs.ok == 'true'
+        with:
+          fetch-depth: 0
+
+      - name: Munkaág előkészítése
+        if: steps.cfg.outputs.ok == 'true'
+        run: |
+          git config user.name "alicya-nexus[bot]"
+          git config user.email "alicya-nexus@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin "$WORK_BRANCH" >/dev/null; then
+            git checkout -B "$WORK_BRANCH" "origin/$WORK_BRANCH"
+            git merge --no-edit origin/main || git merge --abort
+          else
+            git checkout -B "$WORK_BRANCH"
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.cfg.outputs.ok == 'true'
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+        if: steps.cfg.outputs.ok == 'true'
+
+      - name: Új levelek feldolgozása
+        if: steps.cfg.outputs.ok == 'true'
+        env:
+          ALICYA_CHECKPOINT: "1"
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          IMAP_HOST: ${{ secrets.IMAP_HOST }}
+          IMAP_PORT: ${{ secrets.IMAP_PORT }}
+          IMAP_USER: ${{ secrets.IMAP_USER }}
+          IMAP_PASSWORD: ${{ secrets.IMAP_PASSWORD }}
+          INBOX_PASSPHRASE: ${{ secrets.INBOX_PASSPHRASE }}
+          MONTHLY_BUDGET_USD: ${{ vars.MONTHLY_BUDGET_USD }}
+        run: npm run inbox

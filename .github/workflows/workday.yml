@@ -54,6 +54,7 @@ jobs:
         env:
           ALICYA_CHECKPOINT: "1"
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          INBOX_PASSPHRASE: ${{ secrets.INBOX_PASSPHRASE }}
           GH_TOKEN: ${{ github.token }}
           MONTHLY_BUDGET_USD: ${{ vars.MONTHLY_BUDGET_USD }}
           RUN_BUDGET_USD: ${{ vars.RUN_BUDGET_USD }}

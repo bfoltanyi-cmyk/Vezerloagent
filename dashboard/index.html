@@ -224,6 +224,33 @@ footer{font-family:var(--f-mono);font-size:11px;color:var(--ink-3);border-top:1p
 .chat-foot{margin:0;padding:0 18px 14px;font-family:var(--f-mono);font-size:11px;color:var(--ink-3)}
 .chat-foot a,.chat-foot button{color:var(--holo);background:none;border:0;padding:0;font:inherit;cursor:pointer;text-decoration:underline}
 button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:transparent;cursor:pointer}
+/* Posta */
+.out[hidden],.panel[hidden]{display:none}
+.mail-lock{display:flex;flex-direction:column;gap:10px;max-width:520px}
+.mail-lock form{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.mail-lock input[type=password]{flex:1 1 220px;background:rgba(2,10,18,.8);border:1px solid var(--holo-3);color:var(--ink);font-size:14px;padding:8px 10px}
+.mail-lock input[type=password]:focus{outline:none;border-color:var(--holo)}
+.mail-lock .remember{font-family:var(--f-mono);font-size:11px;color:var(--ink-3);display:flex;gap:6px;align-items:center}
+.mail-lock .err{color:var(--red);font-family:var(--f-mono);font-size:12px}
+.mail-cats{display:flex;gap:6px;flex-wrap:wrap}
+.mail-cats button[aria-pressed="true"]{border-color:var(--holo);color:var(--holo)}
+.mail-items{display:flex;flex-direction:column;gap:6px}
+.mail{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:3px;padding:8px 10px;border-left:2px solid var(--holo-2);background:linear-gradient(90deg,rgba(111,243,255,.06),transparent);font-size:13px}
+.mail:hover,.mail[aria-current="true"]{background:linear-gradient(90deg,rgba(111,243,255,.16),transparent)}
+.mail:focus-visible{outline:1px solid var(--holo)}
+.mail.u-magas{border-left-color:var(--red)}
+.mail.u-kozepes{border-left-color:var(--amber)}
+.mail .top{display:flex;justify-content:space-between;gap:8px;font-family:var(--f-mono);font-size:10px;color:var(--ink-3)}
+.mail .subj{color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mail .who{color:var(--ink-2);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mail-d dl{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:6px 14px;margin:12px 0;font-size:14px}
+.mail-d dt{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);padding-top:2px}
+.mail-d dd{margin:0;color:var(--ink);overflow-wrap:anywhere}
+.mail-d .sum{font-size:15px;line-height:1.5;color:var(--ink)}
+.mail-d ul{margin:4px 0 0 18px}
+.mail-d pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;color:var(--ink-2);border-top:1px solid var(--holo-3);padding-top:10px;margin-top:10px}
+.urg{font-family:var(--f-mono);font-size:11px;padding:2px 7px;border:1px solid currentColor}
+.urg.magas{color:var(--red)}.urg.kozepes{color:var(--amber)}.urg.alacsony{color:var(--ink-3)}
 /* Fülek és Eredmények nézet */
 .tabs{display:flex;gap:4px;border-bottom:1px solid var(--holo-3);margin-top:-6px}
 .tabs button{font-family:var(--f-display);font-size:15px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:transparent;color:var(--ink-3);border:0;border-bottom:2px solid transparent;padding:8px 16px;cursor:pointer}
@@ -405,6 +432,7 @@ button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:tra
     <button type="button" role="tab" id="tab-main" aria-controls="view-main" aria-selected="true">Vezérlőterem</button>
     <button type="button" role="tab" id="tab-out" aria-controls="view-out" aria-selected="false">Eredmények <b id="out-count"></b></button>
     <button type="button" role="tab" id="tab-rel" aria-controls="view-rel" aria-selected="false">Kész szoftverek <b id="rel-count"></b></button>
+    <button type="button" role="tab" id="tab-mail" aria-controls="view-mail" aria-selected="false">Posta <b id="mail-count"></b></button>
   </nav>
 
   <main class="view" id="view-main" role="tabpanel" aria-labelledby="tab-main">
@@ -499,6 +527,27 @@ button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:tra
       <div class="panel-h"><h2>Úton a kiadás felé</h2><span class="label">termékvonalak</span></div>
       <div class="panel-b"><div class="pipes" id="pipes"></div></div>
     </section>
+  </section>
+
+  <section class="view" id="view-mail" role="tabpanel" aria-labelledby="tab-mail" hidden>
+    <section class="panel" id="mail-lockp">
+      <div class="panel-h"><h2>Beérkezett levelek</h2><span class="label">titkosítva</span></div>
+      <div class="panel-b mail-lock" id="mail-lock"><p class="empty">Betöltés…</p></div>
+    </section>
+    <div class="out" id="mail-box" hidden>
+      <section class="panel out-list">
+        <div class="panel-h"><h2>Levelek</h2><button type="button" class="chip" id="mail-out">Lezárás</button></div>
+        <div class="panel-b">
+          <input class="out-filter" id="mail-filter" type="search" placeholder="Keresés: feladó, cég, tárgy…" aria-label="Keresés a levelekben">
+          <div class="mail-cats" id="mail-cats"></div>
+          <div class="mail-items" id="mail-items"></div>
+        </div>
+      </section>
+      <section class="panel out-view">
+        <div class="panel-h"><h2 id="mail-title">Válassz egy levelet</h2><span class="label" id="mail-meta"></span></div>
+        <div class="panel-b"><div class="mail-d" id="mail-d"><p class="out-empty">Bal oldalt a cég postafiókjába érkezett levelek vannak. A rendszer mindegyikből kiszedi a lényeget: ki írt, mit kér, határidő, összegek, teendők, és ha kell, feladatot ad a megfelelő részlegnek.</p></div></div>
+      </section>
+    </div>
   </section>
 
   <section class="view" id="view-dept" hidden aria-labelledby="dp-title">
@@ -844,11 +893,13 @@ async function openFile(p) {
 }
 $("out-filter").addEventListener("input", () => outFiles && renderOutList());
 function showTab(which) {
-  const views = { main: "view-main", out: "view-out", rel: "view-rel" };
+  const views = { main: "view-main", out: "view-out", rel: "view-rel", mail: "view-mail" };
   for (const [k, v] of Object.entries(views)) { $(v).hidden = k !== which; $(`tab-${k}`).setAttribute("aria-selected", String(k === which)); }
   $("view-dept").hidden = true;
+  const tb = $(`tab-${which}`), bar = tb.parentElement; if (bar.scrollWidth > bar.clientWidth) bar.scrollLeft = tb.offsetLeft - bar.offsetLeft - 16;
   if (which === "out") { loadOut(); if (!location.hash.startsWith("#eredmenyek")) history.replaceState(null, "", "#eredmenyek"); }
   else if (which === "rel") { loadReleases(); history.replaceState(null, "", "#kesz-szoftverek"); }
+  else if (which === "mail") { loadMail(); history.replaceState(null, "", "#posta"); }
   else { history.replaceState(null, "", location.pathname + location.search); dispatchEvent(new Event("resize")); }
 }
 $("tab-main").onclick = () => showTab("main");
@@ -856,6 +907,103 @@ $("tab-out").onclick = () => showTab("out");
 $("tab-rel").onclick = () => showTab("rel");
 if (location.hash.startsWith("#eredmenyek")) showTab("out");
 if (location.hash === "#kesz-szoftverek") setTimeout(() => showTab("rel"));
+$("tab-mail").onclick = () => showTab("mail");
+if (location.hash === "#posta") setTimeout(() => showTab("mail"));
+
+// ── Posta: a titkosított postafiók (state/inbox.enc.json) visszafejtése a böngészőben ──
+// A jelmondat sosem hagyja el a böngészőt; a repóban csak a titkosított fájl van.
+const CAT = { ajanlatkeres: "Ajánlatkérés", megrendeles: "Megrendelés", tamogatas: "Támogatás / hiba", markazas: "Márkázás", penzugy: "Pénzügy", jogi: "Jogi", partner: "Partnerség", hirlevel: "Hírlevél", egyeb: "Egyéb" };
+const URG = { magas: "sürgős", kozepes: "közepes", alacsony: "ráér" };
+const PASS_KEY = "alicya-inbox-pass";
+const passGet = () => { try { return sessionStorage.getItem(PASS_KEY) || localStorage.getItem(PASS_KEY) || ""; } catch { return ""; } };
+const passSet = (v, remember) => { try { sessionStorage.removeItem(PASS_KEY); localStorage.removeItem(PASS_KEY); if (v) (remember ? localStorage : sessionStorage).setItem(PASS_KEY, v); } catch {} };
+let mailSealed, mailItems = null, mailCat = "", mailCur = "";
+async function unseal(sealed, pass) {
+  const b = (x) => Uint8Array.from(atob(x), (c) => c.charCodeAt(0));
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pass), "PBKDF2", false, ["deriveKey"]);
+  const key = await crypto.subtle.deriveKey({ name: "PBKDF2", hash: "SHA-256", salt: b(sealed.salt), iterations: sealed.iterations }, base, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+  return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: "AES-GCM", iv: b(sealed.iv) }, key, b(sealed.data))));
+}
+async function loadMail() {
+  mailSealed = await live("state/inbox.enc.json");
+  const lock = $("mail-lock");
+  if (!mailSealed) {
+    $("mail-box").hidden = true; $("mail-lockp").hidden = false;
+    lock.replaceChildren(
+      el("p", null, "A postafiók még nincs bekötve. Ha beállítod, a rendszer félóránként (hétköznap 6 és 18 óra között) megnézi a cég e-mail fiókját, minden új levélből kiszedi a fontos adatokat, és ha teendő van, feladatot ad a megfelelő részlegnek."),
+      el("p", "empty", "Beállítás: GitHub → Settings → Secrets and variables → Actions → New repository secret: IMAP_HOST, IMAP_USER, IMAP_PASSWORD és INBOX_PASSPHRASE (ez utóbbi egy általad választott jelmondat, ezzel nyitod meg itt a leveleket)."),
+    );
+    return;
+  }
+  const saved = passGet();
+  if (saved && await openMail(saved)) return;
+  showMailLock(saved ? "A mentett jelmondat már nem nyitja a postafiókot." : "");
+}
+function showMailLock(err) {
+  $("mail-box").hidden = true; $("mail-lockp").hidden = false;
+  const f = el("form"), inp = el("input"), rem = el("label", "remember"), cb = el("input");
+  inp.type = "password"; inp.required = true; inp.autocomplete = "current-password"; inp.placeholder = "Postafiók jelmondata"; inp.setAttribute("aria-label", "Postafiók jelmondata");
+  cb.type = "checkbox"; rem.append(cb, "Emlékezzen rám ezen a gépen");
+  const btn = el("button", "btn ask", "Megnyitás"); btn.type = "submit";
+  f.append(inp, btn);
+  const msg = el("p", "err", err || "");
+  f.onsubmit = async (e) => { e.preventDefault(); btn.disabled = true; msg.textContent = ""; if (await openMail(inp.value, cb.checked)) return; btn.disabled = false; msg.textContent = "Ez a jelmondat nem nyitja a postafiókot."; };
+  $("mail-lock").replaceChildren(el("p", null, "A levelek titkosítva vannak tárolva (a repó nyilvános). Írd be a jelmondatot, amit az INBOX_PASSPHRASE titokba tettél; csak ebben a böngészőben fejtjük vissza."), f, rem, msg);
+  inp.focus();
+}
+async function openMail(pass, remember) {
+  try { const inbox = await unseal(mailSealed, pass); mailItems = [...inbox.items].reverse(); }
+  catch { return false; }
+  if (remember !== undefined) passSet(pass, remember);
+  $("mail-lockp").hidden = true; $("mail-box").hidden = false;
+  const open = mailItems.filter((m) => m.needsReply && (!m.taskId || (S.tasks.find((t) => t.id === m.taskId) || {}).status !== "done")).length;
+  $("mail-count").textContent = open ? String(open) : "";
+  renderMailCats(); renderMailList();
+  if (mailItems[0] && innerWidth >= 900) showMail(mailCur || mailItems[0].id);
+  return true;
+}
+$("mail-out").onclick = () => { passSet(""); mailItems = null; $("mail-count").textContent = ""; showMailLock(""); };
+function renderMailCats() {
+  const counts = {};
+  for (const m of mailItems) counts[m.category] = (counts[m.category] || 0) + 1;
+  const mk = (k, label, n) => { const b = el("button", "chip", `${label} ${n}`); b.type = "button"; b.setAttribute("aria-pressed", String(mailCat === k)); b.onclick = () => { mailCat = k; renderMailCats(); renderMailList(); }; return b; };
+  $("mail-cats").replaceChildren(mk("", "Mind", mailItems.length), ...Object.keys(CAT).filter((k) => counts[k]).map((k) => mk(k, CAT[k], counts[k])));
+}
+function renderMailList() {
+  const q = $("mail-filter").value.trim().toLowerCase();
+  const rows = mailItems.filter((m) => (!mailCat || m.category === mailCat) && (!q || [m.from, m.fromName, m.company, m.subject, m.summary].join(" ").toLowerCase().includes(q)));
+  const box = $("mail-items");
+  if (!rows.length) { box.replaceChildren(el("p", "empty", mailItems.length ? "Nincs találat." : "Még nem érkezett levél.")); return; }
+  box.replaceChildren(...rows.map((m) => {
+    const b = el("button", `mail u-${m.urgency}`); b.type = "button";
+    if (m.id === mailCur) b.setAttribute("aria-current", "true");
+    const top = el("span", "top"); top.append(el("span", null, `${CAT[m.category] || m.category}${m.needsReply ? " · válaszra vár" : ""}`), el("span", null, new Date(m.receivedAt).toLocaleString("hu-HU", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })));
+    b.append(top, el("span", "subj", m.subject || "(nincs tárgy)"), el("span", "who", [m.company, m.fromName || m.from].filter(Boolean).join(" · ")));
+    b.onclick = () => showMail(m.id, true);
+    return b;
+  }));
+}
+$("mail-filter").addEventListener("input", () => mailItems && renderMailList());
+function showMail(id, scroll) {
+  const m = mailItems.find((x) => x.id === id); if (!m) return;
+  mailCur = id; renderMailList();
+  $("mail-title").textContent = m.subject || "(nincs tárgy)";
+  $("mail-meta").textContent = m.id;
+  const d = $("mail-d"); d.replaceChildren();
+  const head = el("div", "chips"); head.append(el("span", `urg ${m.urgency}`, URG[m.urgency] || m.urgency), el("span", "chip", CAT[m.category] || m.category));
+  if (m.needsReply) head.append(el("span", "chip", "válaszra vár"));
+  d.append(head, el("p", "sum", m.summary));
+  const dl = el("dl");
+  const row = (k, v) => { if (!v || (Array.isArray(v) && !v.length)) return; const dd = el("dd"); if (Array.isArray(v)) { const ul = el("ul"); v.forEach((x) => ul.append(el("li", null, x))); dd.append(ul); } else if (v instanceof Node) dd.append(v); else dd.textContent = v; dl.append(el("dt", null, k), dd); };
+  row("Feladó", `${m.fromName ? m.fromName + " " : ""}<${m.from}>`);
+  row("Cég", m.company); row("Kapcsolattartó", m.contactName); row("Telefon", m.phone);
+  row("Érkezett", new Date(m.receivedAt).toLocaleString("hu-HU"));
+  row("Határidő", m.deadline); row("Összegek", m.amounts); row("Termékek", m.products); row("Teendők", m.actions); row("Mellékletek", m.attachments);
+  if (m.taskId) { const t = S.tasks.find((x) => x.id === m.taskId); const a = el("a", null, `${m.taskId}${t ? ` · ${t.assignee} · ${({ todo: "vár", in_progress: "folyamatban", review: "átnézés", awaiting_approval: "jóváhagyásra vár", blocked: "elakadt", done: "kész" })[t.status] || t.status}` : ""}`); if (t && depBy[t.department]) { a.href = `#reszleg/${t.department}`; a.onclick = (e) => { e.preventDefault(); openDept(t.department); }; } row("Feladat", a); }
+  d.append(dl);
+  if (m.excerpt) { d.append(el("span", "label", "A levél szövege")); const pre = el("pre"); pre.textContent = m.excerpt; d.append(pre); }
+  if (scroll && innerWidth < 900) $("mail-title").scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+}
 
 // ── Részleg lap: minden agent, ki min dolgozik, a részleg feladatai és naplója ──
 const monthSpent = (roleId) => S.ledger.filter((e) => e.role === roleId && e.at.startsWith(month)).reduce((a, e) => a + e.usd, 0);

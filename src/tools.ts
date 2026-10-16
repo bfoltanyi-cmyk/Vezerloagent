@@ -14,6 +14,7 @@ import {
   isDisabled,
 } from "./board.js";
 import { formatRule, JURISDICTIONS, lookup, TOPIC_NAMES, type Topic } from "../company/privacy/knowledge.js";
+import { readEmailFor } from "./inbox-store.js";
 import type { CompanyState, Task } from "./types.js";
 import type { Workspace } from "./workspace.js";
 
@@ -51,6 +52,7 @@ const schemas = {
   list_files: z.object({ path: z.string().optional().describe("Pl. docs vagy product/src") }),
   complete_task: z.object({ summary: z.string().min(10).max(2000).describe("Mit csináltál, mely fájlokat érintetted.") }),
   submit_review: z.object({ verdict: z.enum(["approve", "changes"]), note: z.string().min(5).max(2000) }),
+  read_email: z.object({ email_id: z.string().regex(/^E-\d{4,}$/).describe("A levél azonosítója, pl. E-0001.") }),
   block_task: z.object({ reason: z.string().min(5).max(1000) }),
   request_approval: z.object({
     kind: z.enum(["spec", "release", "outbound", "pricing"]),
@@ -62,7 +64,7 @@ const schemas = {
 type ToolName = keyof typeof schemas;
 
 /** A tulajdonossal folytatott beszélgetésben használható eszközök: nincs feladatlezárás és jóváhagyáskérés. */
-export const CHAT_TOOLS: readonly ToolName[] = ["privacy_lookup", "list_tasks", "read_task", "read_file", "list_files", "write_file", "create_task", "reassign_task"];
+export const CHAT_TOOLS: readonly ToolName[] = ["privacy_lookup", "list_tasks", "read_task", "read_email", "read_file", "list_files", "write_file", "create_task", "reassign_task"];
 
 const descriptions: Record<ToolName, string> = {
   privacy_lookup: `Adatvédelmi tudásbázis (GDPR és EU-s, magyar, lengyel, cseh szabályok) keresése. Témák: ${topicIds.join(", ")}. Személyes adatot érintő munka előtt használd.`,
@@ -75,6 +77,7 @@ const descriptions: Record<ToolName, string> = {
   list_files: "Fájlok listázása egy könyvtár alatt.",
   complete_task: "Az aktuális feladat lezárása összefoglalóval. Kódfeladatnál ez automatikusan kódellenőrzést és biztonsági átvizsgálást indít.",
   submit_review: "Átvizsgálási feladatnál: jóváhagyás vagy javítás kérése indoklással.",
+  read_email: "Egy beérkezett levél teljes tartalma és a kinyert adatok (feladó, cég, határidő, összegek). Csak a feladatodban hivatkozott levelet olvashatod; vezető bármelyiket. Személyes adatot ne írj nyilvános fájlba.",
   block_task: "Az aktuális feladat megjelölése elakadtként, ha valami hiányzik.",
   request_approval: "Az aktuális feladat eredményének jóváhagyásra küldése a tulajdonosnak (spec, kiadás, kifelé menő kommunikáció, árazás).",
 };
@@ -98,6 +101,7 @@ function allowedTools(role: Role, task: Task, allowed?: readonly ToolName[]): To
   if (task.kind === "review") base.push("submit_review");
   else base.push("complete_task", "request_approval");
   if (role.tier === "lead") base.push("reassign_task");
+  if (role.tier === "lead" || /\bE-\d{4,}\b/.test(task.description)) base.push("read_email");
   return base;
 }
 
@@ -180,6 +184,10 @@ function execute(ctx: ToolContext, name: ToolName, input: any): string {
     case "list_files": {
       const files = ctx.workspace.list(input.path ?? "", role.access);
       return files.length ? files.join("\n") : "Üres.";
+    }
+    case "read_email": {
+      if (role.tier !== "lead" && !task.description.includes(input.email_id)) throw new Error(`Ez a levél (${input.email_id}) nem a te feladatodhoz tartozik.`);
+      return readEmailFor(ctx.workspace.root, input.email_id, process.env.INBOX_PASSPHRASE);
     }
     case "write_file": {
       ctx.workspace.write(input.path, input.content, role.access);

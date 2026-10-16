@@ -57,6 +57,7 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ALICYA_CHECKPOINT: "1"
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          INBOX_PASSPHRASE: ${{ secrets.INBOX_PASSPHRASE }}
           GH_TOKEN: ${{ github.token }}
           MONTHLY_BUDGET_USD: ${{ vars.MONTHLY_BUDGET_USD }}
           CHAT_BUDGET_USD: ${{ vars.CHAT_BUDGET_USD }}

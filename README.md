@@ -74,6 +74,14 @@ A részleg lapján (kattints a részleg ikonjára a körben) kapcsolóval ki- é
 
 Amikor a tulajdonos jóváhagy egy kiadási (`release`) kaput, a rendszer GitHub Release-t készít: a termék kódja, a kiadási jegyzet és a dokumentáció egy letölthető csomagban. A vezérlőterem **Kész szoftverek** fülén ezek letölthetők, alatta pedig termékvonalanként (ERP, Praxis) látszik, hol tart a munka a piackutatástól a kiadásig.
 
+## Céges levelek (Posta)
+
+A **Posta** munkafolyamat hétköznap 6 és 18 óra között félóránként megnézi a cég postafiókját IMAP-on. Minden új levélből a legolcsóbb modell kiszedi a lényeget: kategória (ajánlatkérés, megrendelés, támogatás, márkázás, pénzügy, jogi, partnerség, hírlevél), sürgősség, cég, kapcsolattartó, telefon, határidő, összegek, termékek, teendők. Ha teendő van, a megfelelő részleg kap feladatot (pl. ajánlatkérés → értékesítés, hiba → ügyfélsiker); a hírlevél nem kap.
+
+A repó nyilvános, ezért a levelek titkosítva kerülnek a `state/inbox.enc.json` fájlba (AES-256-GCM, a kulcs az `INBOX_PASSPHRASE` jelmondatból). A feladattáblára csak személyes adat nélküli összefoglaló kerül; a teljes levelet az agent a `read_email` eszközzel olvassa, és csak azt, amelyik a feladatában szerepel. Választ nem küldhet: vázlatot ír, és kifelé menő kommunikációként jóváhagyást kér. A vezérlőterem **Posta** lapján a jelmondattal a böngészőben nyithatod meg a leveleket.
+
+Bekötés (Settings → Secrets and variables → Actions → Secrets): `IMAP_HOST` (pl. `imap.gmail.com`), `IMAP_USER` (a teljes e-mail-cím), `IMAP_PASSWORD` (Gmailnél alkalmazásjelszó), `INBOX_PASSPHRASE` (szabadon választott, hosszú jelmondat). Nem kötelező: `IMAP_PORT` (alapból 993). Az első futás az elmúlt 14 nap leveleit dolgozza fel, utána csak az újakat, futásonként legfeljebb 25-öt.
+
 ## Beállítás
 
 1. **API-kulcs:** Settings → Secrets and variables → Actions → New repository secret, név: `ANTHROPIC_API_KEY`. Kulcs nélkül a cég nem dolgozik, csak a táblát frissíti.
