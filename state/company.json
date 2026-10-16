@@ -2,7 +2,7 @@
   "version": 1,
   "meta": {
     "runs": 12,
-    "nextTask": 22,
+    "nextTask": 25,
     "nextGate": 2,
     "lastRun": "2026-10-16T15:27:56.186Z",
     "running": "2026-10-16T15:31:16.772Z"
@@ -218,14 +218,21 @@
       "description": "A számlázó modul belépési feltétele a HU (NAV Online Számla) és a PL (KSeF) adóhatósági integráció. Készíts technikai feltárást a docs/dev/integraciok/nav-ksef.md fájlba (kód még nem kell, a vázat az architekt adja – T-0004):\n- NAV Online Számla 3.0: műveletek (tokenExchange, manageInvoice, queryTransactionStatus, query*), hitelesítés és aláírás menete, XML séma, hibakezelés és újraküldés, teszt- és éles környezet, rate limit, módosító/sztornó számlák.\n- KSeF: hitelesítés (token / tanúsítvány), FA(3) strukturált számla, KSeF-azonosító tárolása, offline mód és határidők (2026.02.01 / 2026.04.01 / 2027.01.01).\n- CZ: rögzítsd, hogy most nincs állami valós idejű integráció.\n- Javasolt közös absztrakció (TaxAuthorityAdapter interfész vázlat), állapotgép, idempotencia, várólista/újraküldés.\n- Biztonság és adatvédelem (privacy_lookup: szamlazas, HU/PL): technikai felhasználó jelszava, aláíró- és cserekulcs csak titoktárban, soha nem repóban vagy naplóban; magánszemély vevőnél a NAV-nak nem megy név és cím; adatszolgáltatási napló (mi ment ki, mikor).\n- Nyitott kérdések és kockázatok listája a PM-nek és az architektnek.\nElfogadás: a dokumentum alapján az architekt fejlesztői feladatokra tudja bontani az integrációt; a ⚠ jogi pontok meg vannak jelölve.",
       "department": "dev",
       "assignee": "integration-dev",
-      "status": "todo",
+      "status": "review",
       "kind": "code",
       "priority": 1,
       "dependsOn": [],
       "createdBy": "ceo",
       "createdAt": "2026-10-13T10:35:34.063Z",
-      "updatedAt": "2026-10-13T10:35:34.063Z",
-      "notes": []
+      "updatedAt": "2026-10-16T15:36:36.149Z",
+      "notes": [
+        {
+          "at": "2026-10-16T15:36:36.149Z",
+          "by": "integration-dev",
+          "text": "Elkészült a docs/dev/integraciok/nav-ksef.md: NAV 3.0 (műveletek, hitelesítés/aláírás, XSD, hibakezelés, módosító/sztornó, rate limit), KSeF (auth, FA(3), KSeF-szám, offline, határidők), CZ (nincs integráció), TaxAuthorityAdapter vázlat, állapotgép, idempotencia, várólista (ADR-0003-ra építve), biztonság/adatvédelem, 9 pontos fejlesztői bontás, nyitott kérdések. ⚠ jogi pontok jelölve; 🔍 = a hivatalos specifikációból ellenőrizendő részletek (pl. rate limit értéke, pontos határidők, KSeF API részletek), mert innen nem tudtam verifikálni."
+        }
+      ],
+      "reviewRound": 1
     },
     {
       "id": "T-0012",
@@ -383,6 +390,57 @@
       "createdAt": "2026-10-16T15:35:22.411Z",
       "updatedAt": "2026-10-16T15:35:22.411Z",
       "notes": []
+    },
+    {
+      "id": "T-0022",
+      "title": "Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció",
+      "description": "Vizsgáld át a(z) T-0011 feladat változásait (Kódellenőr). A fejlesztő összefoglalója: Elkészült a docs/dev/integraciok/nav-ksef.md: NAV 3.0 (műveletek, hitelesítés/aláírás, XSD, hibakezelés, módosító/sztornó, rate limit), KSeF (auth, FA(3), KSeF-szám, offline, határidők), CZ (nincs integráció), TaxAuthorityAdapter vázlat, állapotgép, idempotencia, várólista (ADR-0003-ra építve), biztonság/adatvédelem, 9 pontos fejlesztői bontás, nyitott kérdések. ⚠ jogi pontok jelölve; 🔍 = a hivatalos specifikációból ellenőrizendő részletek (pl. rate limit értéke, pontos határidők, KSeF API részletek), mert innen nem tudtam verifikálni.",
+      "department": "dev",
+      "assignee": "code-reviewer",
+      "status": "todo",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0011",
+      "createdBy": "system",
+      "createdAt": "2026-10-16T15:36:36.149Z",
+      "updatedAt": "2026-10-16T15:36:36.149Z",
+      "notes": [],
+      "reviewRound": 1
+    },
+    {
+      "id": "T-0023",
+      "title": "Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció",
+      "description": "Vizsgáld át a(z) T-0011 feladat változásait (Alkalmazásbiztonsági auditor). A fejlesztő összefoglalója: Elkészült a docs/dev/integraciok/nav-ksef.md: NAV 3.0 (műveletek, hitelesítés/aláírás, XSD, hibakezelés, módosító/sztornó, rate limit), KSeF (auth, FA(3), KSeF-szám, offline, határidők), CZ (nincs integráció), TaxAuthorityAdapter vázlat, állapotgép, idempotencia, várólista (ADR-0003-ra építve), biztonság/adatvédelem, 9 pontos fejlesztői bontás, nyitott kérdések. ⚠ jogi pontok jelölve; 🔍 = a hivatalos specifikációból ellenőrizendő részletek (pl. rate limit értéke, pontos határidők, KSeF API részletek), mert innen nem tudtam verifikálni.",
+      "department": "security",
+      "assignee": "appsec",
+      "status": "todo",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0011",
+      "createdBy": "system",
+      "createdAt": "2026-10-16T15:36:36.149Z",
+      "updatedAt": "2026-10-16T15:36:36.149Z",
+      "notes": [],
+      "reviewRound": 1
+    },
+    {
+      "id": "T-0024",
+      "title": "Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció",
+      "description": "Vizsgáld át adatvédelmi szempontból a(z) T-0011 feladat változásait: jogalap, adattakarékosság, megőrzés, érintetti jogok, naplózás, és az EU, HU, PL, CZ szabályok (privacy_lookup). A fejlesztő összefoglalója: Elkészült a docs/dev/integraciok/nav-ksef.md: NAV 3.0 (műveletek, hitelesítés/aláírás, XSD, hibakezelés, módosító/sztornó, rate limit), KSeF (auth, FA(3), KSeF-szám, offline, határidők), CZ (nincs integráció), TaxAuthorityAdapter vázlat, állapotgép, idempotencia, várólista (ADR-0003-ra építve), biztonság/adatvédelem, 9 pontos fejlesztői bontás, nyitott kérdések. ⚠ jogi pontok jelölve; 🔍 = a hivatalos specifikációból ellenőrizendő részletek (pl. rate limit értéke, pontos határidők, KSeF API részletek), mert innen nem tudtam verifikálni.",
+      "department": "security",
+      "assignee": "privacy-officer",
+      "status": "todo",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0011",
+      "createdBy": "system",
+      "createdAt": "2026-10-16T15:36:36.149Z",
+      "updatedAt": "2026-10-16T15:36:36.149Z",
+      "notes": [],
+      "reviewRound": 1
     }
   ],
   "gates": [
@@ -785,6 +843,34 @@
       "department": "security",
       "kind": "info",
       "text": "Kész: T-0006 Adatvédelmi követelmények az ERP-hez (EU)"
+    },
+    {
+      "at": "2026-10-16T15:35:26.884Z",
+      "actor": "integration-dev",
+      "department": "dev",
+      "kind": "info",
+      "text": "Integrációs fejlesztő · NAV dolgozik: T-0011 Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció"
+    },
+    {
+      "at": "2026-10-16T15:36:36.149Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0022 → Kódellenőr: Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció"
+    },
+    {
+      "at": "2026-10-16T15:36:36.149Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0023 → Alkalmazásbiztonsági auditor: Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció"
+    },
+    {
+      "at": "2026-10-16T15:36:36.149Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0024 → Adatvédelmi tisztviselő (DPO · EU): Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció"
     }
   ],
   "ledger": [
@@ -1207,6 +1293,46 @@
       "cacheReadTokens": 28396,
       "cacheWriteTokens": 1599,
       "usd": 0.0130007
+    },
+    {
+      "at": "2026-10-16T15:35:29.144Z",
+      "role": "integration-dev",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 4,
+      "outputTokens": 184,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 7051,
+      "usd": 0.0194755
+    },
+    {
+      "at": "2026-10-16T15:35:30.744Z",
+      "role": "integration-dev",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 66,
+      "cacheReadTokens": 7051,
+      "cacheWriteTokens": 898,
+      "usd": 0.0043192
+    },
+    {
+      "at": "2026-10-16T15:36:32.920Z",
+      "role": "integration-dev",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 6920,
+      "cacheReadTokens": 7949,
+      "cacheWriteTokens": 579,
+      "usd": 0.07224130000000001
+    },
+    {
+      "at": "2026-10-16T15:36:36.149Z",
+      "role": "integration-dev",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 334,
+      "cacheReadTokens": 8528,
+      "cacheWriteTokens": 6957,
+      "usd": 0.0224421
     }
   ]
 }
