@@ -79,7 +79,10 @@ jobs:
           fi
 
       - name: Vezérlőterem összeállítása
-        run: npm run build:dashboard
+        # A vezérlőterem oldala mindig a main legfrissebb változata legyen, akkor is, ha munka közben frissült.
+        run: |
+          git fetch -q origin main && git checkout origin/main -- dashboard/index.html || true
+          npm run build:dashboard
 
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -224,6 +224,50 @@ footer{font-family:var(--f-mono);font-size:11px;color:var(--ink-3);border-top:1p
 .chat-foot{margin:0;padding:0 18px 14px;font-family:var(--f-mono);font-size:11px;color:var(--ink-3)}
 .chat-foot a,.chat-foot button{color:var(--holo);background:none;border:0;padding:0;font:inherit;cursor:pointer;text-decoration:underline}
 button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:transparent;cursor:pointer}
+/* Fülek és Eredmények nézet */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--holo-3);margin-top:-6px}
+.tabs button{font-family:var(--f-display);font-size:15px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:transparent;color:var(--ink-3);border:0;border-bottom:2px solid transparent;padding:8px 16px;cursor:pointer}
+.tabs button:hover{color:var(--ink)}
+.tabs button[aria-selected="true"]{color:var(--holo);border-bottom-color:var(--holo);text-shadow:0 0 12px rgba(111,243,255,.5)}
+.tabs button b{font-family:var(--f-mono);font-weight:400;font-size:11px;color:var(--amber);margin-left:6px}
+.view{display:flex;flex-direction:column;gap:18px;min-width:0}
+.view[hidden]{display:none}
+.out{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:900px){.out{grid-template-columns:minmax(0,1fr)}}
+.out-list .panel-b{display:flex;flex-direction:column;gap:14px;max-height:78vh;overflow:auto}
+.out-filter{width:100%;background:rgba(2,10,18,.8);border:1px solid var(--holo-3);color:var(--ink);font-family:var(--f-mono);font-size:13px;padding:8px 10px}
+.out-filter:focus{outline:none;border-color:var(--holo)}
+.out-group+.out-group{margin-top:6px}
+.doc td:first-child,.doc th:first-child{min-width:7em}
+@media (max-width:900px){.out-list .panel-b{max-height:55vh}}
+.out-group h3{font-family:var(--f-mono);font-size:11px;font-weight:400;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);display:flex;justify-content:space-between;border-bottom:1px solid var(--holo-3);padding-bottom:5px;margin-bottom:4px}
+.out-group h3 b{color:var(--holo);font-weight:400}
+.out-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;width:100%;text-align:left;background:transparent;border:0;border-left:2px solid transparent;color:var(--ink);padding:6px 8px;cursor:pointer;font:inherit}
+.out-item:hover{background:rgba(111,243,255,.06)}
+.out-item[aria-current="true"]{border-left-color:var(--holo);background:linear-gradient(90deg,rgba(111,243,255,.12),transparent)}
+.out-item .nm{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.out-item .pt{grid-column:1/-1;font-family:var(--f-mono);font-size:10px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.out-item .new{font-family:var(--f-mono);font-size:9px;letter-spacing:.14em;color:var(--void);background:var(--amber);padding:1px 5px;align-self:center}
+.out-view .panel-h{flex-wrap:wrap}
+.out-view .panel-h h2{text-transform:none;font-size:17px;overflow-wrap:anywhere}
+.out-meta{display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-family:var(--f-mono);font-size:11px;color:var(--ink-2)}
+.out-meta b{color:var(--holo);font-weight:400}
+.doc{font-size:14px;line-height:1.65;color:var(--ink);max-width:80ch;overflow-wrap:anywhere}
+.doc h1,.doc h2,.doc h3,.doc h4{font-family:var(--f-display);color:var(--holo);letter-spacing:.03em;margin:1.3em 0 .5em;line-height:1.2}
+.doc h1{font-size:26px}.doc h2{font-size:21px}.doc h3{font-size:17px;color:var(--ink)}
+.doc h1:first-child,.doc h2:first-child{margin-top:0}
+.doc p,.doc ul,.doc ol{margin:0 0 .9em}
+.doc li{margin:.2em 0}
+.doc code{font-family:var(--f-mono);font-size:12.5px;background:rgba(111,243,255,.08);padding:1px 5px}
+.doc pre{background:rgba(2,10,18,.85);border:1px solid var(--holo-3);padding:12px 14px;overflow:auto;font-size:12.5px;line-height:1.5;max-width:100%}
+.doc pre code{background:none;padding:0}
+.doc table{border-collapse:collapse;display:block;overflow:auto;max-width:100%;margin:0 0 1em;font-size:13px}
+.doc th,.doc td{border:1px solid var(--holo-3);padding:6px 9px;text-align:left;vertical-align:top}
+.doc th{background:rgba(111,243,255,.08);color:var(--holo);font-weight:600}
+.doc blockquote{margin:0 0 1em;padding:4px 14px;border-left:2px solid var(--amber);color:var(--ink-2)}
+.doc hr{border:0;border-top:1px solid var(--holo-3);margin:1.4em 0}
+.doc a{color:var(--holo)}
+.out-empty{color:var(--ink-3);font-family:var(--f-mono);font-size:12px;padding:30px 0;text-align:center}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
 </head>
@@ -242,6 +286,13 @@ button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:tra
       <span class="chip"><b id="clock">--:--:--</b></span>
     </div>
   </header>
+
+  <nav class="tabs" role="tablist" aria-label="Nézetek">
+    <button type="button" role="tab" id="tab-main" aria-controls="view-main" aria-selected="true">Vezérlőterem</button>
+    <button type="button" role="tab" id="tab-out" aria-controls="view-out" aria-selected="false">Eredmények <b id="out-count"></b></button>
+  </nav>
+
+  <main class="view" id="view-main" role="tabpanel" aria-labelledby="tab-main">
 
   <div class="alert" id="alert" hidden></div>
 
@@ -287,6 +338,24 @@ button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:tra
   <section class="panel">
     <div class="panel-h"><h2>Napi jelentés</h2><span class="label" id="rday"></span></div>
     <div class="panel-b"><pre class="report" id="report">Még nincs jelentés.</pre></div>
+  </section>
+
+  </main>
+
+  <section class="view" id="view-out" role="tabpanel" aria-labelledby="tab-out" hidden>
+    <div class="out">
+      <section class="panel out-list">
+        <div class="panel-h"><h2>Elkészült anyagok</h2><span class="label" id="out-sum"></span></div>
+        <div class="panel-b">
+          <input class="out-filter" id="out-filter" type="search" placeholder="Keresés a fájlnevekben…" aria-label="Keresés">
+          <div id="out-groups"><p class="empty">Betöltés…</p></div>
+        </div>
+      </section>
+      <section class="panel out-view">
+        <div class="panel-h"><h2 id="out-title">Válassz egy anyagot</h2><div class="out-meta" id="out-meta"></div></div>
+        <div class="panel-b"><div class="doc" id="out-doc"><p class="out-empty">Bal oldalt látod, mit készített eddig a csapat: dokumentumokat, terveket és kódot. Kattints egyre, és itt elolvashatod.</p></div></div>
+      </section>
+    </div>
   </section>
 
   <footer>ALICYA NEXUS · <span id="foot"></span></footer>
@@ -517,6 +586,99 @@ if (M.repo) {
   };
   setTimeout(poll, working ? 90e3 : 300e3);
 }
+
+// ── Eredmények fül: a csapat által készített fájlok a munkaágról, olvasható nézetben ──
+const GROUPS = [
+  ["docs/core", "Vezetés"], ["docs/product", "Termék"], ["docs/dev", "Fejlesztés · tervek"], ["docs/security", "Adatvédelem és biztonság"],
+  ["docs/legal", "Jog"], ["docs/sales", "Értékesítés"], ["docs/marketing", "Marketing"], ["docs/support", "Ügyfélsiker"], ["docs/finance", "Pénzügy"],
+  ["product", "Termék kódja"], ["docs", "Egyéb dokumentum"],
+];
+const branch = M.workBranch || "alicya/munka";
+const NAMES = { "README.md": "Áttekintés", "prd.md": "Termékleírás (PRD)", "market.md": "Piaci elemzés", "architecture.md": "Architektúra", "kezikonyv.md": "Kézikönyv", "policy.md": "Biztonsági szabályzat", "requirements.md": "Követelmények" };
+const prettyName = (p) => { const f = p.split("/").pop(); return NAMES[f] || f.replace(/\.(md|ts|json)$/, "").replace(/^\d{4}-/, "").replace(/[-_]/g, " ").replace(/^./, (c) => c.toUpperCase()); };
+const dayAgo = Date.now() - 24 * 3600e3;
+// Melyik feladat hivatkozik a fájlra: ebből tudjuk, ki készítette és friss-e.
+const taskFor = (p) => S.tasks.filter((t) => t.description.includes(p) || t.notes.some((n) => n.text.includes(p))).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
+let outFiles = null, outLoaded = false, current = "";
+let mdLib = null;
+const loadScript = (src) => new Promise((ok, no) => { const sc = document.createElement("script"); sc.src = src; sc.onload = ok; sc.onerror = no; document.head.append(sc); });
+async function mdRender(text) {
+  if (!mdLib) {
+    try {
+      await Promise.all([loadScript("https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"), loadScript("https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js")]);
+      mdLib = (t) => DOMPurify.sanitize(marked.parse(t, { gfm: true }));
+    } catch { mdLib = null; }
+  }
+  if (mdLib) return mdLib(text);
+  return null;
+}
+async function loadOut() {
+  if (outLoaded) return; outLoaded = true;
+  const g = $("out-groups");
+  let tree = null;
+  if (M.repo) { try { const r = await fetch(`https://api.github.com/repos/${M.repo}/git/trees/${encodeURIComponent(branch)}?recursive=1`, { cache: "no-store" }); if (r.ok) tree = await r.json(); } catch {} }
+  if (!tree) { g.innerHTML = ""; g.append(el("p", "empty", "Most nem érem el a GitHubot. Próbáld újra kicsit később.")); return; }
+  outFiles = tree.tree.filter((x) => x.type === "blob" && /^(docs|product)\//.test(x.path) && !/(^|\/)(package-lock\.json|\.gitkeep)$/.test(x.path))
+    .map((x) => { const t = taskFor(x.path); return { path: x.path, size: x.size, task: t, fresh: Boolean(t && Date.parse(t.updatedAt) > dayAgo) }; });
+  renderOutList();
+  const want = decodeURIComponent((location.hash.match(/^#eredmenyek\/(.+)$/) || [])[1] || "");
+  if (want && outFiles.some((f) => f.path === want)) openFile(want);
+}
+function renderOutList() {
+  const q = $("out-filter").value.trim().toLowerCase();
+  const g = $("out-groups"); g.innerHTML = "";
+  const list = outFiles.filter((f) => !q || f.path.toLowerCase().includes(q) || prettyName(f.path).toLowerCase().includes(q));
+  $("out-sum").textContent = `${outFiles.length} fájl`;
+  $("out-count").textContent = outFiles.filter((f) => f.fresh).length ? `${outFiles.filter((f) => f.fresh).length} új` : "";
+  const used = new Set();
+  for (const [prefix, label] of GROUPS) {
+    const items = list.filter((f) => !used.has(f.path) && (f.path === prefix || f.path.startsWith(prefix + "/")));
+    if (!items.length) continue;
+    items.forEach((f) => used.add(f.path));
+    // Dokumentumok elöl, a kód útvonal szerint.
+    items.sort((a, b) => (b.fresh - a.fresh) || a.path.localeCompare(b.path));
+    const box = el("div", "out-group"); const h = el("h3"); h.append(el("span", null, label), el("b", null, String(items.length))); box.append(h);
+    for (const f of items) {
+      const b = el("button", "out-item"); b.type = "button"; b.dataset.path = f.path;
+      if (f.path === current) b.setAttribute("aria-current", "true");
+      b.append(el("span", "nm", prettyName(f.path)));
+      b.append(f.fresh ? el("span", "new", "ÚJ") : el("span"));
+      b.append(el("span", "pt", f.path));
+      b.onclick = () => openFile(f.path);
+      box.append(b);
+    }
+    g.append(box);
+  }
+  if (!g.children.length) g.append(el("p", "empty", q ? "Nincs találat." : "Még nem készült anyag."));
+}
+async function openFile(p) {
+  current = p; history.replaceState(null, "", `#eredmenyek/${encodeURIComponent(p)}`);
+  document.querySelectorAll(".out-item").forEach((b) => b.dataset.path === p ? b.setAttribute("aria-current", "true") : b.removeAttribute("aria-current"));
+  const f = outFiles.find((x) => x.path === p);
+  $("out-title").textContent = prettyName(p);
+  const meta = $("out-meta"); meta.innerHTML = "";
+  meta.append(el("span", null, p));
+  if (f?.task) { const s1 = el("span", null, "Készítette: "); s1.append(el("b", null, `${(roleBy[f.task.assignee] || {}).name || f.task.assignee} · ${f.task.id}`)); meta.append(s1); }
+  if (M.repoUrl) { const a = el("a", null, "GitHubon →"); a.href = `${M.repoUrl}/blob/${encodeURIComponent(branch)}/${p}`; a.target = "_blank"; a.rel = "noopener"; meta.append(a); }
+  const doc = $("out-doc"); doc.innerHTML = ""; doc.append(el("p", "out-empty", "Betöltés…"));
+  const text = await live(p, "text");
+  doc.innerHTML = "";
+  if (text == null) { doc.append(el("p", "out-empty", "Nem sikerült betölteni a fájlt.")); return; }
+  if (/\.md$/i.test(p)) { const html = await mdRender(text); if (html != null) { doc.innerHTML = html; doc.querySelectorAll("a").forEach((a) => { a.target = "_blank"; a.rel = "noopener"; }); return; } }
+  const pre = el("pre"); pre.append(el("code", null, text)); doc.append(pre);
+  if (innerWidth < 900) $("out-title").scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+}
+$("out-filter").addEventListener("input", () => outFiles && renderOutList());
+function showTab(which) {
+  const out = which === "out";
+  $("view-main").hidden = out; $("view-out").hidden = !out;
+  $("tab-main").setAttribute("aria-selected", String(!out)); $("tab-out").setAttribute("aria-selected", String(out));
+  if (out) { loadOut(); if (!location.hash.startsWith("#eredmenyek")) history.replaceState(null, "", "#eredmenyek"); }
+  else { history.replaceState(null, "", location.pathname + location.search); dispatchEvent(new Event("resize")); }
+}
+$("tab-main").onclick = () => showTab("main");
+$("tab-out").onclick = () => showTab("out");
+if (location.hash.startsWith("#eredmenyek")) showTab("out");
 
 // ── Holografikus HUD ──
 const cv = $("hud"), cx = cv.getContext("2d");
