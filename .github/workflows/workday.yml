@@ -73,16 +73,17 @@ jobs:
           fi
           git push origin "$WORK_BRANCH"
 
-      - name: Jóváhagyott kiadások közzététele
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: npm run release
           if [ -z "$(gh pr list --head "$WORK_BRANCH" --state open --json number --jq '.[0].number')" ] && [ -n "$(git log origin/main..HEAD --oneline)" ]; then
             gh pr create --head "$WORK_BRANCH" --base main \
               --title "Alicya Nexus: folyamatban lévő munka" \
               --body "Ebben a pull requestben gyűlik az agentek munkája (dokumentumok, kód, állapot). Amikor elégedett vagy vele, olvaszd be; a cég utána ugyanezen az ágon dolgozik tovább." \
               || echo "::warning::Nem sikerült pull requestet nyitni. Engedélyezd: Settings → Actions → General → Allow GitHub Actions to create and approve pull requests."
           fi
+
+      - name: Jóváhagyott kiadások közzététele
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: npm run release
 
       - name: Vezérlőterem összeállítása
         # A vezérlőterem oldala mindig a main legfrissebb változata legyen, akkor is, ha munka közben frissült.
