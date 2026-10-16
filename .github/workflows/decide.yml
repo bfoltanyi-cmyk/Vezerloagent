@@ -1,0 +1,76 @@
+# Tulajdonosi döntés azonnal, munkanap nélkül.
+# - a vezérlőterem Jóváhagyom/Elutasítom gombja által nyitott döntés-issue,
+# - "/jóváhagyom" vagy "/elutasítom" hozzászólás egy kapu issue-ján,
+# - címke vagy lezárás egy kapu issue-ján.
+# Csak a repó tulajdonosának eseményeire fut. Utána a vezérlőterem újraépül.
+name: Döntés
+
+on:
+  issues:
+    types: [opened, labeled, closed]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: write
+  actions: write
+
+concurrency:
+  group: alicya-workday
+  cancel-in-progress: false
+
+env:
+  WORK_BRANCH: alicya/munka
+
+jobs:
+  decide:
+    if: >-
+      github.event.sender.login == github.repository_owner &&
+      !github.event.issue.pull_request &&
+      (
+        (github.event_name == 'issues' && github.event.action == 'opened' && contains(github.event.issue.body, 'alicya-dontes')) ||
+        (github.event_name == 'issues' && github.event.action != 'opened' && contains(github.event.issue.labels.*.name, 'kapu')) ||
+        (github.event_name == 'issue_comment' && contains(github.event.issue.labels.*.name, 'kapu') && startsWith(github.event.comment.body, '/'))
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Munkaág előkészítése
+        run: |
+          git config user.name "alicya-nexus[bot]"
+          git config user.email "alicya-nexus@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin "$WORK_BRANCH" >/dev/null; then
+            git checkout -B "$WORK_BRANCH" "origin/$WORK_BRANCH"
+            git merge --no-edit origin/main || git merge --abort
+          else
+            git checkout -B "$WORK_BRANCH"
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Döntés rögzítése
+        id: decide
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          COMMENT_BODY: ${{ github.event_name == 'issue_comment' && github.event.comment.body || '' }}
+          IS_COMMENT: ${{ github.event_name == 'issue_comment' }}
+          ALICYA_CHECKPOINT: "1"
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$IS_COMMENT" != "true" ]; then unset COMMENT_BODY; fi
+          npm run decide
+
+      - name: Vezérlőterem frissítése
+        if: steps.decide.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run dashboard.yml --ref main
