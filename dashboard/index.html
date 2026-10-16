@@ -181,6 +181,49 @@ a{color:var(--holo)}
 .alert{border:1px solid var(--amber);color:var(--amber);padding:10px 14px;font-size:13px;background:rgba(255,181,71,.06);clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
 pre.report{margin:0;white-space:pre-wrap;font-family:var(--f-mono);font-size:12px;color:var(--ink-2);max-height:300px;overflow:auto}
 footer{font-family:var(--f-mono);font-size:11px;color:var(--ink-3);border-top:1px solid var(--holo-3);padding-top:12px}
+/* Chat a vezérigazgatóval: jobb oldali fiók, telefonon teljes képernyő */
+.chat{position:fixed;top:0;right:0;z-index:60;width:min(460px,100vw);height:100dvh;display:flex;flex-direction:column;
+  background:linear-gradient(170deg,#0a2238,#02080f);border-left:1px solid var(--holo-2);box-shadow:-30px 0 60px rgba(0,0,0,.55),inset 1px 0 0 rgba(111,243,255,.15);
+  animation:slidein .35s cubic-bezier(.2,.8,.2,1) both}
+.chat[hidden]{display:none}
+@keyframes slidein{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
+.chat-h{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:16px 18px 12px;border-bottom:1px solid var(--holo-3)}
+.chat-h h2{font-size:20px;font-weight:700;color:var(--holo);text-transform:uppercase;text-shadow:0 0 14px rgba(111,243,255,.5)}
+.chat-h h2::before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 10px var(--ok);margin-right:10px;vertical-align:2px;animation:blink 1.6s infinite}
+.chat-tools{display:flex;gap:6px}
+.ctool{font-family:var(--f-mono);font-size:12px;background:transparent;color:var(--ink-2);border:1px solid var(--holo-3);padding:6px 10px;cursor:pointer}
+.ctool:hover{color:var(--holo);border-color:var(--holo)}
+.chat-log{flex:1;overflow:auto;padding:16px 18px;display:flex;flex-direction:column;gap:12px;overscroll-behavior:contain}
+.msg{max-width:88%;padding:10px 13px;font-size:14px;line-height:1.5;overflow-wrap:anywhere;position:relative}
+.msg .who{display:block;font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:4px}
+.msg.me{align-self:flex-end;background:rgba(255,181,71,.1);border:1px solid rgba(255,181,71,.35);clip-path:polygon(0 0,100% 0,100% 100%,10px 100%,0 calc(100% - 10px))}
+.msg.me .who{color:var(--amber)}
+.msg.ceo{align-self:flex-start;background:rgba(111,243,255,.07);border:1px solid var(--holo-3);clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%)}
+.msg.ceo .who{color:var(--holo)}
+.msg.sys{align-self:center;max-width:100%;text-align:center;color:var(--ink-3);font-family:var(--f-mono);font-size:12px;padding:4px}
+.msg p{margin:0 0 .5em}.msg p:last-child{margin:0}
+.msg code{font-family:var(--f-mono);font-size:12px;background:rgba(111,243,255,.08);padding:1px 4px}
+.msg .h{display:block;font-family:var(--f-display);font-weight:700;font-size:15px;color:var(--ink);margin:.4em 0 .2em}
+.msg .li{display:block;padding-left:1.1em;text-indent:-1.1em}
+.msg time{display:block;font-family:var(--f-mono);font-size:10px;color:var(--ink-3);margin-top:6px}
+.typing{display:inline-flex;gap:5px;padding:4px 0}
+.typing i{width:7px;height:7px;background:var(--holo);border-radius:50%;box-shadow:0 0 8px var(--holo);animation:dots 1.2s infinite}
+.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes dots{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:none}}
+.chat-setup{padding:14px 18px;border-top:1px solid var(--holo-3);font-size:13px;color:var(--ink-2);display:flex;flex-direction:column;gap:8px;max-height:55vh;overflow:auto}
+.chat-setup[hidden]{display:none}
+.chat-setup ol{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:4px}
+.chat-row{display:flex;gap:8px}
+.chat-row input{flex:1;min-width:0;background:rgba(2,10,18,.8);border:1px solid var(--holo-3);color:var(--ink);font-family:var(--f-mono);font-size:13px;padding:8px 10px}
+.chat-err{color:var(--red);font-size:12px}
+.chat-in{display:flex;gap:8px;align-items:flex-end;padding:12px 18px;border-top:1px solid var(--holo-3)}
+.chat-in textarea{flex:1;min-width:0;resize:none;max-height:40vh;background:rgba(2,10,18,.8);border:1px solid var(--holo-3);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.4;padding:10px 12px}
+.chat-in textarea:focus,.chat-row input:focus{outline:none;border-color:var(--holo);box-shadow:0 0 0 1px var(--holo),0 0 18px -6px var(--holo)}
+.chat-in .btn{padding:10px 16px}
+.chat-in .btn[disabled]{opacity:.45;cursor:wait}
+.chat-foot{margin:0;padding:0 18px 14px;font-family:var(--f-mono);font-size:11px;color:var(--ink-3)}
+.chat-foot a,.chat-foot button{color:var(--holo);background:none;border:0;padding:0;font:inherit;cursor:pointer;text-decoration:underline}
+button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:transparent;cursor:pointer}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
 </head>
@@ -621,6 +664,200 @@ const hit = (ev) => { const r = cv.getBoundingClientRect(); const mx = ev.client
 cv.addEventListener("click", (ev) => { const d = hit(ev); if (d) select(d.id); });
 cv.addEventListener("mousemove", (ev) => { cv.style.cursor = hit(ev) ? "pointer" : "crosshair"; });
 cv.addEventListener("keydown", (ev) => { if (ev.key !== "ArrowRight" && ev.key !== "ArrowLeft") return; const ids = deps.map((d) => d.id); const i = ids.indexOf(sel); select(ids[(i + (ev.key === "ArrowRight" ? 1 : ids.length - 1)) % ids.length]); ev.preventDefault(); });
+})();
+</script>
+<aside class="chat" id="chat" hidden aria-labelledby="chat-h" role="dialog">
+  <div class="chat-h">
+    <div><h2 id="chat-h">Vezérigazgató</h2><span class="label" id="chat-sub">közvetlen vonal</span></div>
+    <div class="chat-tools">
+      <button type="button" class="ctool" id="chat-new" title="Új beszélgetés">ÚJ</button>
+      <button type="button" class="ctool" id="chat-close" aria-label="Bezárás">✕</button>
+    </div>
+  </div>
+  <div class="chat-log" id="chat-log" aria-live="polite"></div>
+  <div class="chat-setup" id="chat-setup" hidden>
+    <p><b>Egyszeri összekapcsolás.</b> Hogy innen írhass, a vezérlőteremnek kell egy GitHub token, amivel a nevedben hozzászólhat. A token csak ebben a böngészőben tárolódik, sehova máshova nem kerül.</p>
+    <ol>
+      <li><a id="chat-tok-link" target="_blank" rel="noopener">Nyisd meg a tokenkészítőt →</a></li>
+      <li>Repository access: <b>Only select repositories</b> → <span class="mono" id="chat-repo"></span></li>
+      <li>Permissions → Repository permissions → <b>Issues: Read and write</b>, aztán Generate token.</li>
+      <li>Másold be ide:</li>
+    </ol>
+    <div class="chat-row"><input id="chat-tok" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…" aria-label="GitHub token"><button type="button" class="btn ask" id="chat-tok-save">Mentés</button></div>
+    <p class="chat-err" id="chat-tok-err" hidden></p>
+  </div>
+  <form class="chat-in" id="chat-form">
+    <textarea id="chat-text" rows="2" placeholder="Írj a vezérigazgatónak…" aria-label="Üzenet"></textarea>
+    <button type="submit" class="btn yes" id="chat-send">Küldés</button>
+  </form>
+  <p class="chat-foot" id="chat-foot"></p>
+</aside>
+<script>
+// Chat a vezérigazgatóval. Az üzenetek egy "ceo" címkés GitHub issue-ba kerülnek, a "Vezérigazgató"
+// munkafolyamat ott válaszol. Íráshoz a tulajdonos saját GitHub tokenje kell, ami csak ebben a böngészőben marad.
+(async function () {
+  const $ = (id) => document.getElementById(id);
+  const meta = await fetch("data/meta.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : {})).catch(() => ({}));
+  if (!meta.repo) return;
+  const repo = meta.repo, owner = repo.split("/")[0].toLowerCase(), API = `https://api.github.com/repos/${repo}`;
+  const MARK = "<!-- alicya-ceo -->";
+  const store = {
+    get: (k) => { try { return localStorage.getItem(k) || ""; } catch { return ""; } },
+    set: (k, v) => { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch {} },
+  };
+  let token = store.get("alicya-gh-token");
+  let issue = Number(store.get("alicya-ceo-issue")) || 0;
+  let msgs = [], waiting = false, pollTimer = 0, loaded = false;
+
+  const gh = async (path, opts = {}) => {
+    const headers = { Accept: "application/vnd.github+json" };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    if (opts.body) headers["Content-Type"] = "application/json";
+    const r = await fetch(path.startsWith("https:") ? path : API + path, { ...opts, headers, cache: "no-store" });
+    if (!r.ok) { const e = new Error(`GitHub ${r.status}`); e.status = r.status; throw e; }
+    return r.json();
+  };
+
+  // Biztonságos, egyszerű markdown: előbb minden HTML-t semlegesítünk, csak utána formázunk.
+  const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const inline = (s) => s
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
+    .replace(/\[([^\]]+)\]\((https:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  const md = (text) => esc(text.trim()).split(/\n{2,}/).map((block) => "<p>" + block.split("\n").map((l) => {
+    const h = /^#{1,4}\s+(.*)$/.exec(l); if (h) return `<span class="h">${inline(h[1])}</span>`;
+    const li = /^\s*(?:[-*]|\d+\.)\s+(.*)$/.exec(l); if (li) return `<span class="li">• ${inline(li[1])}</span>`;
+    return inline(l);
+  }).join("<br>").replace(/<\/span><br>/g, "</span>") + "</p>").join("");
+  const hhmm = (iso) => new Date(iso).toLocaleString("hu-HU", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+
+  function bubble(kind, html, at) {
+    const d = document.createElement("div"); d.className = `msg ${kind}`;
+    if (kind !== "sys") { const w = document.createElement("span"); w.className = "who"; w.textContent = kind === "me" ? "Te" : "Vezérigazgató"; d.append(w); }
+    const body = document.createElement("div"); body.innerHTML = html; d.append(body);
+    if (at) { const t = document.createElement("time"); t.textContent = hhmm(at); d.append(t); }
+    return d;
+  }
+  function render() {
+    const log = $("chat-log"); log.innerHTML = "";
+    if (!msgs.length) log.append(bubble("ceo", md("Jó napot! Itt közvetlenül velem beszélhetsz. Kérdezz a cég állapotáról, adj irányt vagy feladatot; amit kérsz, rögzítem, és a csapat a következő munkanapon ezt követi.")));
+    for (const m of msgs) log.append(bubble(m.ceo ? "ceo" : "me", md(m.text), m.at));
+    if (waiting) {
+      const d = bubble("ceo", '<span class="typing"><i></i><i></i><i></i></span>');
+      d.querySelector("div").append(" gondolkodik… (általában 1–2 perc)");
+      log.append(d);
+    }
+    log.scrollTop = log.scrollHeight;
+    $("chat-sub").textContent = issue ? `beszélgetés #${issue}` : "új beszélgetés";
+    const f = $("chat-foot"); f.textContent = "";
+    if (issue) { const a = document.createElement("a"); a.href = `${meta.repoUrl}/issues/${issue}`; a.target = "_blank"; a.rel = "noopener"; a.textContent = "Megnyitás a GitHubon"; f.append(a, " · "); }
+    f.append(token ? "Munkanap közben a válasz a munkanap végén érkezik. " : "Olvasni bárki tud, íráshoz egyszer össze kell kapcsolni. ");
+    const b = document.createElement("button"); b.type = "button"; b.textContent = token ? "Kijelentkezés" : "Összekapcsolás";
+    b.onclick = () => { if (token) { token = ""; store.set("alicya-gh-token", ""); render(); } else showSetup(); };
+    f.append(b);
+  }
+
+  async function findIssue() {
+    if (issue) {
+      try { const i = await gh(`/issues/${issue}`); if (i.state === "open") return; } catch {}
+      issue = 0;
+    }
+    try {
+      const list = await gh(`/issues?labels=ceo&state=open&creator=${encodeURIComponent(owner)}&sort=updated&direction=desc&per_page=1`);
+      issue = list[0]?.number || 0;
+    } catch { issue = 0; }
+    store.set("alicya-ceo-issue", issue ? String(issue) : "");
+  }
+  async function load() {
+    if (!issue) { msgs = []; return; }
+    const [i, cs] = await Promise.all([gh(`/issues/${issue}`), gh(`/issues/${issue}/comments?per_page=100`)]);
+    const out = [];
+    if (i.user.login.toLowerCase() === owner) out.push({ ceo: false, text: `${i.title}${i.body ? `\n\n${i.body}` : ""}`, at: i.created_at });
+    for (const c of cs) {
+      if ((c.body || "").includes(MARK)) out.push({ ceo: true, text: c.body.replace(MARK, ""), at: c.created_at });
+      else if (c.user.login.toLowerCase() === owner) out.push({ ceo: false, text: c.body || "", at: c.created_at });
+    }
+    msgs = out;
+    // Ha az utolsó szó a tiéd, a válasz még úton van.
+    waiting = msgs.length > 0 && !msgs.at(-1).ceo && Date.now() - Date.parse(msgs.at(-1).at) < 30 * 60e3;
+  }
+  function poll() {
+    clearTimeout(pollTimer);
+    if (!waiting) return;
+    pollTimer = setTimeout(async () => {
+      try { await load(); render(); } catch {}
+      poll();
+    }, 8000);
+  }
+
+  function showSetup(err) {
+    $("chat-setup").hidden = false;
+    $("chat-repo").textContent = repo;
+    const q = new URLSearchParams({ name: "Alicya vezérlőterem chat", description: "Chat a vezérigazgatóval a vezérlőteremből", target_name: repo.split("/")[0], expires_in: "90" });
+    $("chat-tok-link").href = `https://github.com/settings/personal-access-tokens/new?${q}`;
+    $("chat-tok-err").hidden = !err; $("chat-tok-err").textContent = err || "";
+    $("chat-tok").focus();
+  }
+  $("chat-tok-save").onclick = async () => {
+    const t = $("chat-tok").value.trim();
+    if (!t) return;
+    const prev = token; token = t;
+    try {
+      const me = await gh("https://api.github.com/user");
+      if (me.login.toLowerCase() !== owner) { token = prev; return showSetup(`Ez a token ${me.login} fiókjáé. A vezérigazgató csak a repó tulajdonosának (${owner}) válaszol.`); }
+      store.set("alicya-gh-token", t); $("chat-tok").value = ""; $("chat-setup").hidden = true; render();
+      if ($("chat-text").value.trim()) $("chat-form").requestSubmit();
+    } catch { token = prev; showSetup("A GitHub nem fogadta el ezt a tokent. Ellenőrizd, hogy teljesen bemásoltad-e."); }
+  };
+
+  $("chat-form").onsubmit = async (e) => {
+    e.preventDefault();
+    const text = $("chat-text").value.trim();
+    if (!text) return;
+    if (!token) return showSetup();
+    if (waiting) return;
+    $("chat-send").disabled = true;
+    try {
+      if (!issue) {
+        const title = text.split("\n")[0].slice(0, 80);
+        const body = text.length > title.length ? text : "";
+        const i = await gh("/issues", { method: "POST", body: JSON.stringify({ title, body, labels: ["ceo"] }) });
+        issue = i.number; store.set("alicya-ceo-issue", String(issue));
+      } else {
+        await gh(`/issues/${issue}/comments`, { method: "POST", body: JSON.stringify({ body: text }) });
+      }
+      $("chat-text").value = "";
+      msgs.push({ ceo: false, text, at: new Date().toISOString() });
+      waiting = true; render(); poll();
+    } catch (err) {
+      if (err.status === 401) { token = ""; store.set("alicya-gh-token", ""); showSetup("A token lejárt vagy visszavonták. Készíts újat."); }
+      else if (err.status === 403 || err.status === 404) showSetup("A tokennek nincs írási joga ehhez a repóhoz. Az Issues jogosultság legyen Read and write.");
+      else $("chat-log").append(bubble("sys", esc("Nem sikerült elküldeni. Próbáld újra.")));
+    } finally { $("chat-send").disabled = false; }
+  };
+  $("chat-text").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); $("chat-form").requestSubmit(); } });
+  $("chat-text").addEventListener("input", (e) => { e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, innerHeight * 0.4) + "px"; });
+
+  async function open() {
+    $("chat").hidden = false;
+    store.set("alicya-chat-open", "1");
+    if (!loaded) {
+      $("chat-log").innerHTML = ""; $("chat-log").append(bubble("sys", "Kapcsolódás…"));
+      try { await findIssue(); await load(); } catch {}
+      loaded = true;
+    }
+    render(); poll();
+    $("chat-text").focus();
+  }
+  function close() { $("chat").hidden = true; store.set("alicya-chat-open", ""); clearTimeout(pollTimer); }
+  $("chat-close").onclick = close;
+  $("chat-new").onclick = () => { issue = 0; msgs = []; waiting = false; store.set("alicya-ceo-issue", ""); render(); $("chat-text").focus(); };
+  addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("chat").hidden) close(); });
+
+  const talk = $("talk");
+  talk.addEventListener("click", (e) => { e.preventDefault(); $("chat").hidden ? open() : close(); });
+  talk.textContent = "Chat a vezérigazgatóval";
+  if (store.get("alicya-chat-open")) open();
 })();
 </script>
 </body>

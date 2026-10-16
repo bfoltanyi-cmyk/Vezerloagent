@@ -88,7 +88,7 @@ export async function runAgent(opts: {
   const finish = (outcome: AgentRun["outcome"]): AgentRun => {
     if (!ctx.finished && task.status === "in_progress") {
       task.status = "todo";
-      addNote(task, "system", outcome === "budget" ? "Megszakítva: elfogyott a munkanap kerete." : "Nem fejeződött be ebben a munkanapban, folytatódik.");
+      addNote(task, "system", outcome === "budget" ? "Megszakítva: elfogyott a munkanap kerete." : wrapUp ? "Elérte a feladatkeretet; a mentett fájlokból folytatódik a következő munkanapon." : "Nem fejeződött be ebben a munkanapban, folytatódik.");
     }
     return { outcome, turns, usd, filesWritten: [...ctx.filesWritten] };
   };
@@ -109,7 +109,7 @@ export async function runAgent(opts: {
     const calls = res.content.filter((b): b is Anthropic.Beta.BetaToolUseBlock => b.type === "tool_use");
 
     if (calls.length === 0) {
-      if (ctx.finished) break;
+      if (ctx.finished || wrapUp) break;
       if (nudged) break;
       nudged = true;
       messages.push({ role: "user", content: "A feladat még nincs lezárva. Fejezd be a munkát, és zárd le complete_task, submit_review, request_approval vagy block_task eszközzel." });
@@ -123,7 +123,7 @@ export async function runAgent(opts: {
     if (!wrapUp && usd >= config.taskBudgetUsd && !ctx.finished) {
       // Feladatkeret: ne fusson el egy feladat a napi keretből, inkább zárja le, amit eddig elkészített.
       wrapUp = true;
-      messages.push({ role: "user", content: [...results, { type: "text", text: "Elérted a feladatra szánt keretet. Ne olvass többet: mentsd, amit eddig elkészítettél, és zárd le a feladatot most (complete_task, vagy ha valami hiányzik, block_task a hátralévőkkel)." }] });
+      messages.push({ role: "user", content: [...results, { type: "text", text: "Elérted a feladatra szánt keretet. Ne olvass többet: mentsd write_file-lal, amit eddig elkészítettél, a fájl végére írd fel röviden a hátralévő teendőket, és állj meg. Ha a feladat ténylegesen kész, zárd le complete_task-kal; ha nem, ne zárd le és ne jelöld elakadtnak, a következő munkanapon innen folytatod." }] });
       continue;
     }
     messages.push({ role: "user", content: results });
