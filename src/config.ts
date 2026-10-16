@@ -34,7 +34,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, rootDir = proce
       worker: env.MODEL_WORKER || "claude-sonnet-5-5",
       bulk: env.MODEL_BULK || "claude-haiku-5-5",
     },
-    strategic: { model: env.MODEL_STRATEGIC || "claude-opus-5-5", roles: ["ceo", "architect"] },
+    strategic: { model: env.MODEL_STRATEGIC || "claude-opus-5-5", roles: ["ceo"] },
     effort: { lead: "medium", worker: "medium", bulk: "low" },
     monthlyBudgetUsd: num(env.MONTHLY_BUDGET_USD, 50),
     runBudgetUsd: num(env.RUN_BUDGET_USD, 3),

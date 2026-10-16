@@ -79,8 +79,8 @@ A keret elérésekor a cég leáll a hónap végéig.
 
 | Kik | Modell | Erőfeszítés |
 |---|---|---|
-| Vezérigazgató, architekt | `claude-opus-5-5` | közepes |
-| Többi vezető és munkatárs | `claude-sonnet-5-5` | közepes |
+| Vezérigazgató | `claude-opus-5-5` | közepes |
+| Többi vezető (az architekt is) és munkatárs | `claude-sonnet-5-5` | közepes |
 | Tömeg (dokumentáció, tartalom) | `claude-haiku-5-5` | alacsony |
 
 Felülírható a `MODEL_STRATEGIC`, `MODEL_LEAD`, `MODEL_WORKER`, `MODEL_BULK` környezeti változókkal. Egy feladat legfeljebb 8 kört és `TASK_BUDGET_USD` (alapból 0,60 USD) költést kap; a keretnél az agent lezárja a munkát. Az Opus és Sonnet hívások szerveroldali tartalék modellt használnak, ha a modell biztonsági okból visszautasítana egy kérést.
