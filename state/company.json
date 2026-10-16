@@ -418,8 +418,14 @@
       "dependsOn": [],
       "createdBy": "privacy-officer",
       "createdAt": "2026-10-16T15:35:22.411Z",
-      "updatedAt": "2026-10-16T15:35:22.411Z",
-      "notes": []
+      "updatedAt": "2026-10-16T15:57:01.038Z",
+      "notes": [
+        {
+          "at": "2026-10-16T15:57:01.038Z",
+          "by": "system",
+          "text": "Nem fejeződött be ebben a munkanapban, folytatódik."
+        }
+      ]
     },
     {
       "id": "T-0021",
@@ -1508,6 +1514,13 @@
       "department": "system",
       "kind": "info",
       "text": "Új feladat T-0046 → Adatvédelmi tisztviselő (DPO · EU): Átvizsgálás: Adatvédelmi adatmodell: osztályozási metaadat, megőrzési motor, érintetti kérelem (R1–R3)"
+    },
+    {
+      "at": "2026-10-16T15:55:46.384Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Szoftverarchitekt dolgozik: T-0020 Naplózás és különleges adatok védelme: architektúra (R4, R5, R7, R11)"
     }
   ],
   "ledger": [
@@ -2510,6 +2523,86 @@
       "cacheReadTokens": 31506,
       "cacheWriteTokens": 9916,
       "usd": 0.0701292
+    },
+    {
+      "at": "2026-10-16T15:55:48.730Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 4,
+      "outputTokens": 193,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 7144,
+      "usd": 0.039596
+    },
+    {
+      "at": "2026-10-16T15:55:51.136Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 262,
+      "cacheReadTokens": 7144,
+      "cacheWriteTokens": 6690,
+      "usd": 0.040126800000000004
+    },
+    {
+      "at": "2026-10-16T15:55:54.067Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 271,
+      "cacheReadTokens": 13834,
+      "cacheWriteTokens": 12062,
+      "usd": 0.0685048
+    },
+    {
+      "at": "2026-10-16T15:55:55.457Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 88,
+      "cacheReadTokens": 25896,
+      "cacheWriteTokens": 1496,
+      "usd": 0.014427200000000001
+    },
+    {
+      "at": "2026-10-16T15:55:58.662Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 279,
+      "cacheReadTokens": 27392,
+      "cacheWriteTokens": 13616,
+      "usd": 0.07914639999999999
+    },
+    {
+      "at": "2026-10-16T15:56:00.176Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 130,
+      "cacheReadTokens": 41008,
+      "cacheWriteTokens": 1259,
+      "usd": 0.017104599999999998
+    },
+    {
+      "at": "2026-10-16T15:56:07.334Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 697,
+      "cacheReadTokens": 42267,
+      "cacheWriteTokens": 3599,
+      "usd": 0.0403964
+    },
+    {
+      "at": "2026-10-16T15:57:01.038Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 4469,
+      "cacheReadTokens": 45866,
+      "cacheWriteTokens": 1944,
+      "usd": 0.1082812
     }
   ]
 }
