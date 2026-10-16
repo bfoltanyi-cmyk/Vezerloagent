@@ -268,6 +268,52 @@ button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:tra
 .doc hr{border:0;border-top:1px solid var(--holo-3);margin:1.4em 0}
 .doc a{color:var(--holo)}
 .out-empty{color:var(--ink-3);font-family:var(--f-mono);font-size:12px;padding:30px 0;text-align:center}
+/* Részleg lap */
+.dp-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.dp-back{font-family:var(--f-mono);font-size:12px;background:transparent;color:var(--holo);border:1px solid var(--holo-3);padding:6px 12px;cursor:pointer;margin-bottom:10px}
+.dp-back:hover{border-color:var(--holo)}
+.dp-title{font-size:clamp(30px,5vw,48px);font-weight:700;color:var(--holo);text-shadow:0 0 22px rgba(111,243,255,.5);line-height:1}
+.dp-purpose{color:var(--ink-2);margin-top:6px;max-width:70ch}
+.dp-nums{display:flex;gap:10px;flex-wrap:wrap}
+.dp-num{border:1px solid var(--holo-3);background:rgba(6,22,38,.6);padding:8px 14px;min-width:96px}
+.dp-num .v{font-family:var(--f-display);font-size:26px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.dp-num .l{font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-top:4px}
+.dp-num.busy .v{color:var(--holo);text-shadow:0 0 12px rgba(111,243,255,.5)}
+.dp-num.wait .v{color:var(--amber)}
+.agents{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:14px}
+.agent{position:relative;display:flex;flex-direction:column;gap:8px;padding:14px 16px;border:1px solid var(--holo-3);background:linear-gradient(160deg,rgba(14,44,70,.5),rgba(4,16,28,.7));min-width:0;
+  clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
+.agent.st-busy{border-color:var(--holo);box-shadow:inset 0 0 30px rgba(111,243,255,.08)}
+.agent.st-wait{border-color:rgba(255,181,71,.55)}
+.agent.st-blocked{border-color:rgba(255,93,108,.55)}
+.agent .ah{display:flex;gap:10px;align-items:center}
+.agent .av{flex:none;width:38px;height:38px;display:grid;place-items:center;font-family:var(--f-display);font-weight:700;font-size:15px;color:var(--void);background:var(--ink-3);clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
+.agent.st-busy .av{background:var(--holo);box-shadow:0 0 14px var(--holo)}
+.agent.st-wait .av{background:var(--amber)}
+.agent.st-blocked .av{background:var(--red)}
+.agent.st-queue .av{background:var(--holo-2)}
+.agent .an{min-width:0}
+.agent .an b{display:block;font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.agent .an small{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;color:var(--ink-3)}
+.agent .st{margin-left:auto;font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;padding:2px 7px;border:1px solid currentColor;white-space:nowrap}
+.agent.st-busy .st{color:var(--holo)}.agent.st-wait .st{color:var(--amber)}.agent.st-blocked .st{color:var(--red)}.agent.st-queue .st{color:var(--ink-2)}.agent.st-idle .st{color:var(--ink-3)}
+.agent .mis{font-size:12px;color:var(--ink-3)}
+.agent .now{border-left:2px solid var(--holo-2);padding:6px 10px;background:rgba(111,243,255,.05)}
+.agent.st-wait .now{border-left-color:var(--amber)}.agent.st-blocked .now{border-left-color:var(--red)}
+.agent .now .k{font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;color:var(--ink-3);text-transform:uppercase}
+.agent .now .t{font-size:13px;font-weight:600;margin-top:2px}
+.agent .now .d{font-size:12px;color:var(--ink-2);margin-top:3px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.agent .q{list-style:none;margin:0;padding:0;font-size:12px;color:var(--ink-2);display:flex;flex-direction:column;gap:3px}
+.agent .q li{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.agent .q li span{font-family:var(--f-mono);font-size:10px;color:var(--ink-3);margin-right:6px}
+.agent .af{display:flex;justify-content:space-between;gap:8px;font-family:var(--f-mono);font-size:10px;color:var(--ink-3);border-top:1px solid rgba(111,243,255,.08);padding-top:6px;margin-top:auto}
+.agent .af b{color:var(--ink-2);font-weight:400}
+.dp-cols{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:1000px){.dp-cols{grid-template-columns:minmax(0,1fr)}}
+.dp-cols .tracks{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:600px){.dp-cols .tracks{grid-template-columns:minmax(0,1fr)}}
+.dept-open{margin-top:12px;font-family:var(--f-mono);font-size:12px;background:transparent;color:var(--holo);border:1px solid var(--holo);padding:7px 12px;cursor:pointer;width:100%}
+.dept-open:hover{background:rgba(111,243,255,.08)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
 </head>
@@ -310,6 +356,7 @@ button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:tra
           <p class="dept-purpose" id="dpurpose"></p>
           <div class="dept-nav" id="dnav" role="group" aria-label="Részleg kiválasztása"></div>
           <ul class="roles" id="roles"></ul>
+          <button type="button" class="dept-open" id="dopen">Részleg megnyitása →</button>
         </div>
       </section>
     </aside>
@@ -354,6 +401,32 @@ button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:tra
       <section class="panel out-view">
         <div class="panel-h"><h2 id="out-title">Válassz egy anyagot</h2><div class="out-meta" id="out-meta"></div></div>
         <div class="panel-b"><div class="doc" id="out-doc"><p class="out-empty">Bal oldalt látod, mit készített eddig a csapat: dokumentumokat, terveket és kódot. Kattints egyre, és itt elolvashatod.</p></div></div>
+      </section>
+    </div>
+  </section>
+
+  <section class="view" id="view-dept" hidden aria-labelledby="dp-title">
+    <div class="dp-head">
+      <div>
+        <button type="button" class="dp-back" id="dp-back">← Vezérlőterem</button>
+        <h2 class="dp-title" id="dp-title">–</h2>
+        <p class="dp-purpose" id="dp-purpose"></p>
+      </div>
+      <div class="dp-nums" id="dp-nums"></div>
+    </div>
+    <div class="dept-nav" id="dp-nav" role="group" aria-label="Részleg váltása"></div>
+    <section class="panel">
+      <div class="panel-h"><h2>Agentek</h2><span class="label" id="dp-acount"></span></div>
+      <div class="panel-b"><div class="agents" id="dp-agents"></div></div>
+    </section>
+    <div class="dp-cols">
+      <section class="panel">
+        <div class="panel-h"><h2>A részleg feladatai</h2><span class="label" id="dp-tcount"></span></div>
+        <div class="panel-b"><div class="tracks" id="dp-tracks"></div></div>
+      </section>
+      <section class="panel">
+        <div class="panel-h"><h2>Napló</h2><span class="label">részleg</span></div>
+        <div class="panel-b"><div class="feed" id="dp-feed"></div></div>
       </section>
     </div>
   </section>
@@ -671,7 +744,7 @@ async function openFile(p) {
 $("out-filter").addEventListener("input", () => outFiles && renderOutList());
 function showTab(which) {
   const out = which === "out";
-  $("view-main").hidden = out; $("view-out").hidden = !out;
+  $("view-main").hidden = out; $("view-out").hidden = !out; $("view-dept").hidden = true;
   $("tab-main").setAttribute("aria-selected", String(!out)); $("tab-out").setAttribute("aria-selected", String(out));
   if (out) { loadOut(); if (!location.hash.startsWith("#eredmenyek")) history.replaceState(null, "", "#eredmenyek"); }
   else { history.replaceState(null, "", location.pathname + location.search); dispatchEvent(new Event("resize")); }
@@ -679,6 +752,101 @@ function showTab(which) {
 $("tab-main").onclick = () => showTab("main");
 $("tab-out").onclick = () => showTab("out");
 if (location.hash.startsWith("#eredmenyek")) showTab("out");
+
+// ── Részleg lap: minden agent, ki min dolgozik, a részleg feladatai és naplója ──
+const monthSpent = (roleId) => S.ledger.filter((e) => e.role === roleId && e.at.startsWith(month)).reduce((a, e) => a + e.usd, 0);
+const initials = (name) => name.replace(/\(.*?\)|·.*$/g, "").trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+const ago2 = (iso) => { if (!iso) return "–"; const m = (Date.now() - Date.parse(iso)) / 60e3; return m < 60 ? `${Math.max(1, Math.round(m))} perce` : m < 1440 ? `${Math.round(m / 60)} órája` : `${Math.round(m / 1440)} napja`; };
+const STATE = {
+  busy: ["DOLGOZIK", "Most ezen dolgozik"], wait: ["RÁD VÁR", "Jóváhagyásra vár"], blocked: ["ELAKADT", "Elakadt ennél"],
+  review: ["ÁTVIZSGÁL", "Átvizsgálja"], queue: ["SORBAN", "Következő feladata"], idle: ["SZABAD", ""],
+};
+function agentState(r) {
+  const mine = S.tasks.filter((t) => t.assignee === r.id && t.status !== "done");
+  const pick = (st) => mine.filter((t) => t.status === st).sort((a, b) => a.priority - b.priority)[0];
+  const ip = pick("in_progress");
+  if (ip) return ["busy", ip, mine];
+  const aw = pick("awaiting_approval"); if (aw) return ["wait", aw, mine];
+  const bl = pick("blocked"); if (bl) return ["blocked", bl, mine];
+  const td = mine.filter((t) => t.status === "todo").sort((a, b) => a.priority - b.priority);
+  const rv = td.find((t) => t.kind === "review"); if (rv) return ["review", rv, mine];
+  if (td[0]) return ["queue", td[0], mine];
+  const rvw = pick("review"); if (rvw) return ["queue", rvw, mine];
+  return ["idle", null, mine];
+}
+let dpCur = "";
+for (const d of org.departments) { const b = el("button", null, d.name); b.type = "button"; b.dataset.id = d.id; b.onclick = () => openDept(d.id); $("dp-nav").append(b); }
+function openDept(id) {
+  const d = depBy[id]; if (!d) return;
+  dpCur = id;
+  $("view-main").hidden = true; $("view-out").hidden = true; $("view-dept").hidden = false;
+  $("tab-main").setAttribute("aria-selected", "false"); $("tab-out").setAttribute("aria-selected", "false");
+  history.replaceState(null, "", `#reszleg/${id}`);
+  [...$("dp-nav").children].forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.id === id)));
+  const roles = org.roles.filter((r) => r.department === id).sort((a, b) => (a.id === d.lead ? -1 : b.id === d.lead ? 1 : 0) || ["lead", "worker", "bulk"].indexOf(a.tier) - ["lead", "worker", "bulk"].indexOf(b.tier));
+  const ids = new Set(roles.map((r) => r.id));
+  const tasks = S.tasks.filter((t) => t.department === id || ids.has(t.assignee));
+  $("dp-title").textContent = d.name; $("dp-purpose").textContent = d.purpose;
+  const states = roles.map((r) => [r, ...agentState(r)]);
+  const n = (k) => states.filter((x) => x[1] === k).length;
+  const spentD = roles.reduce((a, r) => a + monthSpent(r.id), 0);
+  $("dp-nums").innerHTML = "";
+  for (const [l, v, cls] of [["Agent", roles.length], ["Dolgozik", n("busy"), "busy"], ["Rád vár", n("wait"), "wait"], ["Nyitott feladat", tasks.filter((t) => t.status !== "done").length], ["Kész", tasks.filter((t) => t.status === "done").length], ["Havi költés", `$${spentD.toFixed(2)}`]]) {
+    const b = el("div", "dp-num" + (cls && v ? " " + cls : "")); b.append(el("div", "v", String(v)), el("div", "l", l)); $("dp-nums").append(b);
+  }
+  $("dp-acount").textContent = `${n("busy")} dolgozik · ${n("idle")} szabad`;
+  const box = $("dp-agents"); box.innerHTML = "";
+  const order = { busy: 0, wait: 1, blocked: 2, review: 3, queue: 4, idle: 5 };
+  states.sort((a, b) => (a[0].id === d.lead ? -1 : b[0].id === d.lead ? 1 : order[a[1]] - order[b[1]]));
+  for (const [r, st, cur, mine] of states) {
+    const shownSt = st === "busy" && !working ? "queue" : st; // munkanapon kívül a félbehagyott munka sorban vár
+    const card = el("article", "agent st-" + (shownSt === "review" ? "queue" : shownSt));
+    const ah = el("div", "ah"); const an = el("div", "an");
+    an.append(el("b", null, r.name), el("small", null, (r.id === d.lead ? "RÉSZLEGVEZETŐ · " : "") + (r.tier === "lead" ? "VEZETŐ" : r.tier === "worker" ? "MUNKATÁRS" : "TÖMEG")));
+    ah.append(el("span", "av", initials(r.name)), an, el("span", "st", STATE[shownSt][0])); card.append(ah);
+    if (cur) {
+      const now = el("div", "now");
+      now.append(el("div", "k", `${STATE[shownSt][1]} · ${cur.id}`), el("div", "t", cur.title), el("div", "d", cur.description.split("\n").filter((l) => !/^Új termékvonal:/.test(l)).join(" ").slice(0, 280)));
+      card.append(now);
+    } else card.append(el("p", "mis", r.mission));
+    const rest = mine.filter((t) => t !== cur && t.status !== "done").sort((a, b) => a.priority - b.priority).slice(0, 3);
+    if (rest.length) { const q = el("ul", "q"); for (const t of rest) { const li = el("li"); li.append(el("span", null, `${t.id} · ${ST[t.status]}`), t.title); li.title = t.title; q.append(li); } card.append(q); }
+    const lastDone = S.tasks.filter((t) => t.assignee === r.id && t.status === "done").sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
+    const lastEv = [...S.events].reverse().find((e) => e.actor === r.id);
+    const af = el("div", "af");
+    const a1 = el("span", null, "Kész: "); a1.append(el("b", null, String(S.tasks.filter((t) => t.assignee === r.id && t.status === "done").length)));
+    const a2 = el("span", null, "Havi: "); a2.append(el("b", null, `$${monthSpent(r.id).toFixed(2)}`));
+    const a3 = el("span", null, "Aktív: "); a3.append(el("b", null, ago2(lastEv?.at)));
+    af.append(a1, a2, a3); if (lastDone) af.title = `Utoljára kész: ${lastDone.id} ${lastDone.title}`;
+    card.append(af);
+    box.append(card);
+  }
+  // Feladatok és napló
+  $("dp-tcount").textContent = `${tasks.length} feladat`;
+  const tr = $("dp-tracks"); tr.innerHTML = "";
+  for (const st of ["in_progress", "awaiting_approval", "todo", "review", "blocked", "done"]) {
+    const list = tasks.filter((t) => t.status === st); if (!list.length && st !== "todo" && st !== "done") continue;
+    const col = el("div", "track"); const h = el("h3"); h.append(el("span", null, ST[st]), el("b", null, String(list.length))); col.append(h);
+    const shown = st === "done" ? list.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 6) : list.sort((a, b) => a.priority - b.priority).slice(0, 8);
+    if (!shown.length) col.append(el("p", "empty", "—"));
+    for (const t of shown) { const c = el("div", `card p${t.priority} ${t.status}`); c.title = t.description; c.append(el("span", "id", `${t.id} · ${(roleBy[t.assignee] || {}).name || t.assignee}`), el("span", null, t.title)); col.append(c); }
+    if (list.length > shown.length) col.append(el("p", "empty", `+${list.length - shown.length} további`));
+    tr.append(col);
+  }
+  const feed = $("dp-feed"); feed.innerHTML = "";
+  const evs = S.events.filter((e) => e.department === id || ids.has(e.actor)).slice(-40).reverse();
+  if (!evs.length) feed.append(el("p", "empty", "Még nincs esemény."));
+  for (const e of evs) {
+    const row = el("div"); const right = el("div");
+    right.append(el("span", "who", ((roleBy[e.actor] || {}).name || e.actor) + " "), el("span", e.kind === "gate" ? "g" : e.kind === "warn" ? "w" : "", e.text));
+    row.append(el("span", "tm", fmt(e.at).split(" ").slice(-1)[0]), right); row.title = fmt(e.at);
+    feed.append(row);
+  }
+  scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+}
+$("dp-back").onclick = () => showTab("main");
+$("dopen").onclick = () => openDept(sel);
+{ const m = location.hash.match(/^#reszleg\/(\w+)/); if (m && depBy[m[1]]) openDept(m[1]); }
 
 // ── Holografikus HUD ──
 const cv = $("hud"), cx = cv.getContext("2d");
@@ -823,9 +991,9 @@ function draw(ts) {
 requestAnimationFrame(draw);
 
 const hit = (ev) => { const r = cv.getBoundingClientRect(); const mx = ev.clientX - r.left, my = ev.clientY - r.top; let best = null, bd = 1e9; for (const d of deps) { const [x, y] = nodePos(d); const dd = Math.hypot(mx - x, my - y); if (dd < bd) { bd = dd; best = d; } } return bd < Math.max(28, R * 0.12) ? best : null; };
-cv.addEventListener("click", (ev) => { const d = hit(ev); if (d) select(d.id); });
+cv.addEventListener("click", (ev) => { const d = hit(ev); if (d) { select(d.id); openDept(d.id); } });
 cv.addEventListener("mousemove", (ev) => { cv.style.cursor = hit(ev) ? "pointer" : "crosshair"; });
-cv.addEventListener("keydown", (ev) => { if (ev.key !== "ArrowRight" && ev.key !== "ArrowLeft") return; const ids = deps.map((d) => d.id); const i = ids.indexOf(sel); select(ids[(i + (ev.key === "ArrowRight" ? 1 : ids.length - 1)) % ids.length]); ev.preventDefault(); });
+cv.addEventListener("keydown", (ev) => { if (ev.key === "Enter") { openDept(sel); ev.preventDefault(); return; } if (ev.key !== "ArrowRight" && ev.key !== "ArrowLeft") return; const ids = deps.map((d) => d.id); const i = ids.indexOf(sel); select(ids[(i + (ev.key === "ArrowRight" ? 1 : ids.length - 1)) % ids.length]); ev.preventDefault(); });
 })();
 </script>
 <aside class="chat" id="chat" hidden aria-labelledby="chat-h" role="dialog">
