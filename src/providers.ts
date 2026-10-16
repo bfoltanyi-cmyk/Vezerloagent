@@ -1,12 +1,15 @@
 // Több modellszolgáltató: Anthropic (alap), OpenAI és Moonshot Kimi. A modellt "szolgáltató:modell"
-// alakban lehet megadni (pl. openai:gpt-5-mini, kimi:kimi-k2-thinking); előtag nélkül Anthropic.
-// A motor továbbra is az Anthropic üzenetformátumában gondolkodik; a többi szolgáltatót
-// az OpenAI-kompatibilis Chat Completions felületen érjük el, és oda-vissza fordítunk.
+// alakban lehet megadni (pl. openai:gpt-6-sol, kimi:kimi-k2.6); előtag nélkül Anthropic.
+// A motor az Anthropic üzenetformátumában gondolkodik; a többi szolgáltatóhoz oda-vissza fordítunk:
+// - OpenAI: Responses API (a mostani GPT-6 modellek csak itt tudnak eszközt hívni gondolkodás mellett),
+//   állapot nélkül (store: false), a titkosított gondolatmenetet minden körben visszaküldjük.
+// - Kimi: OpenAI-kompatibilis Chat Completions; a gondolatmenetet (reasoning_content) vissza kell küldeni.
 
 import type Anthropic from "@anthropic-ai/sdk";
-import { ClaudeClient, type ModelClient, type ModelRequest } from "./llm.js";
+import type { ProviderId } from "./catalog.js";
+import { ClaudeClient, type Effort, type ModelClient, type ModelRequest } from "./llm.js";
 
-export type ProviderId = "anthropic" | "openai" | "kimi";
+export type { ProviderId };
 
 export interface ProviderSpec {
   id: ProviderId;
@@ -15,42 +18,17 @@ export interface ProviderSpec {
   keyEnv: string[];
   baseUrlEnv?: string;
   baseUrl?: string;
-  /** Melyik mezőben várja a válasz hosszkorlátját. */
-  tokenParam?: "max_tokens" | "max_completion_tokens";
-  /** A gondolkodó modell gondolatmenetét a következő körben vissza kell küldeni (reasoning_content). */
-  echoReasoning?: boolean;
-  /** Erre a modellre küldhető reasoning_effort. */
-  effortFor?: (model: string) => boolean;
-  /** Ajánlott mintavételi hőmérséklet, ha a szolgáltató alapértéke nem jó agentmunkára. */
-  temperatureFor?: (model: string) => number | undefined;
 }
 
 export const PROVIDERS: Record<ProviderId, ProviderSpec> = {
   anthropic: { id: "anthropic", name: "Anthropic", keyEnv: ["ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN"] },
-  openai: {
-    id: "openai",
-    name: "OpenAI",
-    keyEnv: ["OPENAI_API_KEY"],
-    baseUrlEnv: "OPENAI_BASE_URL",
-    baseUrl: "https://api.openai.com/v1",
-    tokenParam: "max_completion_tokens",
-    effortFor: (m) => /^(gpt-5|o\d)/.test(m),
-  },
-  kimi: {
-    id: "kimi",
-    name: "Moonshot Kimi",
-    keyEnv: ["MOONSHOT_API_KEY", "KIMI_API_KEY"],
-    baseUrlEnv: "MOONSHOT_BASE_URL",
-    baseUrl: "https://api.moonshot.ai/v1",
-    tokenParam: "max_tokens",
-    echoReasoning: true,
-    temperatureFor: (m) => (/thinking/.test(m) ? 1.0 : 0.6),
-  },
+  openai: { id: "openai", name: "OpenAI", keyEnv: ["OPENAI_API_KEY"], baseUrlEnv: "OPENAI_BASE_URL", baseUrl: "https://api.openai.com/v1" },
+  kimi: { id: "kimi", name: "Moonshot Kimi", keyEnv: ["MOONSHOT_API_KEY", "KIMI_API_KEY"], baseUrlEnv: "MOONSHOT_BASE_URL", baseUrl: "https://api.moonshot.ai/v1" },
 };
 
 const ALIASES: Record<string, ProviderId> = { anthropic: "anthropic", claude: "anthropic", openai: "openai", kimi: "kimi", moonshot: "kimi" };
 
-/** "openai:gpt-5-mini" → { provider: "openai", model: "gpt-5-mini" }; előtag nélkül Anthropic. */
+/** "openai:gpt-6-sol" → { provider: "openai", model: "gpt-6-sol" }; előtag nélkül Anthropic. */
 export function parseModel(spec: string): { provider: ProviderId; model: string } {
   const i = spec.indexOf(":");
   if (i <= 0) return { provider: "anthropic", model: spec };
@@ -66,12 +44,215 @@ export function providerKey(p: ProviderId, env: NodeJS.ProcessEnv = process.env)
   return undefined;
 }
 
-// ── Fordítás az Anthropic-formátum és a Chat Completions között ──
+type Block = Record<string, unknown>;
+const blocksOf = (m: Anthropic.Beta.BetaMessageParam): Block[] => (typeof m.content === "string" ? [{ type: "text", text: m.content }] : (m.content as unknown as Block[]));
+
+/** Egy eszközeredmény szövege; a hibát a szövegbe írjuk, mert a többi szolgáltatónál nincs külön jelző. */
+function toolResultText(b: Block): string {
+  const c = b.content;
+  const text =
+    typeof c === "string"
+      ? c
+      : Array.isArray(c)
+        ? c
+            .filter((x) => x && typeof x === "object" && (x as Block).type === "text")
+            .map((x) => String((x as Block).text ?? ""))
+            .join("\n")
+        : "";
+  return b.is_error ? `HIBA: ${text}` : text || "(üres)";
+}
+
+/** Az eredeti szolgáltatói elem (pl. az OpenAI kimeneti eleme) a blokkon; a következő körben változatlanul küldjük vissza. */
+const RAW = "_raw";
+
+// ── HTTP: újrapróbálás túlterhelésnél, érthető hiba máskor ──
+
+type Fetch = typeof fetch;
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+export interface HttpOptions {
+  env?: NodeJS.ProcessEnv;
+  fetchImpl?: Fetch;
+  retries?: number;
+  retryBaseMs?: number;
+}
+
+async function postJson(spec: ProviderSpec, path: string, body: unknown, o: HttpOptions): Promise<unknown> {
+  const env = o.env ?? process.env;
+  const key = providerKey(spec.id, env);
+  if (!key) throw new Error(`Nincs beállítva a(z) ${spec.name} kulcsa (${spec.keyEnv.join(" vagy ")}).`);
+  const base = ((spec.baseUrlEnv && env[spec.baseUrlEnv]) || spec.baseUrl!).replace(/\/+$/, "");
+  const retries = o.retries ?? 3;
+  const baseMs = o.retryBaseMs ?? 2000;
+  let last = "";
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    let r: Response;
+    try {
+      r = await (o.fetchImpl ?? fetch)(`${base}${path}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(14 * 60_000),
+      });
+    } catch (e) {
+      last = e instanceof Error ? e.message : String(e);
+      if (attempt < retries) await sleep(baseMs * 2 ** attempt);
+      continue;
+    }
+    if (r.ok) return r.json();
+    const text = await r.text().catch(() => "");
+    let type = "";
+    try {
+      type = String((JSON.parse(text) as { error?: { type?: string; code?: string } }).error?.type ?? "");
+    } catch {
+      // Nem JSON (pl. 504-es HTML-oldal).
+    }
+    last = `${r.status} ${text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").slice(0, 400)}`;
+    // Túlterhelés és szerverhiba ismételhető; a kimerült egyenleg (szintén 429) és a hibás kérés nem.
+    const retryable = (r.status === 429 && !/quota|insufficient/i.test(type + text)) || r.status >= 500;
+    if (!retryable || attempt === retries) break;
+    const after = Number(r.headers.get("retry-after"));
+    await sleep(Number.isFinite(after) && after > 0 ? Math.min(after, 60) * 1000 : baseMs * 2 ** attempt);
+  }
+  throw new Error(`${spec.name} hívás sikertelen: ${last}`);
+}
+
+// ── OpenAI: Responses API ──
+
+/** Az Anthropic-formájú beszélgetés OpenAI Responses bemenetté alakítása. */
+export function toResponsesInput(messages: Anthropic.Beta.BetaMessageParam[]): unknown[] {
+  const items: unknown[] = [];
+  for (const m of messages) {
+    const sent = new Set<unknown>();
+    const texts: string[] = [];
+    const flushUser = () => {
+      if (texts.length) items.push({ role: "user", content: texts.splice(0).join("\n\n") });
+    };
+    for (const b of blocksOf(m)) {
+      if (m.role === "assistant") {
+        const raw = b[RAW];
+        if (raw) {
+          if (!sent.has(raw)) items.push(raw);
+          sent.add(raw);
+        } else if (b.type === "redacted_thinking" && typeof b.data === "string") {
+          try {
+            items.push(JSON.parse(b.data));
+          } catch {
+            // Sérült gondolatmenet: kihagyjuk.
+          }
+        } else if (b.type === "text" && b.text) items.push({ type: "message", role: "assistant", content: [{ type: "output_text", text: String(b.text) }] });
+        else if (b.type === "tool_use") items.push({ type: "function_call", call_id: String(b.id), name: String(b.name), arguments: JSON.stringify(b.input ?? {}) });
+      } else if (b.type === "tool_result") {
+        flushUser();
+        items.push({ type: "function_call_output", call_id: String(b.tool_use_id), output: toolResultText(b) });
+      } else if (b.type === "text") texts.push(String(b.text ?? ""));
+    }
+    flushUser();
+  }
+  return items;
+}
+
+interface ResponsesOutputItem {
+  type: string;
+  id?: string;
+  call_id?: string;
+  name?: string;
+  arguments?: string;
+  content?: { type: string; text?: string; refusal?: string }[];
+  [k: string]: unknown;
+}
+interface ResponsesResponse {
+  id?: string;
+  status?: string;
+  incomplete_details?: { reason?: string } | null;
+  output?: ResponsesOutputItem[];
+  usage?: { input_tokens?: number; output_tokens?: number; input_tokens_details?: { cached_tokens?: number; cache_write_tokens?: number } | null };
+}
+
+function parseArgs(s: string | undefined): unknown {
+  try {
+    return s ? JSON.parse(s) : {};
+  } catch {
+    // Hibás vagy csonka JSON: az eszköz bemenet-ellenőrzése visszaszól a modellnek.
+    return { _hibas_json: s };
+  }
+}
+
+export function fromResponses(res: ResponsesResponse, modelSpec: string): Anthropic.Beta.BetaMessage {
+  const content: Block[] = [];
+  let refused = false;
+  for (const item of res.output ?? []) {
+    if (item.type === "reasoning") content.push({ type: "redacted_thinking", data: JSON.stringify(item) });
+    else if (item.type === "message") {
+      let first = true;
+      for (const part of item.content ?? []) {
+        if (part.type === "refusal") refused = true;
+        if (part.type !== "output_text" && part.type !== "refusal") continue;
+        const blk: Block = { type: "text", text: part.text ?? part.refusal ?? "", citations: null };
+        if (first) Object.defineProperty(blk, RAW, { value: item, enumerable: false });
+        first = false;
+        content.push(blk);
+      }
+    } else if (item.type === "function_call") {
+      const blk: Block = { type: "tool_use", id: item.call_id ?? item.id ?? "", name: item.name ?? "", input: parseArgs(item.arguments) };
+      Object.defineProperty(blk, RAW, { value: item, enumerable: false });
+      content.push(blk);
+    }
+  }
+  const reason = res.incomplete_details?.reason;
+  const stop = refused || reason === "content_filter" ? "refusal" : content.some((b) => b.type === "tool_use") ? "tool_use" : res.status === "incomplete" && reason === "max_output_tokens" ? "max_tokens" : "end_turn";
+  const u = res.usage ?? {};
+  const cached = u.input_tokens_details?.cached_tokens ?? 0;
+  const written = u.input_tokens_details?.cache_write_tokens ?? 0;
+  return {
+    id: res.id ?? "",
+    type: "message",
+    role: "assistant",
+    model: modelSpec,
+    content,
+    stop_reason: stop,
+    stop_sequence: null,
+    usage: {
+      input_tokens: Math.max(0, (u.input_tokens ?? 0) - cached - written),
+      output_tokens: u.output_tokens ?? 0,
+      cache_read_input_tokens: cached,
+      // Az OpenAI a gyorsítótár-írást 1,25-szörös bemeneti áron számolja, mint az Anthropic.
+      cache_creation_input_tokens: written,
+    },
+  } as unknown as Anthropic.Beta.BetaMessage;
+}
+
+export class OpenAIClient implements ModelClient {
+  constructor(private readonly http: HttpOptions = {}) {}
+
+  async create(req: ModelRequest): Promise<Anthropic.Beta.BetaMessage> {
+    const { model } = parseModel(req.model);
+    const body: Record<string, unknown> = {
+      model,
+      instructions: req.system,
+      input: toResponsesInput(req.messages),
+      // A gondolkodás is ebből a keretből fogy; az OpenAI legalább 25 ezret javasol.
+      max_output_tokens: 32_000,
+      reasoning: { effort: req.effort },
+      // Nem tároltatjuk a beszélgetést az OpenAI-nál; a gondolatmenetet titkosítva kapjuk vissza.
+      store: false,
+      include: ["reasoning.encrypted_content"],
+    };
+    if (req.tools.length) {
+      // A Responses API-ban az eszközök alapból szigorúak; a mi sémáink opcionális mezőket is tartalmaznak.
+      body.tools = req.tools.map((t) => ({ type: "function", name: t.name, description: t.description ?? "", parameters: t.input_schema, strict: false }));
+      body.tool_choice = "auto";
+    }
+    return fromResponses((await postJson(PROVIDERS.openai, "/responses", body, this.http)) as ResponsesResponse, `openai:${model}`);
+  }
+}
+
+// ── Kimi: Chat Completions ──
 
 type ChatMessage =
   | { role: "system" | "user"; content: string }
-  | { role: "assistant"; content: string | null; tool_calls?: ChatToolCall[]; reasoning_content?: string }
-  | { role: "tool"; tool_call_id: string; content: string };
+  | { role: "assistant"; content: string; tool_calls?: ChatToolCall[]; reasoning_content?: string }
+  | { role: "tool"; tool_call_id: string; name?: string; content: string };
 
 interface ChatToolCall {
   id: string;
@@ -79,34 +260,26 @@ interface ChatToolCall {
   function: { name: string; arguments: string };
 }
 
-const blockText = (c: unknown): string => {
-  if (typeof c === "string") return c;
-  if (!Array.isArray(c)) return "";
-  return c
-    .map((b) => (b && typeof b === "object" && (b as { type?: string }).type === "text" ? String((b as { text?: unknown }).text ?? "") : ""))
-    .filter(Boolean)
-    .join("\n");
-};
-
-export function toChatMessages(system: string, messages: Anthropic.Beta.BetaMessageParam[], spec: ProviderSpec): ChatMessage[] {
+export function toChatMessages(system: string, messages: Anthropic.Beta.BetaMessageParam[]): ChatMessage[] {
   const out: ChatMessage[] = [{ role: "system", content: system }];
+  const toolNames = new Map<string, string>();
   for (const m of messages) {
-    if (typeof m.content === "string") {
-      out.push(m.role === "assistant" ? { role: "assistant", content: m.content } : { role: "user", content: m.content });
-      continue;
-    }
-    const blocks = m.content as unknown as Array<Record<string, unknown>>;
+    const blocks = blocksOf(m);
     if (m.role === "assistant") {
       const text = blocks.filter((b) => b.type === "text").map((b) => String(b.text ?? "")).join("\n");
       const reasoning = blocks.filter((b) => b.type === "thinking").map((b) => String(b.thinking ?? "")).join("\n");
       const calls: ChatToolCall[] = blocks
         .filter((b) => b.type === "tool_use")
-        .map((b) => ({ id: String(b.id), type: "function", function: { name: String(b.name), arguments: JSON.stringify(b.input ?? {}) } }));
-      const msg: ChatMessage = { role: "assistant", content: text || null };
-      if (calls.length) msg.tool_calls = calls;
-      if (spec.echoReasoning && reasoning) msg.reasoning_content = reasoning;
-      // Kimi gondolkodó modelljénél a tool hívást tartalmazó üzenetből nem hiányozhat a gondolatmenet mező.
-      else if (spec.echoReasoning && calls.length) msg.reasoning_content = "";
+        .map((b) => {
+          toolNames.set(String(b.id), String(b.name));
+          return { id: String(b.id), type: "function", function: { name: String(b.name), arguments: JSON.stringify(b.input ?? {}) } };
+        });
+      // A Kimi nem fogad el null tartalmat; a gondolkodó modell eszközhívásánál a gondolatmenet kötelező.
+      const msg: ChatMessage = { role: "assistant", content: text };
+      if (calls.length) {
+        msg.tool_calls = calls;
+        msg.reasoning_content = reasoning;
+      } else if (reasoning) msg.reasoning_content = reasoning;
       out.push(msg);
       continue;
     }
@@ -114,8 +287,8 @@ export function toChatMessages(system: string, messages: Anthropic.Beta.BetaMess
     const texts: string[] = [];
     for (const b of blocks) {
       if (b.type === "tool_result") {
-        const body = blockText(b.content);
-        out.push({ role: "tool", tool_call_id: String(b.tool_use_id), content: b.is_error ? `HIBA: ${body}` : body || "(üres)" });
+        const id = String(b.tool_use_id);
+        out.push({ role: "tool", tool_call_id: id, ...(toolNames.has(id) ? { name: toolNames.get(id)! } : {}), content: toolResultText(b) });
       } else if (b.type === "text") texts.push(String(b.text ?? ""));
     }
     if (texts.length) out.push({ role: "user", content: texts.join("\n\n") });
@@ -123,43 +296,21 @@ export function toChatMessages(system: string, messages: Anthropic.Beta.BetaMess
   return out;
 }
 
-export function toChatTools(tools: Anthropic.Beta.BetaTool[]) {
-  return tools.map((t) => ({ type: "function" as const, function: { name: t.name, description: t.description ?? "", parameters: t.input_schema } }));
-}
-
 interface ChatResponse {
   id?: string;
-  model?: string;
-  choices: { finish_reason?: string | null; message: { content?: string | null; reasoning_content?: string | null; tool_calls?: ChatToolCall[] | null; refusal?: string | null } }[];
-  usage?: { prompt_tokens?: number; completion_tokens?: number; cached_tokens?: number; prompt_tokens_details?: { cached_tokens?: number } | null };
+  choices?: { finish_reason?: string | null; message?: { content?: string | null; reasoning_content?: string | null; tool_calls?: ChatToolCall[] | null } }[];
+  usage?: { prompt_tokens?: number; completion_tokens?: number; cached_tokens?: number; prompt_tokens_details?: { cached_tokens?: number; cache_write_tokens?: number } | null };
 }
 
 export function fromChatResponse(res: ChatResponse, modelSpec: string): Anthropic.Beta.BetaMessage {
   const choice = res.choices?.[0];
   if (!choice) throw new Error("A modell nem adott választ (üres choices).");
   const msg = choice.message ?? {};
-  const content: Record<string, unknown>[] = [];
+  const content: Block[] = [];
   if (msg.reasoning_content) content.push({ type: "thinking", thinking: msg.reasoning_content, signature: "" });
   if (msg.content) content.push({ type: "text", text: msg.content, citations: null });
-  for (const c of msg.tool_calls ?? []) {
-    let input: unknown;
-    try {
-      input = c.function.arguments ? JSON.parse(c.function.arguments) : {};
-    } catch {
-      // Hibás JSON: az eszköz bemenet-ellenőrzése visszaszól a modellnek, és újrapróbálhatja.
-      input = { _hibas_json: c.function.arguments };
-    }
-    content.push({ type: "tool_use", id: c.id, name: c.function.name, input });
-  }
-  const hasCalls = (msg.tool_calls ?? []).length > 0;
-  const stop =
-    msg.refusal || choice.finish_reason === "content_filter"
-      ? "refusal"
-      : hasCalls
-        ? "tool_use"
-        : choice.finish_reason === "length"
-          ? "max_tokens"
-          : "end_turn";
+  for (const c of msg.tool_calls ?? []) content.push({ type: "tool_use", id: c.id, name: c.function.name, input: parseArgs(c.function.arguments) });
+  const stop = choice.finish_reason === "content_filter" ? "refusal" : (msg.tool_calls ?? []).length ? "tool_use" : choice.finish_reason === "length" ? "max_tokens" : "end_turn";
   const u = res.usage ?? {};
   const cached = u.prompt_tokens_details?.cached_tokens ?? u.cached_tokens ?? 0;
   return {
@@ -171,6 +322,7 @@ export function fromChatResponse(res: ChatResponse, modelSpec: string): Anthropi
     stop_reason: stop,
     stop_sequence: null,
     usage: {
+      // A Kimi gyorsítótár-írása a bemeneti áron megy (5 perces tár), ezért a bemenetben marad.
       input_tokens: Math.max(0, (u.prompt_tokens ?? 0) - cached),
       output_tokens: u.completion_tokens ?? 0,
       cache_read_input_tokens: cached,
@@ -179,60 +331,29 @@ export function fromChatResponse(res: ChatResponse, modelSpec: string): Anthropi
   } as unknown as Anthropic.Beta.BetaMessage;
 }
 
-type Fetch = typeof fetch;
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+/** A Kimi K3 gondolkodási szintjei: low, high, max (közepes nincs). */
+const KIMI_EFFORT: Record<Effort, string> = { low: "low", medium: "high", high: "max" };
 
-/** OpenAI-kompatibilis Chat Completions kliens (OpenAI, Kimi). */
-export class ChatCompletionsClient implements ModelClient {
-  constructor(
-    private readonly spec: ProviderSpec,
-    private readonly env: NodeJS.ProcessEnv = process.env,
-    private readonly fetchImpl: Fetch = fetch,
-    private readonly retries = 3,
-    private readonly retryBaseMs = 2000,
-  ) {}
+export class KimiClient implements ModelClient {
+  constructor(private readonly http: HttpOptions = {}) {}
 
   async create(req: ModelRequest): Promise<Anthropic.Beta.BetaMessage> {
     const { model } = parseModel(req.model);
-    const key = providerKey(this.spec.id, this.env);
-    if (!key) throw new Error(`Nincs beállítva a(z) ${this.spec.name} kulcsa (${this.spec.keyEnv.join(" vagy ")}).`);
-    const base = (this.spec.baseUrlEnv && this.env[this.spec.baseUrlEnv]) || this.spec.baseUrl!;
+    // A mintavételi paraméterek modellenként rögzítettek (más értékre hibát ad), ezért nem küldjük őket.
     const body: Record<string, unknown> = {
       model,
-      messages: toChatMessages(req.system, req.messages, this.spec),
-      [this.spec.tokenParam ?? "max_tokens"]: 16000,
+      messages: toChatMessages(req.system, req.messages),
+      // A gondolatmenet is ebből a keretből fogy; a Kimi legalább 16 ezret javasol.
+      max_completion_tokens: 32_000,
     };
+    // reasoning_effort csak a K3-nál létezik; a K2.x hibát adhat rá.
+    if (/^kimi-k3/.test(model)) body.reasoning_effort = KIMI_EFFORT[req.effort];
     if (req.tools.length) {
-      body.tools = toChatTools(req.tools);
+      // A Kimi eszközei alapból szigorúak (saját sémaváltozat); a bemenetet úgyis mi ellenőrizzük.
+      body.tools = req.tools.map((t) => ({ type: "function", function: { name: t.name, description: t.description ?? "", parameters: t.input_schema, strict: false } }));
       body.tool_choice = "auto";
     }
-    if (this.spec.effortFor?.(model)) body.reasoning_effort = req.effort;
-    const temp = this.spec.temperatureFor?.(model);
-    if (temp !== undefined) body.temperature = temp;
-
-    let last = "";
-    for (let attempt = 0; attempt <= this.retries; attempt++) {
-      let r: Response;
-      try {
-        r = await this.fetchImpl(`${base.replace(/\/+$/, "")}/chat/completions`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-          body: JSON.stringify(body),
-          signal: AbortSignal.timeout(10 * 60_000),
-        });
-      } catch (e) {
-        last = e instanceof Error ? e.message : String(e);
-        if (attempt < this.retries) await sleep(this.retryBaseMs * 2 ** attempt);
-        continue;
-      }
-      if (r.ok) return fromChatResponse((await r.json()) as ChatResponse, `${this.spec.id}:${model}`);
-      last = `${r.status} ${(await r.text().catch(() => "")).slice(0, 500)}`;
-      // Csak a túlterhelés és a szerverhiba ismételhető; a hibás kérés vagy rossz kulcs nem lesz jobb.
-      if (!(r.status === 429 || r.status >= 500) || attempt === this.retries) break;
-      const after = Number(r.headers.get("retry-after"));
-      await sleep(Number.isFinite(after) && after > 0 ? Math.min(after, 60) * 1000 : this.retryBaseMs * 2 ** attempt);
-    }
-    throw new Error(`${this.spec.name} hívás sikertelen: ${last}`);
+    return fromChatResponse((await postJson(PROVIDERS.kimi, "/chat/completions", body, this.http)) as ChatResponse, `kimi:${model}`);
   }
 }
 
@@ -245,7 +366,7 @@ export class MultiClient implements ModelClient {
   private client(p: ProviderId): ModelClient {
     let c = this.clients.get(p);
     if (!c) {
-      c = this.make?.(p) ?? (p === "anthropic" ? new ClaudeClient() : new ChatCompletionsClient(PROVIDERS[p], this.env));
+      c = this.make?.(p) ?? (p === "anthropic" ? new ClaudeClient() : p === "openai" ? new OpenAIClient({ env: this.env }) : new KimiClient({ env: this.env }));
       this.clients.set(p, c);
     }
     return c;

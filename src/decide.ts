@@ -10,6 +10,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { decideGate, logEvent, setDepartmentEnabled } from "./board.js";
 import { sweepBrandingIssues } from "./branding.js";
+import { sweepSettingsIssues } from "./settings.js";
 import { gitCheckpoint } from "./checkpoint.js";
 import { GUIDANCE_FILE } from "./ceo-chat.js";
 import { loadConfig } from "./config.js";
@@ -180,6 +181,8 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   }
   // A vezérlőterem gombjaival nyitott döntések, a mostani és az esetleg elmaradtak is.
   done.push(...sweepDecisionIssues(s, root, gh, process.env.GITHUB_REPOSITORY_OWNER ?? ""));
+  // A Beállítások fülről küldött változtatások.
+  done.push(...sweepSettingsIssues(s, root, gh, process.env.GITHUB_REPOSITORY_OWNER ?? ""));
   // Márkázási kérések logóval.
   done.push(...(await sweepBrandingIssues(s, root, gh, process.env.GITHUB_REPOSITORY_OWNER ?? "")));
 

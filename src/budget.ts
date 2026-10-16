@@ -1,11 +1,10 @@
+import { MODEL_CATALOG } from "./catalog.js";
 import type { CompanyState, LedgerEntry } from "./types.js";
 
-/** USD / millió token. Gyorsítótár-írás az input ár 1,25-szöröse. */
-const PRICES: Record<string, { input: number; output: number; cacheRead: number }> = {
-  "claude-opus-5-5": { input: 4, output: 20, cacheRead: 0.2 },
-  "claude-sonnet-5-5": { input: 2, output: 10, cacheRead: 0.2 },
-  "claude-haiku-5-5": { input: 0.1, output: 0.5, cacheRead: 0.01 },
-};
+/** USD / millió token, a modellkatalógusból. Gyorsítótár-írás az input ár 1,25-szöröse. */
+const PRICES: Record<string, { input: number; output: number; cacheRead: number }> = Object.fromEntries(
+  MODEL_CATALOG.map((m) => [m.spec, { input: m.input, output: m.output, cacheRead: m.cacheRead }]),
+);
 // Ismeretlen modellnél óvatosan a legdrágább árral számolunk.
 const FALLBACK_PRICE = { input: 10, output: 50, cacheRead: 1 };
 
@@ -32,8 +31,14 @@ function overrides(): Record<string, Price> {
   }
 }
 
+let registered: Record<string, Price> = {};
+/** A Beállítások fülön megadott árak (a GitHub-változóban megadottaknál erősebbek). */
+export function registerPrices(prices: Record<string, { input: number; output: number; cacheRead?: number }>): void {
+  registered = Object.fromEntries(Object.entries(prices).map(([k, p]) => [k, { input: p.input, output: p.output, cacheRead: p.cacheRead ?? p.input }]));
+}
+
 export function priceOf(model: string): Price {
-  const own = overrides();
+  const own = { ...overrides(), ...registered };
   // A szolgáltató előtagja nélkül is keresünk (pl. "openai:gpt-5-mini" → "gpt-5-mini").
   const bare = model.includes(":") ? model.slice(model.indexOf(":") + 1) : model;
   return own[model] ?? own[bare] ?? PRICES[model] ?? PRICES[bare] ?? FALLBACK_PRICE;

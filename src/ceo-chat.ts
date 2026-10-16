@@ -176,7 +176,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
     const s = loadState(config.rootDir);
     const left = config.monthlyBudgetUsd - spentThisMonth(s);
     if (left <= 0) return say(`Ebben a hónapban elfogyott a keret (${config.monthlyBudgetUsd} USD), ezért a hónap végéig nem tudok válaszolni.`);
-    const maxUsd = Math.min(left, Number(process.env.CHAT_BUDGET_USD) || 0.5);
+    const maxUsd = Math.min(left, config.chatBudgetUsd);
     const r = await ceoReply({ config, client: new MultiClient(), issue, owner, maxUsd });
     if (!r) return;
     say(r.text);

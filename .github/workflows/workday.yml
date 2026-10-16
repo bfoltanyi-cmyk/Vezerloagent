@@ -1,11 +1,12 @@
-# Az Alicya Nexus munkanapja. Hétköznap kétszer fut, és kézzel is indítható.
+# Az Alicya Nexus munkanapja. Az ütemező óránként ránéz, és a Beállítások fülön megadott
+# munkarend szerint indul (alapból hétköznap 8 és 16 órakor, budapesti idő); kézzel is indítható.
 # Minden, amit a cég készít (állapot, dokumentumok, kód), az alicya/munka ágra kerül,
 # és egy nyitott pull requestben vár arra, hogy beolvaszd a main ágba.
 name: Munkanap
 
 on:
   schedule:
-    - cron: "0 6,14 * * 1-5"
+    - cron: "0 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -23,7 +24,30 @@ env:
   WORK_BRANCH: alicya/munka
 
 jobs:
+  # Gyors ellenőrzés telepítés nélkül: most van-e munkaidő, és nem szünetel-e a cég.
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      run: ${{ steps.when.outputs.run }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts
+      - name: Munkarend
+        id: when
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "Kézi indítás." >> "$GITHUB_STEP_SUMMARY"; echo "run=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          gh api "repos/${{ github.repository }}/contents/state/settings.json?ref=$WORK_BRANCH" -H "Accept: application/vnd.github.raw" > settings.json 2>/dev/null || echo '{}' > settings.json
+          node scripts/schedule.mjs settings.json
+
   work:
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:

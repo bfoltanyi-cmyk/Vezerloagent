@@ -131,7 +131,7 @@ export async function processEmails(s: CompanyState, inbox: Inbox, mails: RawEma
       excerpt: mail.text.slice(0, EXCERPT),
     };
     const route = ROUTE[x.category];
-    if (route && !isDisabled(s, route.department)) {
+    if (route && config.inbox.createTasks && !isDisabled(s, route.department)) {
       // A feladattábla nyilvános: csak személyes adat nélküli összefoglaló kerül rá, a levél a titkosított postafiókban marad.
       const t = createTask(
         s,
@@ -208,6 +208,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
       return;
     }
     const config = loadConfig();
+    if (config.paused || !config.inbox.enabled) return console.log(config.paused ? "A cég szünetel, a levélfeldolgozás áll." : "A levélfeldolgozás ki van kapcsolva a Beállításokban.");
     if (config.dryRun) return console.log(`${missingKeysText(config) || "Próbafutás"}, a levelek feldolgozása kimarad.`);
     const pass = process.env.INBOX_PASSPHRASE!;
     const s = loadState(config.rootDir);

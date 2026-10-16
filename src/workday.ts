@@ -14,6 +14,8 @@ import { githubAvailable, openIssues, realGh, syncDecisions, type Gh } from "./g
 import { gitCheckpoint, type Checkpoint } from "./checkpoint.js";
 import { sweepDecisionIssues } from "./decide.js";
 import { sweepBrandingIssues } from "./branding.js";
+import { sweepSettingsIssues } from "./settings.js";
+import { providerKey } from "./providers.js";
 import type { ModelClient } from "./llm.js";
 import { MultiClient } from "./providers.js";
 import { loadState, saveState } from "./state.js";
@@ -39,13 +41,17 @@ export async function workday(opts: { config: Config; client?: ModelClient; gh?:
     try {
       sweepDecisionIssues(s, config.rootDir, opts.gh, process.env.GITHUB_REPOSITORY_OWNER ?? "");
       await sweepBrandingIssues(s, config.rootDir, opts.gh, process.env.GITHUB_REPOSITORY_OWNER ?? "");
+      // Az elmaradt beállítás-kérések; a következő munkanaptól érvényesek.
+      sweepSettingsIssues(s, config.rootDir, opts.gh, process.env.GITHUB_REPOSITORY_OWNER ?? "");
     } catch (e) {
       logEvent(s, { actor: "system", department: "system", kind: "warn", text: `A döntés-issue-kat nem sikerült beolvasni: ${e instanceof Error ? e.message.split("\n")[0] : String(e)}` });
     }
   }
 
   const result: WorkdayResult = { status: "worked", tasksRun: 0, usd: 0, files: [] };
-  s.meta.models = { strategic: config.strategic.model, strategicRoles: config.strategic.roles, ...config.models, inbox: config.inboxModel };
+  s.meta.models = { strategic: config.strategic.model, strategicRoles: config.strategic.roles, ...config.models, inbox: config.inboxModel, roles: config.roleModels };
+  // Melyik kulcs van beállítva (csak igen/nem): a Beállítások fül ebből mutatja, mi hiányzik.
+  s.meta.keys = { anthropic: Boolean(providerKey("anthropic")), openai: Boolean(providerKey("openai")), kimi: Boolean(providerKey("kimi")), imap: Boolean(process.env.IMAP_HOST && process.env.INBOX_PASSPHRASE), at: now.toISOString() };
 
   if (spentThisMonth(s, now) >= config.monthlyBudgetUsd) {
     logEvent(s, { actor: "controller", department: "finance", kind: "warn", text: `Elérte a havi keretet (${config.monthlyBudgetUsd} USD); a cég a hónap végéig pihen.` }, now);
