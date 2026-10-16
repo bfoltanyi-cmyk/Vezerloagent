@@ -91,19 +91,36 @@ Bekötés (Settings → Secrets and variables → Actions → Secrets): `IMAP_HO
    - `MONTHLY_BUDGET_USD` havi keret (alapértelmezés: 50)
    - `RUN_BUDGET_USD` egy munkanap kerete (alapértelmezés: 3)
    - `MAX_TASKS_PER_RUN` feladat munkanaponként (alapértelmezés: 6)
-5. **Első indítás:** Actions → *Munkanap* → Run workflow.
+5. **Első indítás:** Actions → *Munkanap* → Run workflow. Ütemezve óránként ellenőrzi, hogy a munkarend szerint indulnia kell-e.
 
 A keret elérésekor a cég leáll a hónap végéig.
 
+## Beállítások fül
+
+A vezérlőterem **Beállítások** lapján (a felső sor végén) kód és GitHub-menük nélkül állítható a cég:
+
+- **AI-motorok:** szintenként (vezérigazgató, vezetők, munkatársak, tömeges munka) és agentenként is választható az Anthropic (Claude), az OpenAI vagy a Moonshot Kimi modellje, a gondolkodás mélységével együtt. A levelek feldolgozásához külön modell adható.
+- **API-kulcsok:** a kulcs a böngészőben titkosítva, közvetlenül a GitHub titkai közé kerül (a repóba sosem íródik). Ehhez egy *fine-grained* GitHub-token kell ehhez a repóhoz, *Issues: Read and write* és *Secrets: Read and write* jogosultsággal (a lap alján kötheted be). Token nélkül a kulcsot kézzel add meg: Settings → Secrets and variables → Actions → `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `MOONSHOT_API_KEY`.
+- **Költségkeret:** havi, munkanaponkénti, feladatonkénti és chatválaszonkénti keret, feladatszám és lépésszám.
+- **Munkarend:** mely napokon és hány órakor (budapesti idő) induljon munkanap; alapból hétköznap 8 és 16 órakor. A **szünet** kapcsolóval az ütemezett munka és a levélfeldolgozás áll; a chat és a döntések működnek.
+- **Adatvédelem:** mely szolgáltatók kaphatnak személyes adatot (ügyféllevelet). Alapból az Anthropic és az OpenAI igen, a Kimi (kínai szolgáltató) nem; az ilyen motoron dolgozó agent csak személyes adat nélküli összefoglalót lát.
+- **Posta**, **Részlegek** és **egyéni modellárak** (ha a listán nem szereplő modellt használsz).
+
+Mentéskor a vezérlőterem egy jelölt issue-t nyit a változtatással; a következő döntésfeldolgozás (pár perc) beírja a `state/settings.json`-ba és lezárja az issue-t. Csak a repó tulajdonosának issue-ját fogadja el. A változás a következő munkanaptól érvényes. A beállítás erősebb a GitHub-változóknál, azok pedig az alapértéknél.
+
+**Kimi:** a Moonshot fiókra legalább 10 USD feltöltés kell a használható sebességkorláthoz (a K3-hoz legalább 1 USD).
+
 ## Modellek
 
-| Kik | Modell | Erőfeszítés |
+Alapbeállítás (a Beállítások fülön módosítható):
+
+| Kik | Modell | Gondolkodás |
 |---|---|---|
 | Vezérigazgató | `claude-opus-5-5` | közepes |
 | Többi vezető (az architekt is) és munkatárs | `claude-sonnet-5-5` | közepes |
 | Tömeg (dokumentáció, tartalom) | `claude-haiku-5-5` | alacsony |
 
-Felülírható a `MODEL_STRATEGIC`, `MODEL_LEAD`, `MODEL_WORKER`, `MODEL_BULK` környezeti változókkal. Egy feladat legfeljebb 8 kört és `TASK_BUDGET_USD` (alapból 0,60 USD) költést kap; a keretnél az agent lezárja a munkát. Az Opus és Sonnet hívások szerveroldali tartalék modellt használnak, ha a modell biztonsági okból visszautasítana egy kérést.
+Más szolgáltató modellje előtaggal adható meg: `openai:gpt-6.1-sol`, `kimi:kimi-k3`. GitHub-változóval is felülírható: `MODEL_STRATEGIC`, `MODEL_LEAD`, `MODEL_WORKER`, `MODEL_BULK`, `MODEL_INBOX`. Ha egy beállított modellhez hiányzik a kulcs, a cég nem dolgozik, csak a táblát frissíti, és a vezérlőterem megmutatja, melyik kulcs hiányzik. Egy feladat legfeljebb 8 kört és `TASK_BUDGET_USD` (alapból 0,60 USD) költést kap; a keretnél az agent lezárja a munkát.
 
 ## Biztonsági korlátok
 
