@@ -2,7 +2,7 @@
   "version": 1,
   "meta": {
     "runs": 14,
-    "nextTask": 47,
+    "nextTask": 48,
     "nextGate": 2,
     "lastRun": "2026-10-16T15:47:58.174Z",
     "disabledDepartments": []
@@ -860,6 +860,21 @@
       "updatedAt": "2026-10-16T15:55:45.193Z",
       "notes": [],
       "reviewRound": 1
+    },
+    {
+      "id": "T-0047",
+      "title": "Design system v1: Alicya ERP Start",
+      "description": "Új részleg indul: a Dizájn csapat felel a kész szoftverek kinézetéért. A jóváhagyott PRD (docs/product/prd.md) és az architektúra (docs/dev/architecture.md, React frontend) alapján készítsd el a docs/design/README.md fájlt (vizuális irány, alapelvek, akadálymentesség) és a docs/design/tokens.json-t (színek, tipográfia, térközök, lekerekítés, árnyék; világos és sötét téma). Tervezd úgy, hogy a márkázott ügyfélváltozatoknál csak néhány token (logó, cégnév, fő és kiemelő szín) cserélődjön. Utána adj feladatot a UI dizájnernek a számlázás és a készlet képernyőire, a grafikusnak az ikonkészletre.",
+      "department": "design",
+      "assignee": "design-lead",
+      "status": "todo",
+      "kind": "doc",
+      "priority": 2,
+      "dependsOn": [],
+      "createdBy": "ceo",
+      "createdAt": "2026-10-16T22:02:53.668Z",
+      "updatedAt": "2026-10-16T22:02:53.668Z",
+      "notes": []
     }
   ],
   "gates": [
@@ -1549,6 +1564,13 @@
       "department": "security",
       "kind": "info",
       "text": "Adatbiztonság részleg bekapcsolva."
+    },
+    {
+      "at": "2026-10-16T22:02:53.668Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Új feladat T-0047 → Dizájnvezető: Design system v1: Alicya ERP Start"
     }
   ],
   "ledger": [
