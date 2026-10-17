@@ -2,7 +2,7 @@
   "version": 1,
   "meta": {
     "runs": 14,
-    "nextTask": 61,
+    "nextTask": 64,
     "nextGate": 2,
     "lastRun": "2026-10-16T15:47:58.174Z",
     "disabledDepartments": [],
@@ -294,13 +294,13 @@
       "description": "Írd meg a docs/dev/fejlesztesi-szabalyok.md fájlt, hogy a T-0004 utáni fejlesztői feladatok egységes szabályok szerint induljanak:\n- Kódkonvenciók (TypeScript strict, NestJS modulhatárok a moduláris monolitban, React), elnevezések, angol kód és komment.\n- Branch- és commitszabály, PR-méret, kódellenőrzési folyamat (code-reviewer + appsec).\n- Tesztelési elvárások: unit/integráció/e2e, minimális lefedettség, tesztadat csak álnevesített (GDPR 25. cikk).\n- Adatbázis-migrációk szabályai (PostgreSQL), visszafelé kompatibilitás.\n- Definition of Done: tesztek zöldek, biztonsági ellenőrzés lefutott, nincs titok a repóban, személyes adatmezőnél dokumentált cél/jogalap/megőrzés (privacy_lookup: alapelvek), dokumentáció frissítve.\nIgazodj a CISO biztonsági alapszabályzatához (T-0003, docs/security/policy.md); ha az még nincs kész, hivatkozz rá, ne írd meg helyette.\nElfogadás: tömör, ellenőrzőlistaként használható DoD; nem ütközik a T-0003 szabályzattal.",
       "department": "dev",
       "assignee": "tech-lead",
-      "status": "todo",
+      "status": "review",
       "kind": "code",
       "priority": 1,
       "dependsOn": [],
       "createdBy": "ceo",
       "createdAt": "2026-10-13T10:35:34.063Z",
-      "updatedAt": "2026-10-17T10:50:54.648Z",
+      "updatedAt": "2026-10-17T10:51:52.947Z",
       "notes": [
         {
           "at": "2026-10-16T15:37:38.636Z",
@@ -311,9 +311,14 @@
           "at": "2026-10-17T10:50:54.648Z",
           "by": "code-reviewer",
           "text": "Javítás kell: Jó, tömör, a policy.md-vel nem ütközik. Javítandó:\n1. KÖTELEZŐ – 1.3, 4., 5. pont: `tenant_id` helyett `company_id uuid NOT NULL` (ADR-0002). DB-szinten RLS (`current_setting('app.company_id')`, kérésenként `SET LOCAL`), az `erp_app` ne legyen táblatulajdonos. DoD-ba: integrációs teszt, hogy `SET LOCAL` nélkül nincs sor.\n2. KÖTELEZŐ – Adatvédelmi DoD igazítása az ADR-0005/0006/0008-hoz: modulonként `privacy/classification.ts` (purpose, legalBases, retentionCategory, sensitivity, art9Condition) és `PersonDataProvider` (search/export/rectify/setRestricted/erase). Az ADR-0005 „javasolt”, jelöld. Új személyes oszlop osztályozás nélkül CI-hiba (T-0013). Vedd fel a Kapcsolódó sorba az ADR-0005, 0006 (megőrzési motor), 0008 (HR különleges adat titkosítás) hivatkozást. Különleges adatnál privacy-officer ÉS CISO jóváhagyás (policy 7.2), DPIA-feltételek említése.\n3. Policy 5.2 hivatkozás a DoD-ban: lockfile + `npm ci`, `--ignore-scripts`, 7 napos várakozás, image digest-rögzítés. 1.3 kimenő hívásnál: SSRF-allowlist, TLS-ellenőrzés kikapcsolása tilos (policy 6.).\n4. Kisebb: `dangerouslySetInnerHTML` – jelezd, hogy kivétel csak sanitizálva, AppSec-jóváhagyással lehet (policy 6.). A biztonsági javítás regressziós tesztje (2.3) a DoD Kód és teszt blokkjába is kerüljön.\n5. Az ADR-eket (0001–0008) futtasd át, hogy más eltérés ne maradjon (az 1. pont ilyen volt). Javítás után újra átnézem."
+        },
+        {
+          "at": "2026-10-17T10:51:52.947Z",
+          "by": "tech-lead",
+          "text": "Javítottam a docs/dev/fejlesztesi-szabalyok.md-t, a review mind az 5 pontja szerint. (1) `tenant_id` helyett `company_id uuid NOT NULL` + RLS (`current_setting('app.company_id')`, kérésenként `SET LOCAL`), az `erp_app` nem táblatulajdonos. A DoD-ba és a 3.3 pontba bekerült az integrációs teszt, hogy `SET LOCAL` nélkül nincs sor. (2) Az adatvédelmi DoD az ADR-0005/0006/0008 szerint: `privacy/classification.ts` és `PersonDataProvider`; az ADR-0005 \"javasolt\"-ként jelölve; osztályozás nélküli új személyes oszlop CI-hiba (T-0013). Különleges adatnál privacy-officer ÉS CISO jóváhagyás (policy 7.2), DPIA-feltételek. Az ADR-0005/0006/0008 felkerült a Kapcsolódó sorba. (3) Policy 5.2 a DoD-ban: lockfile, `npm ci`, `--ignore-scripts`, 7 napos várakozás, image digest. Kimenő hívásnál SSRF-allowlist, TLS-ellenőrzés kikapcsolása tilos. (4) A `dangerouslySetInnerHTML` kivétele csak sanitizálva, AppSec-jóváhagyással. A biztonsági javítás regressziós tesztje a DoD Kód és teszt blokkjában is szerepel. (5) Mind a 8 ADR-t átfutottam. Az ADR-0001-hez igazítva: `PublicService`, modulonként külön DB-séma, TypeORM, kézzel írt SQL migráció, `APP_ROLE`. Az ADR-0007-hez: `AuditService.record()`, értékmentes napló. Az ADR-0008-hoz: `Sensitive<T>`, `KeyProvider`, maszkolás. Az ADR-0006-hoz: az `anonymize_record()` kivétel a bizonylat-védelem alól. Az ADR-0004-hez: `CountryPack` útvonala. Új szerződésteszt-szint a `PersonDataProvider`-hez."
         }
       ],
-      "reviewRound": 1
+      "reviewRound": 2
     },
     {
       "id": "T-0013",
@@ -1177,6 +1182,57 @@
       "updatedAt": "2026-10-17T10:50:27.202Z",
       "notes": [],
       "reviewRound": 2
+    },
+    {
+      "id": "T-0061",
+      "title": "Átvizsgálás: Fejlesztési szabályok és Definition of Done",
+      "description": "Vizsgáld át a(z) T-0012 feladat változásait (Kódellenőr). A fejlesztő összefoglalója: Javítottam a docs/dev/fejlesztesi-szabalyok.md-t, a review mind az 5 pontja szerint. (1) `tenant_id` helyett `company_id uuid NOT NULL` + RLS (`current_setting('app.company_id')`, kérésenként `SET LOCAL`), az `erp_app` nem táblatulajdonos. A DoD-ba és a 3.3 pontba bekerült az integrációs teszt, hogy `SET LOCAL` nélkül nincs sor. (2) Az adatvédelmi DoD az ADR-0005/0006/0008 szerint: `privacy/classification.ts` és `PersonDataProvider`; az ADR-0005 \"javasolt\"-ként jelölve; osztályozás nélküli új személyes oszlop CI-hiba (T-0013). Különleges adatnál privacy-officer ÉS CISO jóváhagyás (policy 7.2), DPIA-feltételek. Az ADR-0005/0006/0008 felkerült a Kapcsolódó sorba. (3) Policy 5.2 a DoD-ban: lockfile, `npm ci`, `--ignore-scripts`, 7 napos várakozás, image digest. Kimenő hívásnál SSRF-allowlist, TLS-ellenőrzés kikapcsolása tilos. (4) A `dangerouslySetInnerHTML` kivétele csak sanitizálva, AppSec-jóváhagyással. A biztonsági javítás regressziós tesztje a DoD Kód és teszt blokkjában is szerepel. (5) Mind a 8 ADR-t átfutottam. Az ADR-0001-hez igazítva: `PublicService`, modulonként külön DB-séma, TypeORM, kézzel írt SQL migráció, `APP_ROLE`. Az ADR-0007-hez: `AuditService.record()`, értékmentes napló. Az ADR-0008-hoz: `Sensitive<T>`, `KeyProvider`, maszkolás. Az ADR-0006-hoz: az `anonymize_record()` kivétel a bizonylat-védelem alól. Az ADR-0004-hez: `CountryPack` útvonala. Új szerződésteszt-szint a `PersonDataProvider`-hez.",
+      "department": "dev",
+      "assignee": "code-reviewer",
+      "status": "todo",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0012",
+      "createdBy": "system",
+      "createdAt": "2026-10-17T10:51:52.947Z",
+      "updatedAt": "2026-10-17T10:51:52.947Z",
+      "notes": [],
+      "reviewRound": 2
+    },
+    {
+      "id": "T-0062",
+      "title": "Átvizsgálás: Fejlesztési szabályok és Definition of Done",
+      "description": "Vizsgáld át a(z) T-0012 feladat változásait (Alkalmazásbiztonsági auditor). A fejlesztő összefoglalója: Javítottam a docs/dev/fejlesztesi-szabalyok.md-t, a review mind az 5 pontja szerint. (1) `tenant_id` helyett `company_id uuid NOT NULL` + RLS (`current_setting('app.company_id')`, kérésenként `SET LOCAL`), az `erp_app` nem táblatulajdonos. A DoD-ba és a 3.3 pontba bekerült az integrációs teszt, hogy `SET LOCAL` nélkül nincs sor. (2) Az adatvédelmi DoD az ADR-0005/0006/0008 szerint: `privacy/classification.ts` és `PersonDataProvider`; az ADR-0005 \"javasolt\"-ként jelölve; osztályozás nélküli új személyes oszlop CI-hiba (T-0013). Különleges adatnál privacy-officer ÉS CISO jóváhagyás (policy 7.2), DPIA-feltételek. Az ADR-0005/0006/0008 felkerült a Kapcsolódó sorba. (3) Policy 5.2 a DoD-ban: lockfile, `npm ci`, `--ignore-scripts`, 7 napos várakozás, image digest. Kimenő hívásnál SSRF-allowlist, TLS-ellenőrzés kikapcsolása tilos. (4) A `dangerouslySetInnerHTML` kivétele csak sanitizálva, AppSec-jóváhagyással. A biztonsági javítás regressziós tesztje a DoD Kód és teszt blokkjában is szerepel. (5) Mind a 8 ADR-t átfutottam. Az ADR-0001-hez igazítva: `PublicService`, modulonként külön DB-séma, TypeORM, kézzel írt SQL migráció, `APP_ROLE`. Az ADR-0007-hez: `AuditService.record()`, értékmentes napló. Az ADR-0008-hoz: `Sensitive<T>`, `KeyProvider`, maszkolás. Az ADR-0006-hoz: az `anonymize_record()` kivétel a bizonylat-védelem alól. Az ADR-0004-hez: `CountryPack` útvonala. Új szerződésteszt-szint a `PersonDataProvider`-hez.",
+      "department": "security",
+      "assignee": "appsec",
+      "status": "todo",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0012",
+      "createdBy": "system",
+      "createdAt": "2026-10-17T10:51:52.947Z",
+      "updatedAt": "2026-10-17T10:51:52.947Z",
+      "notes": [],
+      "reviewRound": 2
+    },
+    {
+      "id": "T-0063",
+      "title": "Átvizsgálás: Fejlesztési szabályok és Definition of Done",
+      "description": "Vizsgáld át adatvédelmi szempontból a(z) T-0012 feladat változásait: jogalap, adattakarékosság, megőrzés, érintetti jogok, naplózás, és az EU, HU, PL, CZ szabályok (privacy_lookup). A fejlesztő összefoglalója: Javítottam a docs/dev/fejlesztesi-szabalyok.md-t, a review mind az 5 pontja szerint. (1) `tenant_id` helyett `company_id uuid NOT NULL` + RLS (`current_setting('app.company_id')`, kérésenként `SET LOCAL`), az `erp_app` nem táblatulajdonos. A DoD-ba és a 3.3 pontba bekerült az integrációs teszt, hogy `SET LOCAL` nélkül nincs sor. (2) Az adatvédelmi DoD az ADR-0005/0006/0008 szerint: `privacy/classification.ts` és `PersonDataProvider`; az ADR-0005 \"javasolt\"-ként jelölve; osztályozás nélküli új személyes oszlop CI-hiba (T-0013). Különleges adatnál privacy-officer ÉS CISO jóváhagyás (policy 7.2), DPIA-feltételek. Az ADR-0005/0006/0008 felkerült a Kapcsolódó sorba. (3) Policy 5.2 a DoD-ban: lockfile, `npm ci`, `--ignore-scripts`, 7 napos várakozás, image digest. Kimenő hívásnál SSRF-allowlist, TLS-ellenőrzés kikapcsolása tilos. (4) A `dangerouslySetInnerHTML` kivétele csak sanitizálva, AppSec-jóváhagyással. A biztonsági javítás regressziós tesztje a DoD Kód és teszt blokkjában is szerepel. (5) Mind a 8 ADR-t átfutottam. Az ADR-0001-hez igazítva: `PublicService`, modulonként külön DB-séma, TypeORM, kézzel írt SQL migráció, `APP_ROLE`. Az ADR-0007-hez: `AuditService.record()`, értékmentes napló. Az ADR-0008-hoz: `Sensitive<T>`, `KeyProvider`, maszkolás. Az ADR-0006-hoz: az `anonymize_record()` kivétel a bizonylat-védelem alól. Az ADR-0004-hez: `CountryPack` útvonala. Új szerződésteszt-szint a `PersonDataProvider`-hez.",
+      "department": "security",
+      "assignee": "privacy-officer",
+      "status": "todo",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0012",
+      "createdBy": "system",
+      "createdAt": "2026-10-17T10:51:52.947Z",
+      "updatedAt": "2026-10-17T10:51:52.947Z",
+      "notes": [],
+      "reviewRound": 2
     }
   ],
   "gates": [
@@ -2020,6 +2076,34 @@
       "department": "dev",
       "kind": "warn",
       "text": "T-0012 visszaküldve javításra: Jó, tömör, a policy.md-vel nem ütközik. Javítandó:\n1. KÖTELEZŐ – 1.3, 4., 5. pont: `tenant_id` helyett `company_id uuid NOT NULL` (ADR-0002). DB-szinten RLS (`current_setting('app.company_id')`, kérésenként `SET LOCAL`), az `erp_app` ne legyen táblatulajdonos. DoD-ba: integrációs teszt, hogy `SET LOCAL` nélkül nincs sor.\n2. KÖTELEZŐ – Adatvédelmi DoD igazítása az ADR-0005/0006/0008-hoz: modulonként `privacy/classification.ts` (purpose, legalBases, retentionCategory, sensitivity, art9Condition) és `PersonDataProvider` (search/export/rectify/setRestricted/erase). Az ADR-0005 „javasolt”, jelöld. Új személyes oszlop osztályozás nélkül CI-hiba (T-0013). Vedd fel a Kapcsolódó sorba az ADR-0005, 0006 (megőrzési motor), 0008 (HR különleges adat titkosítás) hivatkozást. Különleges adatnál privacy-officer ÉS CISO jóváhagyás (policy 7.2), DPIA-feltételek említése.\n3. Policy 5.2 hivatkozás a DoD-ban: lockfile + `npm ci`, `--ignore-scripts`, 7 napos várakozás, image digest-rögzítés. 1.3 kimenő hívásnál: SSRF-allowlist, TLS-ellenőrzés kikapcsolása tilos (policy 6.).\n4. Kisebb: `dangerouslySetInnerHTML` – jelezd, hogy kivétel csak sanitizálva, AppSec-jóváhagyással lehet (policy 6.). A biztonsági javítás regressziós tesztje (2.3) a DoD Kód és teszt blokkjába is kerüljön.\n5. Az ADR-eket (0001–0008) futtasd át, hogy más eltérés ne maradjon (az 1. pont ilyen volt). Javítás után újra átnézem."
+    },
+    {
+      "at": "2026-10-17T10:50:55.914Z",
+      "actor": "tech-lead",
+      "department": "dev",
+      "kind": "info",
+      "text": "Tech lead dolgozik: T-0012 Fejlesztési szabályok és Definition of Done"
+    },
+    {
+      "at": "2026-10-17T10:51:52.947Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0061 → Kódellenőr: Átvizsgálás: Fejlesztési szabályok és Definition of Done"
+    },
+    {
+      "at": "2026-10-17T10:51:52.947Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0062 → Alkalmazásbiztonsági auditor: Átvizsgálás: Fejlesztési szabályok és Definition of Done"
+    },
+    {
+      "at": "2026-10-17T10:51:52.947Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0063 → Adatvédelmi tisztviselő (DPO · EU): Átvizsgálás: Fejlesztési szabályok és Definition of Done"
     }
   ],
   "ledger": [
@@ -3482,6 +3566,46 @@
       "cacheReadTokens": 30557,
       "cacheWriteTokens": 1420,
       "usd": 0.018045400000000003
+    },
+    {
+      "at": "2026-10-17T10:50:57.301Z",
+      "role": "tech-lead",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 4,
+      "outputTokens": 118,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 8753,
+      "usd": 0.0230705
+    },
+    {
+      "at": "2026-10-17T10:51:01.001Z",
+      "role": "tech-lead",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 621,
+      "cacheReadTokens": 8753,
+      "cacheWriteTokens": 6751,
+      "usd": 0.0248421
+    },
+    {
+      "at": "2026-10-17T10:51:47.032Z",
+      "role": "tech-lead",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 8777,
+      "cacheReadTokens": 15504,
+      "cacheWriteTokens": 10408,
+      "usd": 0.11689480000000001
+    },
+    {
+      "at": "2026-10-17T10:51:52.947Z",
+      "role": "tech-lead",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 836,
+      "cacheReadTokens": 25912,
+      "cacheWriteTokens": 8816,
+      "usd": 0.035586400000000004
     }
   ]
 }
