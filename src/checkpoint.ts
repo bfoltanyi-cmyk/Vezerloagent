@@ -1,6 +1,11 @@
 // Munka közbeni mentés: a vezérlőterem így élőben látja, hol tart a munkanap.
 
 import { execFileSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
+
+/** A mentett mappák; a még nem létezőt kihagyjuk, különben a git az egész mentést elutasítja. */
+export const SAVED_DIRS = ["state", "docs", "product", "branding"];
 
 /** Igazat ad, ha a változás felkerült a GitHubra (vagy nem volt mit menteni). */
 export type Checkpoint = (message: string) => boolean;
@@ -10,7 +15,9 @@ export function gitCheckpoint(root: string, branch: string): Checkpoint {
   const git = (...args: string[]) => execFileSync("git", args, { cwd: root, stdio: "pipe" });
   return (message) => {
     try {
-      git("add", "-A", "state", "docs", "product", "branding");
+      const dirs = SAVED_DIRS.filter((d) => fs.existsSync(path.join(root, d)));
+      if (!dirs.length) return true;
+      git("add", "-A", "--", ...dirs);
       try {
         git("diff", "--cached", "--quiet");
         return true;
