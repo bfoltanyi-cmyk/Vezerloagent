@@ -2,7 +2,7 @@
   "version": 1,
   "meta": {
     "runs": 14,
-    "nextTask": 58,
+    "nextTask": 61,
     "nextGate": 2,
     "lastRun": "2026-10-16T15:47:58.174Z",
     "disabledDepartments": [],
@@ -262,13 +262,13 @@
       "description": "A számlázó modul belépési feltétele a HU (NAV Online Számla) és a PL (KSeF) adóhatósági integráció. Készíts technikai feltárást a docs/dev/integraciok/nav-ksef.md fájlba (kód még nem kell, a vázat az architekt adja – T-0004):\n- NAV Online Számla 3.0: műveletek (tokenExchange, manageInvoice, queryTransactionStatus, query*), hitelesítés és aláírás menete, XML séma, hibakezelés és újraküldés, teszt- és éles környezet, rate limit, módosító/sztornó számlák.\n- KSeF: hitelesítés (token / tanúsítvány), FA(3) strukturált számla, KSeF-azonosító tárolása, offline mód és határidők (2026.02.01 / 2026.04.01 / 2027.01.01).\n- CZ: rögzítsd, hogy most nincs állami valós idejű integráció.\n- Javasolt közös absztrakció (TaxAuthorityAdapter interfész vázlat), állapotgép, idempotencia, várólista/újraküldés.\n- Biztonság és adatvédelem (privacy_lookup: szamlazas, HU/PL): technikai felhasználó jelszava, aláíró- és cserekulcs csak titoktárban, soha nem repóban vagy naplóban; magánszemély vevőnél a NAV-nak nem megy név és cím; adatszolgáltatási napló (mi ment ki, mikor).\n- Nyitott kérdések és kockázatok listája a PM-nek és az architektnek.\nElfogadás: a dokumentum alapján az architekt fejlesztői feladatokra tudja bontani az integrációt; a ⚠ jogi pontok meg vannak jelölve.",
       "department": "dev",
       "assignee": "integration-dev",
-      "status": "todo",
+      "status": "review",
       "kind": "code",
       "priority": 1,
       "dependsOn": [],
       "createdBy": "ceo",
       "createdAt": "2026-10-13T10:35:34.063Z",
-      "updatedAt": "2026-10-17T10:49:37.256Z",
+      "updatedAt": "2026-10-17T10:50:27.202Z",
       "notes": [
         {
           "at": "2026-10-16T15:36:36.149Z",
@@ -279,9 +279,14 @@
           "at": "2026-10-17T10:49:37.256Z",
           "by": "appsec",
           "text": "Javítás kell: Kód nincs; a §5/§6 biztonsági hiányait vizsgáltam. Jó: titoktár, magánszemély-vevő kihagyása, append-only napló. Pótolandó a §5-be és a §6 pontjaiba:\n1. XXE/gzip: NAV/KSeF válasz és számla-XML parse-ánál DTD és külső entitás tiltva (XSD-validátornál is). Támadás: manipulált partnernév/válasz `<!ENTITY SYSTEM \"file:///...\">` fájlt olvas vagy SSRF-et indít. `compressedContent` kicsomagolásánál méret- és arányhatár.\n2. SSRF/TLS: a környezet csak előre definiált azonosító (`test`|`prod`) lehet, szabad URL nem; host-allowlist. TLS-ellenőrzés kötelező. Éles módra váltás csak adminnak, megerősítéssel, auditnaplóval.\n3. Titoktár: nevezd meg a tenantonkénti kulcs származtatását (HKDF/envelope), a master key és a titkok rotációját. A titoktábla ne kerüljön az adatexportba; a felület soha ne adjon vissza titkot, csak állapotot.\n4. Napló/UI: maszkolandó a requestSignature, token, Authorization, a teljes XML-body és a NAV nyers hibaüzenete. A hatósági hibaüzenetek a felületen escape-elve, hosszkorláttal jelenjenek meg (stored XSS).\n5. Naplótábla: az append-only DB-szinten kikényszerítve (UPDATE/DELETE megvonva, trigger/hash-lánc). Tenant-izolációra (tenant_id + RLS vagy kötelező szűrő) keresztmandátum-teszt a `*_submission` és a napló táblára, a worker lekérdezésére is.\n6. Bemenet: `queryTaxpayer` adószám-validáció (formátum/ellenőrzőösszeg) és tenantonkénti rate limit. QR-tartalom szerveroldalon épüljön, szabad szöveg nélkül.\n7. Kripto: AES-128/ECB csak a NAV tokenExchange-válaszhoz, adapterbe zárt kivétel; saját adatra (titoktár, XML-archívum) AES-256-GCM. Csak szabványos könyvtár. A requestId/timestamp ismétlés-védelem tesztelve.\n8. Mock/fixtúrák: csak kitalált kulcsok, CI secret-scan; negatív teszt, hogy titok nincs a logban és az exportban.\nPótlás után jóváhagyom; a többi rendben."
+        },
+        {
+          "at": "2026-10-17T10:50:27.202Z",
+          "by": "integration-dev",
+          "text": "docs/dev/integraciok/nav-ksef.md javítva az appsec 8 pontja szerint: XXE/gzip (§5.1), SSRF/TLS/prod-váltás (§5.2), titoktár HKDF/envelope + rotáció + export-kizárás (§5.3), maszkolás és UI escape (§5.4), DB-szintű append-only + hash-lánc + RLS + keresztmandátum-teszt (§5.5), queryTaxpayer validáció/rate limit és szerveroldali QR (§5.6), kripto (ECB-kivétel, GCM, replay, §5.7), fixtúrák/secret-scan/negatív tesztek (§5.8). A fejlesztői bontás 10 pontra bővült és hivatkozik ezekre. A ⚠ és 🔍 jelölések megmaradtak."
         }
       ],
-      "reviewRound": 1
+      "reviewRound": 2
     },
     {
       "id": "T-0012",
@@ -1098,6 +1103,57 @@
       "updatedAt": "2026-10-17T10:48:22.067Z",
       "notes": [],
       "reviewRound": 1
+    },
+    {
+      "id": "T-0058",
+      "title": "Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció",
+      "description": "Vizsgáld át a(z) T-0011 feladat változásait (Kódellenőr). A fejlesztő összefoglalója: docs/dev/integraciok/nav-ksef.md javítva az appsec 8 pontja szerint: XXE/gzip (§5.1), SSRF/TLS/prod-váltás (§5.2), titoktár HKDF/envelope + rotáció + export-kizárás (§5.3), maszkolás és UI escape (§5.4), DB-szintű append-only + hash-lánc + RLS + keresztmandátum-teszt (§5.5), queryTaxpayer validáció/rate limit és szerveroldali QR (§5.6), kripto (ECB-kivétel, GCM, replay, §5.7), fixtúrák/secret-scan/negatív tesztek (§5.8). A fejlesztői bontás 10 pontra bővült és hivatkozik ezekre. A ⚠ és 🔍 jelölések megmaradtak.",
+      "department": "dev",
+      "assignee": "code-reviewer",
+      "status": "todo",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0011",
+      "createdBy": "system",
+      "createdAt": "2026-10-17T10:50:27.202Z",
+      "updatedAt": "2026-10-17T10:50:27.202Z",
+      "notes": [],
+      "reviewRound": 2
+    },
+    {
+      "id": "T-0059",
+      "title": "Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció",
+      "description": "Vizsgáld át a(z) T-0011 feladat változásait (Alkalmazásbiztonsági auditor). A fejlesztő összefoglalója: docs/dev/integraciok/nav-ksef.md javítva az appsec 8 pontja szerint: XXE/gzip (§5.1), SSRF/TLS/prod-váltás (§5.2), titoktár HKDF/envelope + rotáció + export-kizárás (§5.3), maszkolás és UI escape (§5.4), DB-szintű append-only + hash-lánc + RLS + keresztmandátum-teszt (§5.5), queryTaxpayer validáció/rate limit és szerveroldali QR (§5.6), kripto (ECB-kivétel, GCM, replay, §5.7), fixtúrák/secret-scan/negatív tesztek (§5.8). A fejlesztői bontás 10 pontra bővült és hivatkozik ezekre. A ⚠ és 🔍 jelölések megmaradtak.",
+      "department": "security",
+      "assignee": "appsec",
+      "status": "todo",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0011",
+      "createdBy": "system",
+      "createdAt": "2026-10-17T10:50:27.202Z",
+      "updatedAt": "2026-10-17T10:50:27.202Z",
+      "notes": [],
+      "reviewRound": 2
+    },
+    {
+      "id": "T-0060",
+      "title": "Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció",
+      "description": "Vizsgáld át adatvédelmi szempontból a(z) T-0011 feladat változásait: jogalap, adattakarékosság, megőrzés, érintetti jogok, naplózás, és az EU, HU, PL, CZ szabályok (privacy_lookup). A fejlesztő összefoglalója: docs/dev/integraciok/nav-ksef.md javítva az appsec 8 pontja szerint: XXE/gzip (§5.1), SSRF/TLS/prod-váltás (§5.2), titoktár HKDF/envelope + rotáció + export-kizárás (§5.3), maszkolás és UI escape (§5.4), DB-szintű append-only + hash-lánc + RLS + keresztmandátum-teszt (§5.5), queryTaxpayer validáció/rate limit és szerveroldali QR (§5.6), kripto (ECB-kivétel, GCM, replay, §5.7), fixtúrák/secret-scan/negatív tesztek (§5.8). A fejlesztői bontás 10 pontra bővült és hivatkozik ezekre. A ⚠ és 🔍 jelölések megmaradtak.",
+      "department": "security",
+      "assignee": "privacy-officer",
+      "status": "todo",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0011",
+      "createdBy": "system",
+      "createdAt": "2026-10-17T10:50:27.202Z",
+      "updatedAt": "2026-10-17T10:50:27.202Z",
+      "notes": [],
+      "reviewRound": 2
     }
   ],
   "gates": [
@@ -1899,6 +1955,34 @@
       "department": "security",
       "kind": "warn",
       "text": "T-0011 visszaküldve javításra: Kód nincs; a §5/§6 biztonsági hiányait vizsgáltam. Jó: titoktár, magánszemély-vevő kihagyása, append-only napló. Pótolandó a §5-be és a §6 pontjaiba:\n1. XXE/gzip: NAV/KSeF válasz és számla-XML parse-ánál DTD és külső entitás tiltva (XSD-validátornál is). Támadás: manipulált partnernév/válasz `<!ENTITY SYSTEM \"file:///...\">` fájlt olvas vagy SSRF-et indít. `compressedContent` kicsomagolásánál méret- és arányhatár.\n2. SSRF/TLS: a környezet csak előre definiált azonosító (`test`|`prod`) lehet, szabad URL nem; host-allowlist. TLS-ellenőrzés kötelező. Éles módra váltás csak adminnak, megerősítéssel, auditnaplóval.\n3. Titoktár: nevezd meg a tenantonkénti kulcs származtatását (HKDF/envelope), a master key és a titkok rotációját. A titoktábla ne kerüljön az adatexportba; a felület soha ne adjon vissza titkot, csak állapotot.\n4. Napló/UI: maszkolandó a requestSignature, token, Authorization, a teljes XML-body és a NAV nyers hibaüzenete. A hatósági hibaüzenetek a felületen escape-elve, hosszkorláttal jelenjenek meg (stored XSS).\n5. Naplótábla: az append-only DB-szinten kikényszerítve (UPDATE/DELETE megvonva, trigger/hash-lánc). Tenant-izolációra (tenant_id + RLS vagy kötelező szűrő) keresztmandátum-teszt a `*_submission` és a napló táblára, a worker lekérdezésére is.\n6. Bemenet: `queryTaxpayer` adószám-validáció (formátum/ellenőrzőösszeg) és tenantonkénti rate limit. QR-tartalom szerveroldalon épüljön, szabad szöveg nélkül.\n7. Kripto: AES-128/ECB csak a NAV tokenExchange-válaszhoz, adapterbe zárt kivétel; saját adatra (titoktár, XML-archívum) AES-256-GCM. Csak szabványos könyvtár. A requestId/timestamp ismétlés-védelem tesztelve.\n8. Mock/fixtúrák: csak kitalált kulcsok, CI secret-scan; negatív teszt, hogy titok nincs a logban és az exportban.\nPótlás után jóváhagyom; a többi rendben."
+    },
+    {
+      "at": "2026-10-17T10:49:38.565Z",
+      "actor": "integration-dev",
+      "department": "dev",
+      "kind": "info",
+      "text": "Integrációs fejlesztő · NAV dolgozik: T-0011 Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció"
+    },
+    {
+      "at": "2026-10-17T10:50:27.202Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0058 → Kódellenőr: Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció"
+    },
+    {
+      "at": "2026-10-17T10:50:27.202Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0059 → Alkalmazásbiztonsági auditor: Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció"
+    },
+    {
+      "at": "2026-10-17T10:50:27.202Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0060 → Adatvédelmi tisztviselő (DPO · EU): Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció"
     }
   ],
   "ledger": [
@@ -3291,6 +3375,26 @@
       "cacheReadTokens": 15946,
       "cacheWriteTokens": 1288,
       "usd": 0.0164132
+    },
+    {
+      "at": "2026-10-17T10:49:40.258Z",
+      "role": "integration-dev",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 4,
+      "outputTokens": 65,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 8364,
+      "usd": 0.021568
+    },
+    {
+      "at": "2026-10-17T10:50:27.201Z",
+      "role": "integration-dev",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 8345,
+      "cacheReadTokens": 8364,
+      "cacheWriteTokens": 6032,
+      "usd": 0.1002068
     }
   ]
 }
