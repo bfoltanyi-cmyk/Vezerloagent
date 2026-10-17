@@ -57,6 +57,17 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ALICYA_CHECKPOINT: "1"
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          MOONSHOT_API_KEY: ${{ secrets.MOONSHOT_API_KEY }}
+          MODEL_STRATEGIC: ${{ vars.MODEL_STRATEGIC }}
+          MODEL_LEAD: ${{ vars.MODEL_LEAD }}
+          MODEL_WORKER: ${{ vars.MODEL_WORKER }}
+          MODEL_BULK: ${{ vars.MODEL_BULK }}
+          MODEL_INBOX: ${{ vars.MODEL_INBOX }}
+          MODEL_PRICES: ${{ vars.MODEL_PRICES }}
+          PERSONAL_DATA_PROVIDERS: ${{ vars.PERSONAL_DATA_PROVIDERS }}
+          OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL }}
+          MOONSHOT_BASE_URL: ${{ vars.MOONSHOT_BASE_URL }}
           INBOX_PASSPHRASE: ${{ secrets.INBOX_PASSPHRASE }}
           GH_TOKEN: ${{ github.token }}
           MONTHLY_BUDGET_USD: ${{ vars.MONTHLY_BUDGET_USD }}

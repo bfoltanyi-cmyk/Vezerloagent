@@ -91,19 +91,49 @@ Bekötés (Settings → Secrets and variables → Actions → Secrets): `IMAP_HO
    - `MONTHLY_BUDGET_USD` havi keret (alapértelmezés: 50)
    - `RUN_BUDGET_USD` egy munkanap kerete (alapértelmezés: 3)
    - `MAX_TASKS_PER_RUN` feladat munkanaponként (alapértelmezés: 6)
-5. **Első indítás:** Actions → *Munkanap* → Run workflow.
+5. **Első indítás:** Actions → *Munkanap* → Run workflow. Ütemezve óránként ellenőrzi, hogy a munkarend szerint indulnia kell-e.
 
 A keret elérésekor a cég leáll a hónap végéig.
 
+## Beállítások fül
+
+A vezérlőterem **Beállítások** lapján (a felső sor végén) kód és GitHub-menük nélkül állítható a cég:
+
+- **AI-motorok:** szintenként (vezérigazgató, vezetők, munkatársak, tömeges munka) és agentenként is választható az Anthropic (Claude), az OpenAI vagy a Moonshot Kimi modellje, a gondolkodás mélységével együtt. A levelek feldolgozásához külön modell adható.
+- **API-kulcsok:** a kulcs a böngészőben titkosítva, közvetlenül a GitHub titkai közé kerül (a repóba sosem íródik). Ehhez egy *fine-grained* GitHub-token kell ehhez a repóhoz, *Issues: Read and write* és *Secrets: Read and write* jogosultsággal (a lap alján kötheted be). Token nélkül a kulcsot kézzel add meg: Settings → Secrets and variables → Actions → `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `MOONSHOT_API_KEY`.
+- **Költségkeret:** havi, munkanaponkénti, feladatonkénti és chatválaszonkénti keret, feladatszám és lépésszám.
+- **Munkarend:** mely napokon és hány órakor (budapesti idő) induljon munkanap; alapból hétköznap 8 és 16 órakor. A **szünet** kapcsolóval az ütemezett munka és a levélfeldolgozás áll; a chat és a döntések működnek.
+- **Adatvédelem:** mely szolgáltatók kaphatnak személyes adatot (ügyféllevelet). Alapból az Anthropic és az OpenAI igen, a Kimi (kínai szolgáltató) nem; az ilyen motoron dolgozó agent csak személyes adat nélküli összefoglalót lát.
+- **Posta**, **Részlegek** és **egyéni modellárak** (ha a listán nem szereplő modellt használsz).
+
+Mentéskor a vezérlőterem egy jelölt issue-t nyit a változtatással; a következő döntésfeldolgozás (pár perc) beírja a `state/settings.json`-ba és lezárja az issue-t. Csak a repó tulajdonosának issue-ját fogadja el. A változás a következő munkanaptól érvényes. A beállítás erősebb a GitHub-változóknál, azok pedig az alapértéknél.
+
+**Kimi:** a Moonshot fiókra legalább 10 USD feltöltés kell a használható sebességkorláthoz (a K3-hoz legalább 1 USD).
+
+## Aréna: belső verseny az AI-motorok között
+
+A vezérlőterem **Aréna** lapján látszik, melyik AI-motor dolgozik a legjobban és a leghatékonyabban.
+
+- **Párbaj:** munkanaponként egy (a Beállításokban 0–5) feladatot egy másik motor is megold, árnyék-munkaterületen: a cég valódi fájljait olvassa, de amit ír, az nem kerül a cég munkájába, és az általa létrehozott feladatok sem kerülnek a táblára. A cég munkáját továbbra is a beállított motor („bajnok”) végzi.
+- **Kihívó:** alapból a szerep szintjének és a szomszédos szinteknek ajánlott modellek közül az, amelyikhez van kulcs, és amelyik a bajnokkal a legkevesebbet mérkőzött. Így egyetlen Anthropic-kulccsal is van verseny (pl. Sonnet és Haiku), és kiderül, elég-e az olcsóbb motor. A Beállításokban versenyzők is kijelölhetők.
+- **Bíró:** erős modell, lehetőleg olyan szolgáltatótól, amelyik nem versenyez; ha ilyen nincs, a két versenyző szolgáltatójának erős modellje egyszer-egyszer. Vakon (modellnév nélkül), kétszer, felcserélt sorrendben dönt; ha a két vélemény eltér, döntetlen. Csak akkor születik eredmény, ha mindkét vélemény megvan. Szempontok: teljesség, helyesség, szabálykövetés, hasznosság (1–10).
+- **Rangsor:** Élő-pontszám (összesítve és feladattípusonként), győzelmek, átlagos minőség, költség feladatonként és hatékonyság (minőségpont / dollár). Szintenként ajánlást is ad, amelyet egy gombbal be lehet állítani.
+- **Tanulás egymástól:** a jobb megoldásból a bíró legfeljebb három általános munkamódszert szűr le. Egy tanulság akkor lesz aktív, ha két különböző feladaton is igazolódott, vagy ha a tulajdonos az Aréna lapon jóváhagyja; addig „jóváhagyásra vár”. Személyes adatot vagy a szabályok megkerülésére szóló utasítást tartalmazó tanulságot a rendszer eldob. Minden agent a feladattípusához illő, legtöbbször megerősített hat aktív tanulságot kapja meg a rendszerpromptjában; a munkaszabályok és a kézikönyv ezeknél erősebbek. A nem tetsző tanulság kikapcsolható.
+- **Keret:** a versenynek saját havi kerete van (alapból 5 USD), amely a cég havi keretébe is beleszámít. A kihívó a munkanap keretéből nem költheti el a bajnok és a bíró részét; ha valamelyik félnek mégis elfogy a kerete, a párbaj elmarad. Ügyféllevelet érintő feladat nem kerül versenybe, a kihívó személyes adatot nem kap, és ha a bajnok mégis ügyféllevelet olvasott, a párbaj elmarad.
+
+Az eredmény a `state/arena.json` fájlban, a két megoldás pillanatképe a `state/arena/<párbaj>/` alatt van (a legutóbbi 40 párbajé).
+
 ## Modellek
 
-| Kik | Modell | Erőfeszítés |
+Alapbeállítás (a Beállítások fülön módosítható):
+
+| Kik | Modell | Gondolkodás |
 |---|---|---|
 | Vezérigazgató | `claude-opus-5-5` | közepes |
 | Többi vezető (az architekt is) és munkatárs | `claude-sonnet-5-5` | közepes |
 | Tömeg (dokumentáció, tartalom) | `claude-haiku-5-5` | alacsony |
 
-Felülírható a `MODEL_STRATEGIC`, `MODEL_LEAD`, `MODEL_WORKER`, `MODEL_BULK` környezeti változókkal. Egy feladat legfeljebb 8 kört és `TASK_BUDGET_USD` (alapból 0,60 USD) költést kap; a keretnél az agent lezárja a munkát. Az Opus és Sonnet hívások szerveroldali tartalék modellt használnak, ha a modell biztonsági okból visszautasítana egy kérést.
+Más szolgáltató modellje előtaggal adható meg: `openai:gpt-6.1-sol`, `kimi:kimi-k3`. GitHub-változóval is felülírható: `MODEL_STRATEGIC`, `MODEL_LEAD`, `MODEL_WORKER`, `MODEL_BULK`, `MODEL_INBOX`. Ha egy beállított modellhez hiányzik a kulcs, a cég nem dolgozik, csak a táblát frissíti, és a vezérlőterem megmutatja, melyik kulcs hiányzik. Egy feladat legfeljebb 8 kört és `TASK_BUDGET_USD` (alapból 0,60 USD) költést kap; a keretnél az agent lezárja a munkát.
 
 ## Biztonsági korlátok
 

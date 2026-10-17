@@ -91,6 +91,8 @@ export interface ToolContext {
   /** Igaz, ha az aktuális feladat lezárult (kész, elakadt, jóváhagyásra vár, átvizsgálva). */
   finished: boolean;
   filesWritten: Set<string>;
+  /** Hamis, ha az agent modellje nem kaphat személyes adatot (pl. ügyféllevelet); alapból igaz. */
+  personalData?: boolean;
   /** Ha meg van adva, csak ezek az eszközök érhetők el (pl. beszélgetésben). */
   allowed?: readonly ToolName[];
 }
@@ -187,6 +189,9 @@ function execute(ctx: ToolContext, name: ToolName, input: any): string {
     }
     case "read_email": {
       if (role.tier !== "lead" && !task.description.includes(input.email_id)) throw new Error(`Ez a levél (${input.email_id}) nem a te feladatodhoz tartozik.`);
+      if (ctx.personalData === false) {
+        throw new Error("Adatvédelmi okból a te modelled nem kaphatja meg az ügyfél levelét. Dolgozz a feladat nyilvános összefoglalójából: a válaszvázlatot név nélkül írd (pl. „Tisztelt Ügyfelünk!”), a kitöltendő adatokat jelöld [szögletes zárójellel].");
+      }
       return readEmailFor(ctx.workspace.root, input.email_id, process.env.INBOX_PASSPHRASE);
     }
     case "write_file": {

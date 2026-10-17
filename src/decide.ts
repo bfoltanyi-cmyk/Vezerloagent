@@ -10,6 +10,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { decideGate, logEvent, setDepartmentEnabled } from "./board.js";
 import { sweepBrandingIssues } from "./branding.js";
+import { sweepSettingsIssues } from "./settings.js";
 import { gitCheckpoint } from "./checkpoint.js";
 import { GUIDANCE_FILE } from "./ceo-chat.js";
 import { loadConfig } from "./config.js";
@@ -178,16 +179,33 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
       done.push(`${g.id} ${g.status === "approved" ? "jóváhagyva" : "elutasítva"}.`);
     }
   }
-  // A vezérlőterem gombjaival nyitott döntések, a mostani és az esetleg elmaradtak is.
-  done.push(...sweepDecisionIssues(s, root, gh, process.env.GITHUB_REPOSITORY_OWNER ?? ""));
-  // Márkázási kérések logóval.
-  done.push(...(await sweepBrandingIssues(s, root, gh, process.env.GITHUB_REPOSITORY_OWNER ?? "")));
+  const owner = process.env.GITHUB_REPOSITORY_OWNER ?? "";
+  const settingsCloses: (() => void)[] = [];
+  // Egymástól függetlenül: ha az egyik elakad, a többi és a mentés még lefut.
+  const sweeps: [string, () => Promise<string[]> | string[]][] = [
+    // A vezérlőterem gombjaival nyitott döntések, a mostani és az esetleg elmaradtak is.
+    ["döntés", () => sweepDecisionIssues(s, root, gh, owner)],
+    // A Beállítások fülről küldött változtatások; az issue csak sikeres mentés után zárul.
+    ["beállítás", () => sweepSettingsIssues(s, root, gh, owner, settingsCloses)],
+    // Márkázási kérések logóval.
+    ["márkázás", () => sweepBrandingIssues(s, root, gh, owner)],
+  ];
+  for (const [name, sweep] of sweeps) {
+    try {
+      done.push(...(await sweep()));
+    } catch (e) {
+      console.warn(`::warning::A(z) ${name}-issue-k feldolgozása nem sikerült: ${(e instanceof Error ? e.message : String(e)).split("\n")[0]}`);
+    }
+  }
 
+  let saved = true;
   if (JSON.stringify(s) !== before) {
     saveState(root, s);
-    if (process.env.ALICYA_CHECKPOINT === "1") gitCheckpoint(root, process.env.WORK_BRANCH || "alicya/munka")(`Tulajdonosi döntés (issue #${n})`);
+    if (process.env.ALICYA_CHECKPOINT === "1") saved = gitCheckpoint(root, process.env.WORK_BRANCH || "alicya/munka")(`Tulajdonosi döntés (issue #${n})`);
     if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, "changed=true\n");
   }
+  if (saved) settingsCloses.forEach((close) => close());
+  else console.warn("::warning::A beállítás nem került fel a GitHubra; az issue nyitva marad, és a következő alkalommal újra feldolgozzuk.");
   const summary = done.join("\n") || "Nincs rögzítendő döntés.";
   console.log(summary);
   if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${summary}\n`);

@@ -2,6 +2,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { DEFAULT_MODELS, MODEL_CATALOG, PROVIDER_INFO } from "./catalog.js";
 import { loadConfig } from "./config.js";
 import { saveState, loadState } from "./state.js";
 
@@ -32,5 +33,7 @@ const meta = {
   workBranch: process.env.WORK_BRANCH || "alicya/munka",
 };
 fs.writeFileSync(path.join(data, "meta.json"), JSON.stringify(meta, null, 2));
+// A Beállítások fül választéka: modellek árakkal, szolgáltatók, alapbeállítás.
+fs.writeFileSync(path.join(data, "models.json"), JSON.stringify({ catalog: MODEL_CATALOG, providers: PROVIDER_INFO, defaults: DEFAULT_MODELS }, null, 2));
 fs.writeFileSync(path.join(out, ".nojekyll"), "");
 console.log(`Vezérlőterem kész: ${out}`);

@@ -65,11 +65,13 @@ export interface LedgerEntry {
   cacheReadTokens: number;
   cacheWriteTokens: number;
   usd: number;
+  /** A belső verseny költsége (kihívó és bíró): a párbaj azonosítója. */
+  arena?: string;
 }
 
 export interface CompanyState {
   version: 1;
-  meta: { runs: number; lastRun?: string; nextTask: number; nextGate: number; /** A most futó munkanap kezdete. */ running?: string; /** A tulajdonos által kikapcsolt részlegek: nem dolgoznak, és nem tartják fel a többieket. */ disabledDepartments?: string[] };
+  meta: { runs: number; lastRun?: string; nextTask: number; nextGate: number; /** A most futó munkanap kezdete. */ running?: string; /** A tulajdonos által kikapcsolt részlegek: nem dolgoznak, és nem tartják fel a többieket. */ disabledDepartments?: string[]; /** A legutóbbi munkanap modelljei szintenként (a vezérlőteremnek). */ models?: { strategic: string; strategicRoles: string[]; lead: string; worker: string; bulk: string; inbox: string; roles?: Record<string, string> }; /** Mely kulcsok voltak beállítva a legutóbbi munkanapon (csak igen/nem). */ keys?: { anthropic: boolean; openai: boolean; kimi: boolean; imap: boolean; at: string }; /** Kik kaphatnak személyes adatot a legutóbbi munkanapon érvényes beállítás szerint. */ personalDataProviders?: string[] };
   tasks: Task[];
   gates: Gate[];
   events: CompanyEvent[];

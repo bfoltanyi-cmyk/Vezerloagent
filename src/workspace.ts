@@ -79,3 +79,62 @@ export class Workspace {
     return out;
   }
 }
+
+/**
+ * Árnyék-munkaterület a belső versenyhez: a kihívó a valódi fájlokat olvassa, de amit ír,
+ * az egy külön könyvtárba kerül, így a cég valódi munkáját nem írja felül.
+ */
+export class ShadowWorkspace extends Workspace {
+  constructor(root: string, readonly overlay: string) {
+    super(root);
+  }
+
+  private shadowOf(abs: string): string {
+    return path.join(this.overlay, path.relative(this.root, abs));
+  }
+
+  override read(rel: string, access: Access): string {
+    const o = this.shadowOf(this.resolve(rel, access, "read"));
+    if (!fs.existsSync(o)) return super.read(rel, access);
+    const buf = fs.readFileSync(o);
+    return buf.length > MAX_FILE_BYTES ? buf.subarray(0, MAX_FILE_BYTES).toString("utf8") + "\n…[levágva]" : buf.toString("utf8");
+  }
+
+  override write(rel: string, content: string, access: Access): void {
+    if (Buffer.byteLength(content) > MAX_FILE_BYTES) throw new Error("A fájl túl nagy (max. 200 kB).");
+    const abs = this.resolve(rel, access, "write");
+    // Ugyanaz a korlát, mint a valódinál: könyvtár helyére vagy fájl alá nem írhat.
+    if (fs.existsSync(abs) && fs.statSync(abs).isDirectory()) throw new Error(`Ez egy könyvtár: ${rel}`);
+    for (let p = path.dirname(abs); p.startsWith(this.root) && p !== this.root; p = path.dirname(p)) {
+      if (fs.existsSync(p) && !fs.statSync(p).isDirectory()) throw new Error(`Nem írható: ${rel}`);
+    }
+    const o = this.shadowOf(abs);
+    fs.mkdirSync(path.dirname(o), { recursive: true });
+    fs.writeFileSync(o, content);
+  }
+
+  override list(rel: string, access: Access): string[] {
+    const real = super.list(rel, access);
+    const abs = this.resolve(rel || "docs", access, "read");
+    const o = this.shadowOf(abs);
+    const extra: string[] = [];
+    const walk = (dir: string) => {
+      for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+        const p = path.join(dir, e.name);
+        if (e.isDirectory()) walk(p);
+        else extra.push(path.relative(this.overlay, p).split(path.sep).join("/"));
+      }
+    };
+    if (fs.existsSync(o) && fs.statSync(o).isDirectory()) walk(o);
+    else if (fs.existsSync(o)) extra.push(path.relative(this.overlay, o).split(path.sep).join("/"));
+    return [...new Set([...real, ...extra])].sort().slice(0, MAX_LIST);
+  }
+
+  /** A kihívó által írt fájl tartalma (nem a valódi). */
+  shadowRead(rel: string): string | undefined {
+    // Ugyanúgy képezzük az utat, mint íráskor (pl. a „docs//a.md/” is ugyanaz a fájl).
+    const o = this.shadowOf(path.resolve(this.root, path.posix.normalize(rel.replaceAll("\\", "/"))));
+    if (!o.startsWith(this.overlay + path.sep) || !fs.existsSync(o) || fs.statSync(o).isDirectory()) return undefined;
+    return fs.readFileSync(o, "utf8");
+  }
+}
