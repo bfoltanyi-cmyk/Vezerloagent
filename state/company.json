@@ -2103,6 +2103,13 @@
       "department": "system",
       "kind": "info",
       "text": "Új feladat T-0063 → Adatvédelmi tisztviselő (DPO · EU): Átvizsgálás: Fejlesztési szabályok és Definition of Done"
+    },
+    {
+      "at": "2026-10-17T10:52:14.483Z",
+      "actor": "owner",
+      "department": "core",
+      "kind": "info",
+      "text": "Beállítások módosítva: belső verseny."
     }
   ],
   "ledger": [
