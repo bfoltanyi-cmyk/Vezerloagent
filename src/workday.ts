@@ -141,7 +141,8 @@ async function work(s: CompanyState, config: Config, client: ModelClient, startI
       result.tasksRun++;
       run.filesWritten.forEach((f) => files.add(f));
       if (duel) {
-        await arena.judge(duel, run).catch((e) => {
+        await arena.judge(duel, run, remainingUsd).catch((e) => {
+          arena.abandon(duel);
           logEvent(s, { actor: "system", department: "system", kind: "warn", text: `Aréna ${duel.id}: a pontozás nem sikerült: ${(e instanceof Error ? e.message : String(e)).slice(0, 200)}` });
         });
       }

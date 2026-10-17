@@ -102,7 +102,13 @@ export class ShadowWorkspace extends Workspace {
 
   override write(rel: string, content: string, access: Access): void {
     if (Buffer.byteLength(content) > MAX_FILE_BYTES) throw new Error("A fájl túl nagy (max. 200 kB).");
-    const o = this.shadowOf(this.resolve(rel, access, "write"));
+    const abs = this.resolve(rel, access, "write");
+    // Ugyanaz a korlát, mint a valódinál: könyvtár helyére vagy fájl alá nem írhat.
+    if (fs.existsSync(abs) && fs.statSync(abs).isDirectory()) throw new Error(`Ez egy könyvtár: ${rel}`);
+    for (let p = path.dirname(abs); p.startsWith(this.root) && p !== this.root; p = path.dirname(p)) {
+      if (fs.existsSync(p) && !fs.statSync(p).isDirectory()) throw new Error(`Nem írható: ${rel}`);
+    }
+    const o = this.shadowOf(abs);
     fs.mkdirSync(path.dirname(o), { recursive: true });
     fs.writeFileSync(o, content);
   }
@@ -126,8 +132,9 @@ export class ShadowWorkspace extends Workspace {
 
   /** A kihívó által írt fájl tartalma (nem a valódi). */
   shadowRead(rel: string): string | undefined {
-    const o = path.join(this.overlay, path.posix.normalize(rel.replaceAll("\\", "/")));
-    if (!o.startsWith(this.overlay + path.sep) || !fs.existsSync(o)) return undefined;
+    // Ugyanúgy képezzük az utat, mint íráskor (pl. a „docs//a.md/” is ugyanaz a fájl).
+    const o = this.shadowOf(path.resolve(this.root, path.posix.normalize(rel.replaceAll("\\", "/"))));
+    if (!o.startsWith(this.overlay + path.sep) || !fs.existsSync(o) || fs.statSync(o).isDirectory()) return undefined;
     return fs.readFileSync(o, "utf8");
   }
 }

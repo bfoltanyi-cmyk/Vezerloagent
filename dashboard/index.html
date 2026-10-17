@@ -354,6 +354,7 @@ button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:tra
 .lesson:last-child{border-bottom:0}
 .lesson p{margin:0;font-size:14px;color:var(--ink)}
 .lesson.off p{color:var(--ink-3);text-decoration:line-through}
+.lesson.wait p{color:var(--ink-2)}
 .lesson small{display:block;font-family:var(--f-mono);font-size:11px;color:var(--ink-3);margin-top:3px}
 .arena .dp-switch{margin-top:0}
 @media (max-width:600px){.lesson{grid-template-columns:minmax(0,1fr)}}
@@ -1364,7 +1365,7 @@ function renderSettings() {
     ar.append(row(name, sub, i));
   };
   anum("duelsPerRun", "Párbaj munkanaponként", "0–5; mindegyik kb. egy plusz feladat ára", "1", 0, 5);
-  anum("monthlyUsd", "Havi versenykeret", "USD; a cég havi keretébe is beleszámít", "1", 0, 10000);
+  anum("monthlyUsd", "Havi versenykeret", "USD; a cég havi keretébe is beleszámít", "0.5", 0, 10000);
   ar.append(row("Bíró", "erős modell, lehetőleg más szolgáltatótól", modelPicker(f.arena.judge, (v) => { f.arena.judge = v; upd(); }, { inherit: "Automatikus (nem versenyző szolgáltató)", hint: "strategic" })));
   asb.append(ar, el("h3", null, "Versenyzők"));
   asb.append(toggles(CATS.catalog.map((m) => [m.spec, m.name, m.note]), f.arena.contestants, (v, on) => { f.arena.contestants = on ? [...new Set([...f.arena.contestants, v])] : f.arena.contestants.filter((x) => x !== v); upd(); }));
@@ -1508,7 +1509,10 @@ async function watchSettings(issue) {
 // Ez a nézet a state/arena.json-t mutatja: rangsor, ajánlás szintenként, párbajok, tanulságok.
 const KIND_HU = { doc: "dokumentum", code: "kód", plan: "terv", all: "minden" };
 const CRIT_HU = { teljesseg: "teljesség", helyesseg: "helyesség", szabalyok: "szabályok", hasznossag: "hasznosság" };
-let arData = null, arSet = null, arDisabled = null, arOrigDisabled = null, arShown = 12;
+let arData = null, arSet = null, arDisabled = null, arOrigDisabled = null, arApproved = null, arOrigApproved = null, arShown = 12;
+/** Egy tanulság magától aktív, ha két különböző feladaton is igazolódott (a motor szabálya szerint). */
+const lessonAuto = (l) => new Set(l.tasks || []).size >= 2;
+const lessonOn = (l) => !arDisabled.has(l.id) && (arApproved.has(l.id) || lessonAuto(l));
 const usdFmt = (v) => (v >= 1 ? `$${v.toFixed(2)}` : `$${v.toFixed(3)}`);
 const mName = (spec) => (CATS && CATS.catalog.find((m) => m.spec === spec) || {}).name || spec;
 const mProv = (spec) => (CATS && CATS.providers[provOf(spec)] || {}).name || provOf(spec);
@@ -1521,7 +1525,9 @@ async function loadArenaView() {
   arData = a || { duels: [], lessons: [], ratings: {}, byKind: {} };
   arSet = ((st && st.settings) || {}).arena || {};
   arOrigDisabled = [...(arSet.disabledLessons || [])].sort();
+  arOrigApproved = [...(arSet.approvedLessons || [])].sort();
   if (!arDisabled) arDisabled = new Set(arOrigDisabled);
+  if (!arApproved) arApproved = new Set(arOrigApproved);
   renderArena();
   root.setAttribute("aria-busy", "false");
 }
@@ -1545,7 +1551,7 @@ function renderArena() {
   const ledgerMonth = new Date().toISOString().slice(0, 7);
   const spent = (S.ledger || []).filter((e) => e.arena && e.at.startsWith(ledgerMonth)).reduce((n, e) => n + e.usd, 0);
   const cap = arSet.monthlyUsd ?? 5, on = arSet.enabled ?? true;
-  const active = arData.lessons.filter((l) => !arDisabled.has(l.id)).length;
+  const active = arData.lessons.filter(lessonOn).length;
   $("arena-count").textContent = arData.duels.length ? String(arData.duels.length) : "";
 
   // Összkép
@@ -1683,20 +1689,26 @@ function duelCard(d) {
   card.append(vs, viewer);
   const det = el("details"); det.append(el("summary", null, "A bíró indoklása"));
   det.append(el("p", "why", d.reasoning || "Nincs indoklás."));
-  det.append(el("p", "set-note", `Bíró: ${d.judge ? mName(d.judge) : "–"} · ${d.agreement ? "a két vélemény egyezett" : "a két vélemény eltért (felcserélt sorrendben)"} · bírói költség ${usdFmt(d.judgeUsd || 0)}${d.lessons.length ? ` · tanulság: ${d.lessons.join(", ")}` : ""}`));
+  det.append(el("p", "set-note", `Bíró: ${d.judge ? d.judge.split(" + ").map(mName).join(" + ") : "–"} · ${d.agreement ? "a két vélemény egyezett" : "a két vélemény eltért (felcserélt sorrendben)"} · bírói költség ${usdFmt(d.judgeUsd || 0)}${d.lessons.length ? ` · tanulság: ${d.lessons.join(", ")}` : ""}`));
   card.append(det);
   return card;
 }
 
 function renderLessons(root) {
   const [ls, lsb] = panel("Tanulságok", "minden agent megkapja", arData.duels.length ? null : "wide");
-  lsb.append(el("p", "lead", "A győztes megoldásokból leszűrt munkamódszerek. Az agentek a feladatuk típusához illő, legtöbbször megerősített hatot kapják meg. Ha egy tanulság nem tetszik, kapcsold ki."));
+  lsb.append(el("p", "lead", "A győztes megoldásokból leszűrt munkamódszerek. Egy tanulság akkor kerül az agentekhez, ha két különböző feladaton is igazolódott, vagy ha te jóváhagyod; az agentek a feladatuk típusához illő, legtöbbször megerősített hatot kapják meg. Ami nem tetszik, kapcsold ki."));
   if (!arData.lessons.length) { lsb.append(el("p", "empty", "Még nincs tanulság.")); root.append(ls); return; }
   const box = el("div", "lessons");
   for (const l of [...arData.lessons].sort((x, y) => y.confirmations - x.confirmations || y.lastAt.localeCompare(x.lastAt))) {
-    const r = el("div", `lesson${arDisabled.has(l.id) ? " off" : ""}`);
-    const t = el("div"); t.append(el("p", null, l.text), el("small", null, `${l.id} · ${l.kinds.map((k) => KIND_HU[k] || k).join(", ")} · ${l.confirmations}× megerősítve · ${mName(l.from)} munkájából`));
-    r.append(t, switchBtn(!arDisabled.has(l.id), (v) => (v ? "AKTÍV" : "KIKAPCSOLVA"), (v) => { if (v) arDisabled.delete(l.id); else arDisabled.add(l.id); r.classList.toggle("off", !v); arenaChanged(); }));
+    const r = el("div", `lesson${lessonOn(l) ? "" : arDisabled.has(l.id) ? " off" : " wait"}`);
+    const n = new Set(l.tasks || []).size;
+    const t = el("div"); t.append(el("p", null, l.text), el("small", null, `${l.id} · ${l.kinds.map((k) => KIND_HU[k] || k).join(", ")} · ${l.confirmations}× megerősítve, ${n} feladaton${l.from ? ` · ${mName(l.from)} munkájából` : ""}`));
+    // Bekapcsolás: kikapcsolás törlése, és ha magától még nem aktív, jóváhagyás. Kikapcsolás: tiltás.
+    r.append(t, switchBtn(lessonOn(l), (v) => (v ? "AKTÍV" : arDisabled.has(l.id) ? "KIKAPCSOLVA" : "JÓVÁHAGYÁSRA VÁR"), (v) => {
+      if (v) { arDisabled.delete(l.id); if (!lessonAuto(l)) arApproved.add(l.id); }
+      else { arDisabled.add(l.id); arApproved.delete(l.id); }
+      r.classList.toggle("off", !v); r.classList.remove("wait"); r.querySelector(".dp-switch").lastChild.textContent = v ? "AKTÍV" : "KIKAPCSOLVA"; arenaChanged();
+    }));
     box.append(r);
   }
   lsb.append(box);
@@ -1704,21 +1716,20 @@ function renderLessons(root) {
 }
 
 function arenaChanged() {
-  const now = [...arDisabled].sort();
-  const changed = JSON.stringify(now) !== JSON.stringify(arOrigDisabled);
+  const changed = JSON.stringify([...arDisabled].sort()) !== JSON.stringify(arOrigDisabled) || JSON.stringify([...arApproved].sort()) !== JSON.stringify(arOrigApproved);
   const bar = $("arena-bar");
   bar.hidden = !changed && !bar.dataset.msg;
   $("arena-bar-t").textContent = bar.dataset.msg || "A tanulságok módosítása mentésre vár.";
   $("arena-save").hidden = $("arena-reset").hidden = !changed;
 }
-$("arena-reset").onclick = () => { arDisabled = new Set(arOrigDisabled); delete $("arena-bar").dataset.msg; renderArena(); };
+$("arena-reset").onclick = () => { arDisabled = new Set(arOrigDisabled); arApproved = new Set(arOrigApproved); delete $("arena-bar").dataset.msg; renderArena(); };
 $("arena-save").onclick = async () => {
   $("arena-save").disabled = true;
   try {
-    const now = [...arDisabled].sort();
-    const r = await submitSettings({ arena: { disabledLessons: now.length ? now : null } }, "Aréna");
+    const off = [...arDisabled].sort(), ok = [...arApproved].sort();
+    const r = await submitSettings({ arena: { disabledLessons: off.length ? off : null, approvedLessons: ok.length ? ok : null } }, "Aréna");
     $("arena-bar").dataset.msg = r.msg;
-    arOrigDisabled = now; arenaChanged();
+    arOrigDisabled = off; arOrigApproved = ok; arenaChanged();
     setTimeout(() => { delete $("arena-bar").dataset.msg; arenaChanged(); }, 20000);
   } finally { $("arena-save").disabled = false; }
 };
@@ -1826,7 +1837,8 @@ function showMail(id, scroll) {
 // Melyik modellen dolgozik az agent (a legutóbbi munkanap beállítása szerint).
 const modelOf = (r) => { const m = S.meta.models; if (!m) return ""; return m.strategicRoles?.includes(r.id) ? m.strategic : m[r.tier] || ""; };
 const providerLabel = (spec) => { const p = spec.includes(":") ? spec.slice(0, spec.indexOf(":")).toLowerCase() : "anthropic"; return ({ anthropic: "Claude", claude: "Claude", openai: "OpenAI", kimi: "Kimi", moonshot: "Kimi" })[p] || p; };
-const monthSpent = (roleId) => S.ledger.filter((e) => e.role === roleId && e.at.startsWith(month)).reduce((a, e) => a + e.usd, 0);
+// A versenyben (árnyékban) elköltött pénz nem az agent munkája: azt az Aréna fül mutatja.
+const monthSpent = (roleId) => S.ledger.filter((e) => e.role === roleId && !e.arena && e.at.startsWith(month)).reduce((a, e) => a + e.usd, 0);
 const initials = (name) => name.replace(/\(.*?\)|·.*$/g, "").trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
 const ago2 = (iso) => { if (!iso) return "–"; const m = (Date.now() - Date.parse(iso)) / 60e3; return m < 60 ? `${Math.max(1, Math.round(m))} perce` : m < 1440 ? `${Math.round(m / 60)} órája` : `${Math.round(m / 1440)} napja`; };
 const STATE = {

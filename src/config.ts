@@ -34,7 +34,7 @@ export interface Config {
   /** Ezek a szolgáltatók kaphatnak személyes adatot (ügyféllevelek). */
   personalDataProviders: ProviderId[];
   /** Belső verseny (Aréna): a kihívó ugyanazt a feladatot árnyékban megoldja, egy bíró összeveti. */
-  arena: { enabled: boolean; duelsPerRun: number; monthlyUsd: number; contestants: string[]; judge?: string; disabledLessons: string[] };
+  arena: { enabled: boolean; duelsPerRun: number; monthlyUsd: number; contestants: string[]; judge?: string; disabledLessons: string[]; approvedLessons: string[] };
   /** Mely szolgáltatókhoz van kulcs (a belső verseny csak ezek modelljeit hívja). */
   availableProviders: ProviderId[];
   /** Hiányzó API-kulcsok az agentek modelljeihez; ha van ilyen, a cég nem dolgozik (dryRun). */
@@ -122,6 +122,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, rootDir = proce
       contestants: (st.arena?.contestants ?? []).flatMap((m) => valid(m) ?? []),
       judge: valid(st.arena?.judge),
       disabledLessons: st.arena?.disabledLessons ?? [],
+      approvedLessons: st.arena?.approvedLessons ?? [],
     },
     rootDir,
     dryRun: env.DRY_RUN === "1" || missingKeys.length > 0,

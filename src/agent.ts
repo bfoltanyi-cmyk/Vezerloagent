@@ -14,6 +14,8 @@ export interface AgentRun {
   turns: number;
   usd: number;
   filesWritten: string[];
+  /** Olvasott-e ügyféllevelet (személyes adatot) a futás alatt. */
+  sawPersonalData: boolean;
 }
 
 /** A belső versenyek tanulságai a rendszerprompt végére; a munkaszabályok mindig erősebbek. */
@@ -100,6 +102,7 @@ export async function runAgent(opts: {
   let nudged = false;
   let wrapUp = false;
   let turns = 0;
+  let sawPersonalData = false;
 
   task.status = "in_progress";
   logEvent(state, { actor: role.id, department: role.department, kind: "info", text: `${role.name} dolgozik: ${task.id} ${task.title}` });
@@ -109,7 +112,7 @@ export async function runAgent(opts: {
       task.status = "todo";
       addNote(task, "system", outcome === "budget" ? "Megszakítva: elfogyott a munkanap kerete." : wrapUp ? "Elérte a feladatkeretet; a mentett fájlokból folytatódik a következő munkanapon." : "Nem fejeződött be ebben a munkanapban, folytatódik.");
     }
-    return { outcome, turns, usd, filesWritten: [...ctx.filesWritten] };
+    return { outcome, turns, usd, filesWritten: [...ctx.filesWritten], sawPersonalData };
   };
 
   while (turns < config.maxTurnsPerTask + (wrapUp ? 1 : 0)) {
@@ -137,6 +140,7 @@ export async function runAgent(opts: {
 
     const results: Anthropic.Beta.BetaToolResultBlockParam[] = calls.map((c) => {
       const r = runTool(ctx, c.name, c.input);
+      if (c.name === "read_email" && !r.isError) sawPersonalData = true;
       return { type: "tool_result", tool_use_id: c.id, content: r.content, is_error: r.isError };
     });
     if (!wrapUp && usd >= config.taskBudgetUsd && !ctx.finished) {

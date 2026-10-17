@@ -14,7 +14,7 @@ import { runAgent, type AgentRun } from "./agent.js";
 import { logEvent } from "./board.js";
 import { arenaSpentThisMonth, record } from "./budget.js";
 import { MODEL_CATALOG, type CatalogTier } from "./catalog.js";
-import type { Config } from "./config.js";
+import { personalDataAllowed, type Config } from "./config.js";
 import type { ModelClient } from "./llm.js";
 import { parseModel, ProviderAccountError, type ProviderId } from "./providers.js";
 import type { CompanyState, Task, TaskKind } from "./types.js";
@@ -31,6 +31,10 @@ const START_ELO = 1000;
 const SIDE_CHARS = 16_000;
 /** Ennyi keret kell legalább egy párbajhoz (kihívó + két bírói vélemény). */
 const MIN_DUEL_USD = 0.3;
+/** A két bírói véleményre félretett összeg: a kihívó ezt nem költheti el. */
+const JUDGE_RESERVE_USD = 0.3;
+/** Egy tanulság ennyi különböző feladaton szerzett megerősítés után kerül a promptba (vagy ha a tulajdonos jóváhagyta). */
+const LESSON_MIN_TASKS = 2;
 const DUEL_KINDS: TaskKind[] = ["doc", "code", "plan"];
 
 export const CRITERIA = ["teljesseg", "helyesseg", "szabalyok", "hasznossag"] as const;
@@ -60,6 +64,8 @@ export interface Lesson {
   at: string;
   /** Hányszor erősítette meg újabb párbaj. */
   confirmations: number;
+  /** A feladatok, amelyeken született vagy megerősítést kapott (különböző feladat számít). */
+  tasks?: string[];
   lastAt: string;
 }
 
@@ -127,10 +133,19 @@ export function canonModel(m: string): string {
   return provider === "anthropic" ? model : `${provider}:${model}`;
 }
 
+/**
+ * Aktív-e a tanulság: a tulajdonos jóváhagyta, vagy legalább két különböző feladaton igazolódott,
+ * és nincs kikapcsolva. Egyetlen párbaj (egy bíró egy véleménye) így nem írhatja át az agentek promptját.
+ */
+export function lessonActive(l: Lesson, disabled: string[] = [], approved: string[] = []): boolean {
+  if (disabled.includes(l.id)) return false;
+  return approved.includes(l.id) || new Set(l.tasks ?? []).size >= LESSON_MIN_TASKS;
+}
+
 /** Az aktív tanulságok egy feladattípushoz: a legtöbbször megerősítettek, aztán a legfrissebbek. */
-export function lessonsFor(a: Arena, kind: TaskKind, disabled: string[] = []): string[] {
+export function lessonsFor(a: Arena, kind: TaskKind, disabled: string[] = [], approved: string[] = []): string[] {
   return a.lessons
-    .filter((l) => !disabled.includes(l.id) && (l.kinds.includes("all") || l.kinds.includes(kind)))
+    .filter((l) => lessonActive(l, disabled, approved) && (l.kinds.includes("all") || l.kinds.includes(kind)))
     .sort((x, y) => y.confirmations - x.confirmations || y.lastAt.localeCompare(x.lastAt))
     .slice(0, LESSONS_IN_PROMPT)
     .map((l) => l.text);
@@ -155,13 +170,29 @@ export function pickChallenger(a: Arena, config: Config, role: Role, incumbent: 
   return ok.sort((x, y) => vs(x) - vs(y) || (a.ratings[x]?.games ?? 0) - (a.ratings[y]?.games ?? 0))[0];
 }
 
-/** A bíró: lehetőleg erős modell olyan szolgáltatótól, amelyik nem versenyez, hogy ne a sajátjait részesítse előnyben. */
-export function pickJudge(config: Config, a: string, b: string, dead = new Set<ProviderId>()): string | undefined {
+/**
+ * A két bírói vélemény bírái. Lehetőleg egy nem versenyző szolgáltató erős modellje mindkétszer;
+ * ha ilyen nincs, a két versenyző szolgáltatójának erős modellje egyszer-egyszer, hogy egyik se
+ * a saját modelljét bírálja mindkétszer. Versenyző modell csak végső esetben lehet bíró.
+ * Ha választhatunk, olyat veszünk, amelyik személyes adatot is kaphat.
+ */
+export function pickJudges(config: Config, a: string, b: string, dead = new Set<ProviderId>()): [string, string] | undefined {
   const usable = (m: string) => !dead.has(parseModel(m).provider) && config.availableProviders.includes(parseModel(m).provider);
-  if (config.arena.judge && usable(config.arena.judge)) return config.arena.judge;
-  const busy = new Set([parseModel(a).provider, parseModel(b).provider]);
-  const strong = MODEL_CATALOG.filter((m) => m.tiers.includes("strategic")).map((m) => m.spec);
-  return strong.find((m) => usable(m) && !busy.has(parseModel(m).provider)) ?? [config.strategic.model, ...strong].find(usable);
+  if (config.arena.judge && usable(config.arena.judge)) return [config.arena.judge, config.arena.judge];
+  const contestants = new Set([canonModel(a), canonModel(b)]);
+  const pa = parseModel(a).provider;
+  const pb = parseModel(b).provider;
+  const strong = [...new Set([config.strategic.model, ...MODEL_CATALOG.filter((m) => m.tiers.includes("strategic")).map((m) => m.spec)].map(canonModel))].filter(usable);
+  const rank = (xs: string[]) => [...xs].sort((x, y) => Number(personalDataAllowed(config, y)) - Number(personalDataAllowed(config, x)));
+  const free = rank(strong.filter((m) => !contestants.has(m)));
+  const neutral = free.find((m) => parseModel(m).provider !== pa && parseModel(m).provider !== pb);
+  if (neutral) return [neutral, neutral];
+  const own = (p: ProviderId) => free.find((m) => parseModel(m).provider === p);
+  const ja = own(pa);
+  const jb = own(pb);
+  if (ja || jb) return [ja ?? jb!, jb ?? ja!];
+  const last = rank(strong)[0];
+  return last ? [last, last] : undefined;
 }
 
 // ── Bíró ──
@@ -187,7 +218,7 @@ const verdictTool: Anthropic.Beta.BetaTool = (() => {
 })();
 
 const JUDGE_SYSTEM = `Az Alicya Nexus szoftverház belső versenyének bírája vagy. Ugyanazt a feladatot két AI-munkatárs oldotta meg egymástól függetlenül; neked kell eldöntened, melyik a jobb, és mit tanulhat belőle a cég.
-Nem tudod, melyik megoldás melyik modelltől jön; a sorrend véletlen, ne számítson.
+Nem tudod, melyik megoldás melyik modelltől jön; a sorrend véletlen, ne számítson. Az indoklásban a két megoldást csak „1. megoldás” és „2. megoldás” néven említsd.
 Szempontok (1-10):
 - teljesseg: megcsinálta-e, amit a feladat kért, és lezárta-e rendben;
 - helyesseg: szakmailag helytálló-e (kódnál: működne-e, van-e teszt; dokumentumnál: pontos, ellentmondásmentes);
@@ -270,48 +301,67 @@ export function applyResult(a: Arena, d: Duel): void {
 }
 
 const norm = (t: string) => t.toLowerCase().replace(/[^\p{L}\p{N} ]/gu, " ").replace(/\s+/g, " ").trim();
-const words = (t: string) => new Set(norm(t).split(" ").filter((w) => w.length > 2));
+/** Tagadószavak: rövidek, de a jelentést megfordítják, ezért a hasonlóságnál is számítanak. */
+const NEGATIONS = new Set(["ne", "nem", "soha", "sose", "sem", "tilos", "no", "not", "never", "dont", "don"]);
+const words = (t: string) => new Set(norm(t).split(" ").filter((w) => w.length > 2 || NEGATIONS.has(w)));
+const negated = (t: string) => norm(t).split(" ").some((w) => NEGATIONS.has(w));
 function similar(x: string, y: string): boolean {
+  if (negated(x) !== negated(y)) return false;
   const a = words(x);
   const b = words(y);
   if (!a.size || !b.size) return norm(x) === norm(y);
   const common = [...a].filter((w) => b.has(w)).length;
   return common / (a.size + b.size - common) >= 0.7;
 }
+const kindsOverlap = (x: (TaskKind | "all")[], y: (TaskKind | "all")[]) => x.includes("all") || y.includes("all") || x.some((k) => y.includes(k));
 
-/** Tanulság tisztítása: egy sor, rövid, link és kódblokk nélkül. */
+/** Ami tanulságban nem lehet: személyes adat, és a szabályok vagy a verseny megkerülésére szóló utasítás. */
+const LESSON_BLOCK = [
+  /[\w.+-]+@[\w-]+\.[\w.-]+/,
+  /(?:\+?\d[ ()/-]{0,2}){9,}/,
+  /rendszerprompt|system ?prompt|figyelmen kív[üu]l|ignore|jóváhagyás nélkül|titk|api.?kulcs|token|jelsz[óo]|password|bír[óá]|győztes/i,
+];
+
+/** Tanulság tisztítása: egy sor, rövid, link és kódblokk nélkül; a gyanús szöveget elveti. */
 export function cleanLesson(t: string): string | null {
   const s = t.replace(/```[\s\S]*?```/g, " ").replace(/https?:\/\/\S+/g, "").replace(/[#*`>]/g, "").replace(/\s+/g, " ").trim();
-  return s.length >= 15 ? s.slice(0, 220) : null;
+  if (s.length < 15 || LESSON_BLOCK.some((r) => r.test(s))) return null;
+  return s.slice(0, 220);
+}
+
+export interface FreshLesson {
+  text: string;
+  kinds: (TaskKind | "all")[];
+  /** A modell, amelyiknek a megoldásából született (a saját bírói véleménye szerinti győztes; döntetlennél üres). */
+  from: string;
 }
 
 /** Az új tanulságok felvétele (a hasonlót megerősítésnek vesszük), a megerősítettek számlálása, a lista karbantartása. */
-export function mergeLessons(a: Arena, d: Duel, fresh: { text: string; kinds: (TaskKind | "all")[] }[], confirmed: string[], now: Date): string[] {
+export function mergeLessons(a: Arena, d: Pick<Duel, "id" | "taskId">, fresh: FreshLesson[], confirmed: string[], now: Date): string[] {
   const at = now.toISOString();
   const touched: string[] = [];
+  const confirm = (l: Lesson) => {
+    if (touched.includes(l.id)) return;
+    l.confirmations++;
+    l.lastAt = at;
+    l.tasks = [...new Set([...(l.tasks ?? []), d.taskId])].slice(-20);
+    touched.push(l.id);
+  };
   for (const id of new Set(confirmed)) {
     const l = a.lessons.find((x) => x.id === id);
-    if (l) {
-      l.confirmations++;
-      l.lastAt = at;
-      touched.push(l.id);
-    }
+    if (l) confirm(l);
   }
-  const from = d.winner === "b" ? d.b.model : d.a.model;
   for (const f of fresh) {
     const text = cleanLesson(f.text);
     if (!text) continue;
-    const twin = a.lessons.find((l) => similar(l.text, text));
+    const kinds = f.kinds.length ? [...new Set(f.kinds)] : (["all"] as (TaskKind | "all")[]);
+    const twin = a.lessons.find((l) => kindsOverlap(l.kinds, kinds) && similar(l.text, text));
     if (twin) {
-      if (!touched.includes(twin.id)) {
-        twin.confirmations++;
-        twin.lastAt = at;
-        touched.push(twin.id);
-      }
+      confirm(twin);
       continue;
     }
     const id = `L-${String(a.nextLesson++).padStart(3, "0")}`;
-    a.lessons.push({ id, text, kinds: f.kinds.length ? [...new Set(f.kinds)] : ["all"], from, duel: d.id, at, confirmations: 1, lastAt: at });
+    a.lessons.push({ id, text, kinds, from: f.from, duel: d.id, at, confirmations: 1, tasks: [d.taskId], lastAt: at });
     touched.push(id);
   }
   // A legkevésbé megerősített, legrégebbi tanulságok kiesnek.
@@ -330,6 +380,8 @@ export interface PendingDuel {
   task: Task;
   incumbent: string;
   challenger: string;
+  /** A két bírói vélemény bírái (a kihívó futása előtt választva). */
+  judges: [string, string];
   b: AgentRun;
   bView: SideView;
   /** A valódi feladat jegyzeteinek és a tábla feladatainak állapota a bajnok futása előtt. */
@@ -359,6 +411,8 @@ export class ArenaSession {
   readonly arena: Arena;
   private duelsLeft: number;
   private readonly dead = new Set<ProviderId>();
+  /** Egy feladat egy munkanapon legfeljebb egyszer versenyez (az újrapróbált feladat sem). */
+  private readonly tried = new Set<string>();
 
   constructor(
     private readonly s: CompanyState,
@@ -372,7 +426,7 @@ export class ArenaSession {
   }
 
   lessons(kind: TaskKind): string[] {
-    return lessonsFor(this.arena, kind, this.config.arena.disabledLessons);
+    return lessonsFor(this.arena, kind, this.config.arena.disabledLessons, this.config.arena.approvedLessons);
   }
 
   private budgetLeft(): number {
@@ -381,14 +435,22 @@ export class ArenaSession {
 
   /** A bajnok futása előtt: ha ez a feladat versenyezhet, a kihívó árnyékban megoldja. */
   async challenge(role: Role, task: Task, incumbent: string, remainingUsd: () => number, createdThisRun: { count: number }): Promise<PendingDuel | undefined> {
-    if (this.duelsLeft <= 0 || !duelEligible(task)) return undefined;
+    if (this.duelsLeft <= 0 || !duelEligible(task) || this.tried.has(task.id)) return undefined;
     // A napi tervezés minden nap elsőként fut; hogy ne csak az versenyezzen, a párbajoknak legfeljebb harmada lehet terv.
     if (task.kind === "plan" && this.arena.duels.filter((d) => d.kind === "plan").length * 3 > this.arena.duels.length) return undefined;
-    if (Math.min(this.budgetLeft(), remainingUsd()) < Math.max(MIN_DUEL_USD, this.config.taskBudgetUsd * 1.5)) return undefined;
+    // A kihívó nem eheti fel a bajnok és a bíró pénzét: mindkettőnek marad tartalék a munkanap keretéből.
+    const cap = Math.max(MIN_DUEL_USD, this.config.taskBudgetUsd);
+    const incumbentReserve = this.config.taskBudgetUsd * 1.5;
+    if (remainingUsd() < cap + incumbentReserve + JUDGE_RESERVE_USD || this.budgetLeft() < cap + JUDGE_RESERVE_USD) return undefined;
     const challenger = pickChallenger(this.arena, this.config, role, incumbent, this.dead);
     if (!challenger) return undefined;
+    const judges = pickJudges(this.config, incumbent, challenger, this.dead);
+    if (!judges) return undefined;
+    this.tried.add(task.id);
     this.duelsLeft--;
     const id = `D-${String(this.arena.nextDuel++).padStart(4, "0")}`;
+    // Az azonosító azonnal mentésre kerül, hogy egy félbeszakadt párbaj után se ismétlődjön.
+    saveArena(this.workspace.root, this.arena);
     const lessons = this.lessons(task.kind);
     const clone = structuredClone(this.s);
     const ctask = clone.tasks.find((t) => t.id === task.id)!;
@@ -410,7 +472,8 @@ export class ArenaSession {
           workspace: shadow,
           createdThisRun: { count: createdThisRun.count },
           // A kihívó a verseny keretéből és a munkanap keretéből is legfeljebb a maradékot költheti.
-          remainingUsd: () => Math.min(remainingUsd(), this.budgetLeft()) - (clone.ledger.slice(ledgerBefore).reduce((a, e) => a + e.usd, 0)),
+          remainingUsd: () =>
+            Math.min(remainingUsd() - incumbentReserve - JUDGE_RESERVE_USD, this.budgetLeft() - JUDGE_RESERVE_USD) - clone.ledger.slice(ledgerBefore).reduce((a, e) => a + e.usd, 0),
           model: challenger,
           personalData: false,
           lessons,
@@ -435,6 +498,7 @@ export class ArenaSession {
         task,
         incumbent: canonModel(incumbent),
         challenger,
+        judges,
         b,
         bView,
         notesBefore: task.notes.length,
@@ -452,9 +516,21 @@ export class ArenaSession {
     }
   }
 
-  /** A bajnok futása után: két vak bírói vélemény, eredmény, tanulságok. */
-  async judge(p: PendingDuel, a: AgentRun): Promise<Duel | undefined> {
+  /**
+   * A bajnok futása után: két vak bírói vélemény, eredmény, tanulságok.
+   * A párbaj elmarad (undefined), ha valamelyik fél kerete elfogyott, ha a bajnok ügyféllevelet olvasott,
+   * vagy ha nincs meg mindkét bírói vélemény: ilyenkor nem lenne igazságos vagy biztonságos a pontozás.
+   */
+  async judge(p: PendingDuel, a: AgentRun, remainingUsd: () => number = () => Infinity): Promise<Duel | undefined> {
     const task = this.s.tasks.find((t) => t.id === p.task.id) ?? p.task;
+    const voidDuel = (why: string) => {
+      logEvent(this.s, { actor: "system", department: "system", kind: "info", text: `Aréna ${p.id}: a párbaj elmaradt, ${why}.` });
+      this.abandon(p);
+      return undefined;
+    };
+    if (a.outcome === "budget" || p.b.outcome === "budget") return voidDuel("mert valamelyik félnek elfogyott a kerete");
+    // Személyes adat nem kerülhet a bíróhoz és a nyilvános pillanatképbe.
+    if (a.sawPersonalData || p.b.sawPersonalData) return voidDuel("mert a feladat ügyféllevelet érintett");
     const aView: SideView = {
       closure: closureText(this.s, task, a, p.gatesBefore),
       summary: task.notes.slice(p.notesBefore).map((n) => n.text).join("\n").slice(0, 2000),
@@ -467,34 +543,39 @@ export class ArenaSession {
         }
       }),
     };
-    this.snapshot(p.id, "a", aView.files);
     const empty = (v: SideView) => !v.files.length && !v.summary && !v.created.length;
-    const judge = pickJudge(this.config, p.incumbent, p.challenger, this.dead);
-    const verdicts: { v: Verdict; flip: boolean }[] = [];
+    const verdicts: { v: Verdict; flip: boolean; judge: string }[] = [];
     let judgeUsd = 0;
-    if (judge && !(empty(aView) && empty(p.bView))) {
+    if (!(empty(aView) && empty(p.bView))) {
       const taskText = `# Feladat\n${task.title} (${task.kind})\nSzerep: ${p.role.name}: ${p.role.mission}\n\n${task.description}`;
-      const active = this.arena.lessons.filter((l) => !this.config.arena.disabledLessons.includes(l.id)).slice(0, 30);
-      const known = active.length ? `# Már ismert tanulságok\n${active.map((l) => `${l.id}: ${l.text}`).join("\n")}` : "# Már ismert tanulságok\nMég nincs.";
+      // A bíró a legtöbbször megerősített és a legfrissebb, ehhez a típushoz illő tanulságokat látja.
+      const fits = this.arena.lessons.filter((l) => !this.config.arena.disabledLessons.includes(l.id) && (l.kinds.includes("all") || l.kinds.includes(task.kind)));
+      const top = [...fits].sort((x, y) => y.confirmations - x.confirmations || y.lastAt.localeCompare(x.lastAt)).slice(0, 20);
+      const newest = [...fits].sort((x, y) => y.at.localeCompare(x.at)).slice(0, 10);
+      const shown = [...new Set([...top, ...newest])];
+      const known = shown.length ? `# Már ismert tanulságok\n${shown.map((l) => `${l.id}: ${l.text}`).join("\n")}` : "# Már ismert tanulságok\nMég nincs.";
       // Kétszer, felcserélt sorrendben: a sorrendből fakadó elfogultság így kiesik.
-      for (const flip of [false, true]) {
+      for (const [i, flip] of [false, true].entries()) {
+        const judge = p.judges[i]!;
+        if (Math.min(remainingUsd(), this.budgetLeft()) - judgeUsd < JUDGE_RESERVE_USD / 2) break;
         try {
           const { verdict, res } = await judgeOnce(this.client, judge, taskText, known, flip ? p.bView : aView, flip ? aView : p.bView);
           const e = record(this.s, "arena-judge", res.model ?? judge, res.usage);
           e.arena = p.id;
           judgeUsd += e.usd;
-          if (verdict) verdicts.push({ v: verdict, flip });
+          if (verdict) verdicts.push({ v: verdict, flip, judge });
         } catch (err) {
           if (err instanceof ProviderAccountError) this.dead.add(err.provider);
+          else if (err instanceof Anthropic.AuthenticationError || err instanceof Anthropic.PermissionDeniedError) this.dead.add("anthropic");
+          // Ismeretlen hiba (pl. időtúllépés): ma nincs több párbaj, hogy ne égessük a keretet.
+          else this.duelsLeft = 0;
           logEvent(this.s, { actor: "system", department: "system", kind: "warn", text: `Aréna ${p.id}: a bíró (${judge}) nem tudott dönteni: ${(err instanceof Error ? err.message : String(err)).slice(0, 200)}` });
           break;
         }
       }
+      if (verdicts.length < 2) return voidDuel("mert nem született meg mindkét bírói vélemény");
     }
-    if (!verdicts.length && !(empty(aView) && empty(p.bView))) {
-      saveArena(this.workspace.root, this.arena);
-      return undefined;
-    }
+    this.snapshot(p.id, "a", aView.files);
     const pick = (x: { v: Verdict; flip: boolean }) => (x.v.jobb === "egyenlo" ? "tie" : (x.v.jobb === "1") !== x.flip ? "a" : "b");
     const votes = verdicts.map(pick);
     const aVotes = votes.filter((x) => x === "a").length;
@@ -512,6 +593,16 @@ export class ArenaSession {
       quality: Math.round(mean(sc) * 100) / 100,
       scores: sc,
     });
+    // A bíró szövegében a „1. megoldás”/„első megoldás” helyére a valódi szerep kerül (a sorrend véletlen volt).
+    const name = (m: string, n: string, flip: boolean, suffix: string) => {
+      const t = `a ${(n === "1" || n === "első") !== flip ? "bajnok" : "kihívó"}-megoldás${suffix}`;
+      return /^\p{Lu}/u.test(m) ? t[0]!.toUpperCase() + t.slice(1) : t;
+    };
+    const rewrite = (t: string, flip: boolean) =>
+      t
+        .replace(/\b(?:az?\s+)?(1|2)\.\s*megoldás(\p{L}*)/giu, (m: string, n: string, suf: string) => name(m, n, flip, suf))
+        .replace(/\b(?:az?\s+)?(első|második)\s+megoldás(\p{L}*)/giu, (m: string, n: string, suf: string) => name(m, n.toLowerCase(), flip, suf));
+    const judgesUsed = [...new Set(verdicts.map((x) => canonModel(x.judge)))];
     const at = this.now();
     const d: Duel = {
       id: p.id,
@@ -520,12 +611,12 @@ export class ArenaSession {
       title: task.title,
       kind: task.kind,
       role: p.role.id,
-      judge: judge ? canonModel(judge) : "",
+      judge: judgesUsed.join(" + "),
       a: side(p.incumbent, a, aView, scoreOf("a")),
       b: side(canonModel(p.challenger), p.b, p.bView, scoreOf("b")),
       winner: aVotes > bVotes ? "a" : bVotes > aVotes ? "b" : "tie",
-      agreement: new Set(votes).size <= 1,
-      reasoning: verdicts.map((x) => x.v.indoklas.replace(/\b([12])\. megoldás/g, (_m, n: string) => ((n === "1") !== x.flip ? "a bajnok megoldása" : "a kihívó megoldása"))).join("\n\n").slice(0, 1800),
+      agreement: votes.length === 2 && votes[0] === votes[1],
+      reasoning: verdicts.map((x) => rewrite(x.v.indoklas, x.flip)).join("\n\n").slice(0, 1800),
       judgeUsd: Math.round(judgeUsd * 1e6) / 1e6,
       lessons: [],
     };
@@ -533,10 +624,14 @@ export class ArenaSession {
     // Tanulság csak egyértelmű győztestől, vagy ha mindkét megoldás jó volt (döntetlen, magas pontszám).
     const learn = d.winner !== "tie" || Math.min(d.a.quality, d.b.quality) >= 7;
     if (learn) {
+      const winnerOf = (x: { v: Verdict; flip: boolean }) => {
+        const w = pick(x);
+        return w === "tie" ? "" : w === "a" ? d.a.model : d.b.model;
+      };
       d.lessons = mergeLessons(
         this.arena,
         d,
-        verdicts.flatMap((x) => x.v.tanulsagok.map((l) => ({ text: l.szoveg, kinds: l.tipus }))),
+        verdicts.flatMap((x) => x.v.tanulsagok.map((l) => ({ text: l.szoveg, kinds: l.tipus, from: winnerOf(x) }))),
         verdicts.flatMap((x) => x.v.megerositett),
         at,
       );

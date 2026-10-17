@@ -80,6 +80,7 @@ export const settingsPatch = z
         contestants: z.array(modelSpec).max(20).nullable(),
         judge: modelSpec.nullable(),
         disabledLessons: z.array(z.string().regex(/^L-\d{1,5}$/)).max(500).nullable(),
+        approvedLessons: z.array(z.string().regex(/^L-\d{1,5}$/)).max(500).nullable(),
       })
       .partial()
       .strict(),
@@ -103,7 +104,7 @@ export interface Settings {
   inbox?: { enabled?: boolean; createTasks?: boolean };
   prices?: Record<string, { input: number; output: number; cacheRead?: number }>;
   /** Belső verseny: párbajok munkanaponként, saját havi keret, versenyzők, bíró, kikapcsolt tanulságok. */
-  arena?: { enabled?: boolean; duelsPerRun?: number; monthlyUsd?: number; contestants?: string[]; judge?: string; disabledLessons?: string[] };
+  arena?: { enabled?: boolean; duelsPerRun?: number; monthlyUsd?: number; contestants?: string[]; judge?: string; disabledLessons?: string[]; approvedLessons?: string[] };
 }
 
 export interface SettingsFile {
