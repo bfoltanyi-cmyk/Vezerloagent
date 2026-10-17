@@ -477,15 +477,21 @@
       "description": "Vizsgáld át a(z) T-0011 feladat változásait (Kódellenőr). A fejlesztő összefoglalója: Elkészült a docs/dev/integraciok/nav-ksef.md: NAV 3.0 (műveletek, hitelesítés/aláírás, XSD, hibakezelés, módosító/sztornó, rate limit), KSeF (auth, FA(3), KSeF-szám, offline, határidők), CZ (nincs integráció), TaxAuthorityAdapter vázlat, állapotgép, idempotencia, várólista (ADR-0003-ra építve), biztonság/adatvédelem, 9 pontos fejlesztői bontás, nyitott kérdések. ⚠ jogi pontok jelölve; 🔍 = a hivatalos specifikációból ellenőrizendő részletek (pl. rate limit értéke, pontos határidők, KSeF API részletek), mert innen nem tudtam verifikálni.",
       "department": "dev",
       "assignee": "code-reviewer",
-      "status": "todo",
+      "status": "done",
       "kind": "review",
       "priority": 1,
       "dependsOn": [],
       "reviewOf": "T-0011",
       "createdBy": "system",
       "createdAt": "2026-10-16T15:36:36.149Z",
-      "updatedAt": "2026-10-16T15:36:36.149Z",
-      "notes": [],
+      "updatedAt": "2026-10-17T10:48:57.092Z",
+      "notes": [
+        {
+          "at": "2026-10-17T10:48:57.092Z",
+          "by": "code-reviewer",
+          "text": "Jóváhagyva: Jóváhagyom. A dokumentum lefedi a feladat minden pontját, és az architekt le tudja bontani fejlesztői feladatokra. A ⚠ jogi pontok és a 🔍 ellenőrizendő részletek jelölve vannak. A titkok kezelése, a magánszemély vevő adatainak kihagyása és az append-only adatszolgáltatási napló rendben van. Az idempotencia, az állapotgép és a hibaosztályok következetesek az ADR-0003-mal.\n\nNem blokkoló javaslatok, a következő módosításkor érdemes javítani:\n1. Az 1. fejezet módosító/sztornó pontjában elírás van: „a(z eredeti) számla\" helyett „az eredeti számla\".\n2. A 4. fejezetben a `NEEDS_ATTENTION` és a `SUSPENDED` kapcsolata nincs kimondva. A `SUSPENDED` tenant-szintű integrációs állapot, a `NEEDS_ATTENTION` pedig sor-szintű. Egy mondatban érdemes rögzíteni.\n3. A „privacy_officer nézze át\" helyett a szerep azonosítója `privacy-officer`.\n4. A 🔍 pontokat (rate limit értéke, határidők, a softwareId regisztrációja, az AES-mód, a KSeF API-részletek) a 6. pont 1. lépése előtt egy ellenőrző listában érdemes összegyűjteni. Ez a fejlesztés indításának előfeltétele lehet."
+        }
+      ],
       "reviewRound": 1
     },
     {
@@ -1855,6 +1861,13 @@
       "department": "system",
       "kind": "info",
       "text": "Aréna D-0001: a párbaj elmaradt, mert nem született meg mindkét bírói vélemény."
+    },
+    {
+      "at": "2026-10-17T10:48:47.584Z",
+      "actor": "code-reviewer",
+      "department": "dev",
+      "kind": "info",
+      "text": "Kódellenőr dolgozik: T-0022 Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció"
     }
   ],
   "ledger": [
@@ -3187,6 +3200,26 @@
       "cacheWriteTokens": 15003,
       "usd": 0.098791,
       "arena": "D-0001"
+    },
+    {
+      "at": "2026-10-17T10:48:48.932Z",
+      "role": "code-reviewer",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 4,
+      "outputTokens": 114,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 6433,
+      "usd": 0.0172305
+    },
+    {
+      "at": "2026-10-17T10:48:57.092Z",
+      "role": "code-reviewer",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 974,
+      "cacheReadTokens": 6433,
+      "cacheWriteTokens": 7104,
+      "usd": 0.0287906
     }
   ]
 }
