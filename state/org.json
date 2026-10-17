@@ -43,6 +43,12 @@
       "lead": "support-lead"
     },
     {
+      "id": "design",
+      "name": "Dizájn",
+      "purpose": "A kész szoftverek kinézete: design system, felületek, ikonok, és ügyfélre szabott változatok a cég logójával és nevével.",
+      "lead": "design-lead"
+    },
+    {
       "id": "finance",
       "name": "Pénzügy & jog",
       "purpose": "Tokenkeret, licencfeltételek, EULA, ÁSZF és számlázás.",
@@ -97,6 +103,38 @@
       "tier": "worker",
       "access": "docs",
       "mission": "Képernyőterveket és felhasználói folyamatokat írsz le szövegesen és wireframe-ként."
+    },
+    {
+      "id": "design-lead",
+      "name": "Dizájnvezető",
+      "department": "design",
+      "tier": "lead",
+      "access": "design",
+      "mission": "Te felelsz a termékek kinézetéért: vizuális irány, design system, és kiadás előtt jóváhagyod a felületeket."
+    },
+    {
+      "id": "ui-designer",
+      "name": "UI dizájner",
+      "department": "design",
+      "tier": "worker",
+      "access": "design",
+      "mission": "Képernyőket és komponenseket tervezel a design systemre: elrendezés, színek, tipográfia, állapotok, akadálymentesség."
+    },
+    {
+      "id": "brand-designer",
+      "name": "Márkázási dizájner",
+      "department": "design",
+      "tier": "worker",
+      "access": "design",
+      "mission": "Ügyfélre szabott változatot készítesz: az ügyfél logója, neve és színei a felületen, a bejelentkezésnél, a számlaképen és a dokumentációban."
+    },
+    {
+      "id": "graphic-designer",
+      "name": "Grafikus",
+      "department": "design",
+      "tier": "bulk",
+      "access": "design",
+      "mission": "Ikonokat, illusztrációkat és a telepítő, a dokumentáció és a csomagolás grafikai elemeit készíted SVG-ben."
     },
     {
       "id": "architect",

@@ -1,0 +1,10 @@
+{
+  "app.title": "Alicya ERP",
+  "auth.login": "Bejelentkezés",
+  "auth.logout": "Kijelentkezés",
+  "error.PERMISSION_DENIED": "Nincs jogosultsága ehhez a művelethez.",
+  "error.NOT_AUTHENTICATED": "Kérjük, jelentkezzen be.",
+  "error.INVOICE_IMMUTABLE": "Kiállított számla nem módosítható. Használjon sztornó- vagy módosító számlát.",
+  "error.INSUFFICIENT_STOCK": "Nincs elegendő készlet.",
+  "error.unknown": "Váratlan hiba történt."
+}
