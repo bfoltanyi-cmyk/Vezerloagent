@@ -26,6 +26,8 @@ export interface Task {
   /** Hányadik átvizsgálási kör (kódfeladatnál és annak átvizsgálásainál). */
   reviewRound?: number;
   gateId?: string;
+  /** A tulajdonos projektje, amelyhez a feladat tartozik (P-001). */
+  project?: string;
   createdBy: string;
   createdAt: string;
   updatedAt: string;

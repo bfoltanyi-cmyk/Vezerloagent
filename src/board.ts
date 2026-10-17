@@ -37,6 +37,7 @@ export interface NewTask {
   priority?: 1 | 2 | 3;
   dependsOn?: string[];
   reviewOf?: string;
+  project?: string;
 }
 
 export function createTask(s: CompanyState, input: NewTask, by: string, now = new Date()): Task {
@@ -60,6 +61,7 @@ export function createTask(s: CompanyState, input: NewTask, by: string, now = ne
     priority: input.priority ?? 2,
     dependsOn: input.dependsOn ?? [],
     reviewOf: input.reviewOf,
+    ...(input.project ? { project: input.project } : {}),
     createdBy: by,
     createdAt: iso(now),
     updatedAt: iso(now),
@@ -138,6 +140,7 @@ export function completeTask(s: CompanyState, id: string, by: string, summary: s
           assignee: reviewer,
           kind: "review",
           priority: t.priority,
+          project: t.project,
           reviewOf: t.id,
         },
         "system",

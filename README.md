@@ -53,6 +53,15 @@ A GitHubon is írhatsz: nyiss egy issue-t az **Üzenet a vezérigazgatónak** sa
 - Csak a repó tulajdonosának üzeneteire válaszol. Egy válasz legfeljebb 0,5 USD (`CHAT_BUDGET_USD` változóval állítható), és a havi keretbe számít.
 - Ha épp fut egy munkanap, a válasz megvárja a végét.
 
+## Projektek fül: új projekt kiadása
+
+A vezérlőterem **Projektek** fülén a tulajdonos új projektet adhat ki: név, mi a feladat, mikor kész (elfogadási feltételek), megkötések, felelős részleg, prioritás és határidő. Az űrlap egy jelölt issue-t küld (`<!-- alicya-projekt -->` és egy JSON-blokk; a blokk alá a GitHubon kiegészítés vagy csatolmány is írható). A Döntés munkafolyamat pár percen belül:
+
+- projektlapot ír a `docs/projektek/P-xxx-<név>.md` alá, és felveszi a `state/projects.json` nyilvántartásba;
+- indító (tervező) feladatot ad a vezérigazgatónak, aki a következő munkanapon elsőként a részlegek között feladatokra bontja, és ha valami nem egyértelmű, jóváhagyási kérésben megkérdezi a tulajdonost.
+
+A projektből kiadott feladatok és átvizsgálásaik a projekthez tartoznak (`project` mező), így a fülön látszik a projekt állása: hány feladat kész, mi van folyamatban, és van-e rád váró döntés.
+
 ## Döntés egy kapuról
 
 A legegyszerűbb a vezérlőterem **Jóváhagyási panelje**: minden döntésre váró kérés kártyán látszik (ki kérte, melyik feladathoz, a teljes leírás és a hivatkozott fájlok).

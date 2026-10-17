@@ -14,6 +14,7 @@ import { githubAvailable, openIssues, realGh, syncDecisions, type Gh } from "./g
 import { gitCheckpoint, type Checkpoint } from "./checkpoint.js";
 import { sweepDecisionIssues } from "./decide.js";
 import { sweepBrandingIssues } from "./branding.js";
+import { sweepProjectIssues } from "./projects.js";
 import { sweepSettingsIssues } from "./settings.js";
 import { ArenaSession } from "./arena.js";
 import type { ModelClient } from "./llm.js";
@@ -45,6 +46,8 @@ export async function workday(opts: { config: Config; client?: ModelClient; gh?:
       ["márkázás", () => sweepBrandingIssues(s, config.rootDir, opts.gh!, owner)],
       // Az elmaradt beállítás-kérések; a következő munkanaptól érvényesek.
       ["beállítás", () => sweepSettingsIssues(s, config.rootDir, opts.gh!, owner)],
+      // Az elmaradt új projektek: a vezérigazgató még ma feladatokra bontja őket.
+      ["projekt", () => sweepProjectIssues(s, config.rootDir, opts.gh!, owner)],
     ];
     for (const [name, sweep] of sweeps) {
       try {
