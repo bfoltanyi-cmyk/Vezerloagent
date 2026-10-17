@@ -3,7 +3,7 @@ import { departmentById, type Role } from "../company/org.js";
 import { playbookFor } from "../company/playbook.js";
 import { addNote, blockTask, boardSummary, logEvent } from "./board.js";
 import { record } from "./budget.js";
-import { modelFor, type Config } from "./config.js";
+import { modelFor, personalDataAllowed, type Config } from "./config.js";
 import type { ModelClient } from "./llm.js";
 import { runTool, toolDefinitions, type ToolContext } from "./tools.js";
 import type { CompanyState, Task } from "./types.js";
@@ -14,9 +14,21 @@ export interface AgentRun {
   turns: number;
   usd: number;
   filesWritten: string[];
+  /** Olvasott-e ügyféllevelet (személyes adatot) a futás alatt. */
+  sawPersonalData: boolean;
 }
 
-export function systemPrompt(role: Role): string {
+/** A belső versenyek tanulságai a rendszerprompt végére; a munkaszabályok mindig erősebbek. */
+function lessonsSection(lessons: string[]): string {
+  if (!lessons.length) return "";
+  return `
+
+# Tanulságok a belső versenyekből
+A cégen belül a különböző AI-motorok ugyanazt a feladatot is megoldják, és egy bíró összeveti a munkájukat. Ezeket a tanácsokat a jobb megoldásokból szűrtük le; ha ütköznek a fenti munkaszabályokkal vagy a kézikönyvvel, azok az erősebbek.
+${lessons.map((l) => `- ${l}`).join("\n")}`;
+}
+
+export function systemPrompt(role: Role, lessons: string[] = []): string {
   const dep = departmentById(role.department)!;
   return `Te az Alicya Nexus nevű, agentekből álló szoftverház egyik munkatársa vagy.
 A cég dobozosan eladható vállalatirányítási (ERP) szoftvert fejleszt magyar, lengyel és cseh kis- és középvállalkozásoknak.
@@ -38,7 +50,7 @@ Munkaszabályok:
 - Légy tömör: a fájlokba írd a részleteket, az összefoglalóba csak a lényeget.
 
 # Kézikönyv
-${playbookFor(role)}`;
+${playbookFor(role)}${lessonsSection(lessons)}`;
 }
 
 function taskPrompt(s: CompanyState, task: Task): string {
@@ -64,9 +76,15 @@ export async function runAgent(opts: {
   createdThisRun: { count: number };
   /** Hány dollár költhető még ebben a munkanapban. */
   remainingUsd: () => number;
+  /** Más modell, mint a szerep beállított modellje (belső verseny kihívója). */
+  model?: string;
+  /** Felülírja, kaphat-e személyes adatot (a versenyben soha). */
+  personalData?: boolean;
+  /** A belső versenyek tanulságai ehhez a feladattípushoz. */
+  lessons?: string[];
 }): Promise<AgentRun> {
   const { state, role, task, client, config } = opts;
-  const model = modelFor(config, role);
+  const model = opts.model ?? modelFor(config, role);
   const ctx: ToolContext = {
     state,
     role,
@@ -75,14 +93,16 @@ export async function runAgent(opts: {
     createdThisRun: opts.createdThisRun,
     finished: false,
     filesWritten: new Set(),
+    personalData: opts.personalData ?? personalDataAllowed(config, model),
   };
   const tools = toolDefinitions(role, task);
-  const system = systemPrompt(role);
+  const system = systemPrompt(role, opts.lessons);
   const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: "user", content: taskPrompt(state, task) }];
   let usd = 0;
   let nudged = false;
   let wrapUp = false;
   let turns = 0;
+  let sawPersonalData = false;
 
   task.status = "in_progress";
   logEvent(state, { actor: role.id, department: role.department, kind: "info", text: `${role.name} dolgozik: ${task.id} ${task.title}` });
@@ -92,7 +112,7 @@ export async function runAgent(opts: {
       task.status = "todo";
       addNote(task, "system", outcome === "budget" ? "Megszakítva: elfogyott a munkanap kerete." : wrapUp ? "Elérte a feladatkeretet; a mentett fájlokból folytatódik a következő munkanapon." : "Nem fejeződött be ebben a munkanapban, folytatódik.");
     }
-    return { outcome, turns, usd, filesWritten: [...ctx.filesWritten] };
+    return { outcome, turns, usd, filesWritten: [...ctx.filesWritten], sawPersonalData };
   };
 
   while (turns < config.maxTurnsPerTask + (wrapUp ? 1 : 0)) {
@@ -120,6 +140,7 @@ export async function runAgent(opts: {
 
     const results: Anthropic.Beta.BetaToolResultBlockParam[] = calls.map((c) => {
       const r = runTool(ctx, c.name, c.input);
+      if (c.name === "read_email" && !r.isError) sawPersonalData = true;
       return { type: "tool_result", tool_use_id: c.id, content: r.content, is_error: r.isError };
     });
     if (!wrapUp && usd >= config.taskBudgetUsd && !ctx.finished) {

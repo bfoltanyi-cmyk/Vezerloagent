@@ -3,11 +3,18 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { loadConfig } from "../src/config.js";
+import { loadConfig as loadFullConfig } from "../src/config.js";
 import type { ModelClient, ModelRequest } from "../src/llm.js";
 import { loadState } from "../src/state.js";
 import { workday } from "../src/workday.js";
+import { ProviderAccountError } from "../src/providers.js";
 import type { Gh } from "../src/gates.js";
+
+// Ezek a tesztek a munkanapot vizsgálják; a belső versenynek külön tesztje van (arena.test.ts).
+const loadConfig = (...a: Parameters<typeof loadFullConfig>) => {
+  const c = loadFullConfig(...a);
+  return { ...c, arena: { ...c.arena, enabled: false } };
+};
 
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), "nexus-wd-"));
 
@@ -116,6 +123,27 @@ describe("munkanap", () => {
     expect(client.requests.find((q) => q.system.includes("(product-manager)"))!.model).toBe("claude-sonnet-5-5");
   });
 
+  it("ha egy szolgáltatónál rossz a kulcs, azt a napra kihagyja, a többiek dolgoznak tovább", async () => {
+    const root = tmp();
+    // A vezetők az OpenAI-n dolgoznak, ott rossz a kulcs; a vezérigazgató és a munkatársak az Anthropicon.
+    const config = loadConfig({ ANTHROPIC_API_KEY: "x", OPENAI_API_KEY: "rossz", MODEL_LEAD: "openai:gpt-6.1-sol", MAX_TASKS_PER_RUN: "6" }, root);
+    const scripted = new ScriptedClient();
+    const openaiCalls: string[] = [];
+    const client: ModelClient = {
+      create(req) {
+        if (req.model.startsWith("openai:")) {
+          openaiCalls.push(req.model);
+          return Promise.reject(new ProviderAccountError("openai", "OpenAI hívás sikertelen: 401"));
+        }
+        return scripted.create(req);
+      },
+    };
+    const r = await workday({ config, client, now: new Date() });
+    expect(openaiCalls).toHaveLength(1);
+    expect(r.tasksRun).toBeGreaterThan(1);
+    expect(loadState(root).events.some((e) => e.text.includes("401"))).toBe(true);
+  });
+
   it("munka közben menti az állapotot, hogy a vezérlőterem élőben lássa", async () => {
     const root = tmp();
     const config = loadConfig({ ANTHROPIC_API_KEY: "x", MAX_TASKS_PER_RUN: "3" }, root);
@@ -123,6 +151,7 @@ describe("munkanap", () => {
     const checkpoint = (message: string) => {
       const s = loadState(root);
       saves.push({ message, running: s.meta.running, done: s.tasks.filter((t) => t.status === "done").length });
+      return true;
     };
 
     const r = await workday({ config, client: new ScriptedClient(), checkpoint });

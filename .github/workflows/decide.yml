@@ -29,7 +29,7 @@ jobs:
       github.event.sender.login == github.repository_owner &&
       !github.event.issue.pull_request &&
       (
-        (github.event_name == 'issues' && github.event.action == 'opened' && (contains(github.event.issue.body, 'alicya-dontes') || contains(github.event.issue.body, 'alicya-reszleg'))) ||
+        (github.event_name == 'issues' && github.event.action == 'opened' && (contains(github.event.issue.body, 'alicya-dontes') || contains(github.event.issue.body, 'alicya-reszleg') || contains(github.event.issue.body, 'alicya-markazas') || contains(github.event.issue.body, 'alicya-beallitasok'))) ||
         (github.event_name == 'issues' && github.event.action != 'opened' && contains(github.event.issue.labels.*.name, 'kapu')) ||
         (github.event_name == 'issue_comment' && contains(github.event.issue.labels.*.name, 'kapu') && startsWith(github.event.comment.body, '/'))
       )

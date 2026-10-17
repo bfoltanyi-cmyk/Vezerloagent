@@ -13,6 +13,7 @@
     "ceo": "tsx src/ceo-chat.ts",
     "decide": "tsx src/decide.ts",
     "release": "tsx src/release.ts",
+    "inbox": "tsx src/inbox.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "build:dashboard": "tsx src/build-dashboard.ts",
@@ -21,9 +22,12 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
+    "imapflow": "^2.5.2",
+    "mailparser": "^3.9.40",
     "zod": "^4.1.0"
   },
   "devDependencies": {
+    "@types/mailparser": "^3.9.0",
     "@types/node": "^22.10.0",
     "tsx": "^4.20.0",
     "typescript": "^5.9.3",
