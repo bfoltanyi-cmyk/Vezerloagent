@@ -29,12 +29,14 @@ export interface Config {
   paused: boolean;
   /** Fusson-e a levélfeldolgozás, és legyen-e a levelekből feladat. */
   inbox: { enabled: boolean; createTasks: boolean };
-  /** A beérkező levelek feldolgozása (személyes adat): csak megengedett szolgáltatónál futhat. */
+  /** A beérkező levelek feldolgozása (személyes adat): csak megengedett szolgáltatónál futhat. Üres, ha nincs ilyen modell. */
   inboxModel: string;
   /** Ezek a szolgáltatók kaphatnak személyes adatot (ügyféllevelek). */
   personalDataProviders: ProviderId[];
-  /** Hiányzó API-kulcsok a beállított modellekhez; ha van ilyen, a cég nem dolgozik (dryRun). */
+  /** Hiányzó API-kulcsok az agentek modelljeihez; ha van ilyen, a cég nem dolgozik (dryRun). */
   missingKeys: string[];
+  /** Hiányzó kulcs a levélfeldolgozás modelljéhez; csak a Postát állítja meg. */
+  inboxMissingKeys: string[];
   rootDir: string;
   dryRun: boolean;
 }
@@ -84,10 +86,12 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, rootDir = proce
   const inboxWanted = valid(st.models?.inbox) ?? valid(env.MODEL_INBOX) ?? models.bulk;
   // Ha a kért modell nem kaphat személyes adatot, egy olcsó megengedett modell dolgozza fel.
   const hasAnthropic = Boolean(providerKey("anthropic", env));
-  const inboxModel = [inboxWanted, models.bulk, hasAnthropic ? DEFAULT_BULK : "", models.worker, models.lead, strategic].filter(Boolean).find(allowed) ?? DEFAULT_BULK;
+  // Nem megengedett szolgáltatóra sosem esünk vissza: ha nincs megfelelő modell, a levélfeldolgozás áll.
+  const inboxModel = [inboxWanted, models.bulk, hasAnthropic ? DEFAULT_BULK : "", models.worker, models.lead, strategic].filter(Boolean).find(allowed) ?? "";
   const inboxEnabled = st.inbox?.enabled ?? true;
-  const used = new Set([...Object.values(models), strategic, ...Object.values(roleModels), ...(inboxEnabled ? [inboxModel] : [])].map((m) => parseModel(m).provider));
-  const missingKeys = [...used].filter((p) => !providerKey(p, env)).map((p) => PROVIDERS[p].keyEnv[0]!);
+  const keysFor = (specs: string[]) => [...new Set(specs.map((m) => parseModel(m).provider))].filter((p) => !providerKey(p, env)).map((p) => PROVIDERS[p].keyEnv[0]!);
+  const missingKeys = keysFor([...Object.values(models), strategic, ...Object.values(roleModels)]);
+  const inboxMissingKeys = inboxModel ? keysFor([inboxModel]) : [];
   registerPrices(st.prices ?? {});
   return {
     models,
@@ -97,6 +101,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, rootDir = proce
     inboxModel,
     personalDataProviders,
     missingKeys,
+    inboxMissingKeys,
     monthlyBudgetUsd: st.budget?.monthlyUsd ?? num(env.MONTHLY_BUDGET_USD, 50),
     runBudgetUsd: st.budget?.runUsd ?? num(env.RUN_BUDGET_USD, 3),
     maxTasksPerRun: st.budget?.maxTasksPerRun ?? num(env.MAX_TASKS_PER_RUN, 6),
@@ -111,11 +116,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, rootDir = proce
 }
 
 /** Kaphat-e ez a modell személyes adatot (pl. ügyféllevelet). */
-export const personalDataAllowed = (config: Config, model: string): boolean => config.personalDataProviders.includes(parseModel(model).provider);
+export const personalDataAllowed = (config: Config, model: string): boolean => Boolean(model) && config.personalDataProviders.includes(parseModel(model).provider);
 
 /** Rövid magyar magyarázat, ha hiányzik kulcs. */
-export const missingKeysText = (config: Config): string =>
-  config.missingKeys.length ? `Nincs beállítva a(z) ${config.missingKeys.map((k) => `\`${k}\``).join(", ")} titok a repóban` : "";
+export const missingKeysText = (config: Config, keys = config.missingKeys): string =>
+  keys.length ? `Nincs beállítva a(z) ${keys.map((k) => `\`${k}\``).join(", ")} titok a repóban` : "";
 
 /** Melyik modellen dolgozik egy szerep. */
 export function modelFor(config: Config, role: Role): string {

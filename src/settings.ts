@@ -169,6 +169,16 @@ export function applySettings(s: CompanyState, root: string, patch: SettingsPatc
   const { departments, ...rest } = patch;
   const before = readSettings(root);
   const after = merge(before as Record<string, unknown>, rest as Record<string, unknown>) as Settings;
+  // Egy modell ára egészben cserélődik: a kimaradt gyorsítótár-ár ne a régiből maradjon meg.
+  if (rest.prices) {
+    const prices: Record<string, unknown> = { ...(before.prices ?? {}) };
+    for (const [k, v] of Object.entries(rest.prices)) {
+      if (v === null) delete prices[k];
+      else prices[k] = v;
+    }
+    if (Object.keys(prices).length) after.prices = prices as Settings["prices"];
+    else delete after.prices;
+  }
   const changed = Object.keys(LABELS).filter((k) => k !== "departments" && JSON.stringify((before as Record<string, unknown>)[k]) !== JSON.stringify((after as Record<string, unknown>)[k]));
   if (changed.length) writeSettings(root, after, issue, now);
   const depMsgs: string[] = [];
@@ -186,8 +196,12 @@ export function applySettings(s: CompanyState, root: string, patch: SettingsPatc
   return `${text} A következő munkanaptól érvényes.`;
 }
 
-/** A tulajdonos nyitott beállítás-issue-inak feldolgozása és lezárása, a régebbitől az újabb felé. */
-export function sweepSettingsIssues(s: CompanyState, root: string, gh: Gh, owner: string): string[] {
+/**
+ * A tulajdonos nyitott beállítás-issue-inak feldolgozása és lezárása, a régebbitől az újabb felé.
+ * Ha `deferClose` adott, a lezárások oda kerülnek, és a hívó csak sikeres mentés után futtatja őket;
+ * különben egy elveszett mentés után az issue „kész”-nek látszana. Az újrafeldolgozás ártalmatlan.
+ */
+export function sweepSettingsIssues(s: CompanyState, root: string, gh: Gh, owner: string, deferClose?: (() => void)[]): string[] {
   if (!owner) return [];
   const list = JSON.parse(gh(["issue", "list", "--state", "open", "--author", owner, "--limit", "100", "--json", "number,body"])) as { number: number; body: string }[];
   const out: string[] = [];
@@ -195,7 +209,9 @@ export function sweepSettingsIssues(s: CompanyState, root: string, gh: Gh, owner
     const r = parseSettingsIssue(i.body);
     if (!r) continue;
     const msg = "error" in r ? r.error : applySettings(s, root, r.patch, i.number);
-    gh(["issue", "close", String(i.number), "--reason", "error" in r ? "not planned" : "completed", "--comment", msg]);
+    const close = () => void gh(["issue", "close", String(i.number), "--reason", "error" in r ? "not planned" : "completed", "--comment", msg]);
+    if (deferClose && !("error" in r)) deferClose.push(close);
+    else close();
     out.push(msg);
   }
   return out;

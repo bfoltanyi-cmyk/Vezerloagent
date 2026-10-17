@@ -75,6 +75,15 @@ export interface HttpOptions {
   fetchImpl?: Fetch;
   retries?: number;
   retryBaseMs?: number;
+  /** Egy kísérlet időkorlátja; lejárta után nem próbáljuk újra (a kérés már fizetős lehetett). */
+  timeoutMs?: number;
+}
+
+/** Rossz kulcs vagy kimerült egyenleg: ezzel a szolgáltatóval ma nincs értelme újra próbálkozni. */
+export class ProviderAccountError extends Error {
+  constructor(readonly provider: ProviderId, message: string) {
+    super(message);
+  }
 }
 
 async function postJson(spec: ProviderSpec, path: string, body: unknown, o: HttpOptions): Promise<unknown> {
@@ -85,6 +94,7 @@ async function postJson(spec: ProviderSpec, path: string, body: unknown, o: Http
   const retries = o.retries ?? 3;
   const baseMs = o.retryBaseMs ?? 2000;
   let last = "";
+  let fatal = false;
   for (let attempt = 0; attempt <= retries; attempt++) {
     let r: Response;
     try {
@@ -92,10 +102,11 @@ async function postJson(spec: ProviderSpec, path: string, body: unknown, o: Http
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
         body: JSON.stringify(body),
-        signal: AbortSignal.timeout(14 * 60_000),
+        signal: AbortSignal.timeout(o.timeoutMs ?? 10 * 60_000),
       });
     } catch (e) {
       last = e instanceof Error ? e.message : String(e);
+      if (e instanceof Error && (e.name === "TimeoutError" || e.name === "AbortError")) break;
       if (attempt < retries) await sleep(baseMs * 2 ** attempt);
       continue;
     }
@@ -109,12 +120,15 @@ async function postJson(spec: ProviderSpec, path: string, body: unknown, o: Http
     }
     last = `${r.status} ${text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").slice(0, 400)}`;
     // Túlterhelés és szerverhiba ismételhető; a kimerült egyenleg (szintén 429) és a hibás kérés nem.
-    const retryable = (r.status === 429 && !/quota|insufficient/i.test(type + text)) || r.status >= 500;
+    const quota = r.status === 429 && /quota|insufficient/i.test(type + text);
+    fatal = r.status === 401 || r.status === 403 || quota;
+    const retryable = (r.status === 429 && !quota) || r.status >= 500;
     if (!retryable || attempt === retries) break;
     const after = Number(r.headers.get("retry-after"));
     await sleep(Number.isFinite(after) && after > 0 ? Math.min(after, 60) * 1000 : baseMs * 2 ** attempt);
   }
-  throw new Error(`${spec.name} hívás sikertelen: ${last}`);
+  const msg = `${spec.name} hívás sikertelen: ${last}`;
+  throw fatal ? new ProviderAccountError(spec.id, msg) : new Error(msg);
 }
 
 // ── OpenAI: Responses API ──
@@ -123,6 +137,7 @@ async function postJson(spec: ProviderSpec, path: string, body: unknown, o: Http
 export function toResponsesInput(messages: Anthropic.Beta.BetaMessageParam[]): unknown[] {
   const items: unknown[] = [];
   for (const m of messages) {
+    const start = items.length;
     const sent = new Set<unknown>();
     const texts: string[] = [];
     const flushUser = () => {
@@ -148,8 +163,17 @@ export function toResponsesInput(messages: Anthropic.Beta.BetaMessageParam[]): u
       } else if (b.type === "text") texts.push(String(b.text ?? ""));
     }
     flushUser();
+    if (m.role === "assistant") dropUnpairedReasoning(items, start);
   }
   return items;
+}
+
+/** Az OpenAI elutasítja a gondolatmenetet, ha nem követi válasz vagy eszközhívás (pl. a kimeneti keret a gondolkodás közben fogyott el). */
+function dropUnpairedReasoning(items: unknown[], start: number): void {
+  const isReasoning = (x: unknown) => (x as { type?: string } | null)?.type === "reasoning";
+  for (let i = items.length - 1; i >= start; i--) {
+    if (isReasoning(items[i]) && (i + 1 >= items.length || isReasoning(items[i + 1]))) items.splice(i, 1);
+  }
 }
 
 interface ResponsesOutputItem {
@@ -184,13 +208,12 @@ export function fromResponses(res: ResponsesResponse, modelSpec: string): Anthro
   for (const item of res.output ?? []) {
     if (item.type === "reasoning") content.push({ type: "redacted_thinking", data: JSON.stringify(item) });
     else if (item.type === "message") {
-      let first = true;
       for (const part of item.content ?? []) {
         if (part.type === "refusal") refused = true;
         if (part.type !== "output_text" && part.type !== "refusal") continue;
         const blk: Block = { type: "text", text: part.text ?? part.refusal ?? "", citations: null };
-        if (first) Object.defineProperty(blk, RAW, { value: item, enumerable: false });
-        first = false;
+        // Minden rész ugyanarra az elemre mutat; visszaküldéskor egyszer megy ki.
+        Object.defineProperty(blk, RAW, { value: item, enumerable: false });
         content.push(blk);
       }
     } else if (item.type === "function_call") {
@@ -233,11 +256,15 @@ export class OpenAIClient implements ModelClient {
       input: toResponsesInput(req.messages),
       // A gondolkodás is ebből a keretből fogy; az OpenAI legalább 25 ezret javasol.
       max_output_tokens: 32_000,
-      reasoning: { effort: req.effort },
-      // Nem tároltatjuk a beszélgetést az OpenAI-nál; a gondolatmenetet titkosítva kapjuk vissza.
+      // Nem tároltatjuk a beszélgetést az OpenAI-nál.
       store: false,
-      include: ["reasoning.encrypted_content"],
     };
+    // A régebbi, nem gondolkodó modellek (gpt-4.x, gpt-3.5) elutasítják ezeket a mezőket.
+    if (!/^(gpt-4|gpt-3|chatgpt-)/.test(model)) {
+      body.reasoning = { effort: req.effort };
+      // A gondolatmenetet titkosítva kapjuk vissza, és a következő körben visszaküldjük.
+      body.include = ["reasoning.encrypted_content"];
+    }
     if (req.tools.length) {
       // A Responses API-ban az eszközök alapból szigorúak; a mi sémáink opcionális mezőket is tartalmaznak.
       body.tools = req.tools.map((t) => ({ type: "function", name: t.name, description: t.description ?? "", parameters: t.input_schema, strict: false }));
@@ -361,12 +388,16 @@ export class KimiClient implements ModelClient {
 export class MultiClient implements ModelClient {
   private readonly clients = new Map<ProviderId, ModelClient>();
 
-  constructor(private readonly env: NodeJS.ProcessEnv = process.env, private readonly make?: (p: ProviderId) => ModelClient) {}
+  constructor(
+    private readonly env: NodeJS.ProcessEnv = process.env,
+    private readonly make?: (p: ProviderId) => ModelClient,
+    private readonly http: Omit<HttpOptions, "env"> = {},
+  ) {}
 
   private client(p: ProviderId): ModelClient {
     let c = this.clients.get(p);
     if (!c) {
-      c = this.make?.(p) ?? (p === "anthropic" ? new ClaudeClient() : p === "openai" ? new OpenAIClient({ env: this.env }) : new KimiClient({ env: this.env }));
+      c = this.make?.(p) ?? (p === "anthropic" ? new ClaudeClient() : p === "openai" ? new OpenAIClient({ ...this.http, env: this.env }) : new KimiClient({ ...this.http, env: this.env }));
       this.clients.set(p, c);
     }
     return c;

@@ -102,10 +102,32 @@ describe("munkarend", () => {
 
   it("alapból hétköznap 8 és 16 órakor dolgozik; szünetben soha", () => {
     expect(shouldRunNow({}, new Date("2026-10-19T06:05:00Z")).run).toBe(true);
-    expect(shouldRunNow({}, new Date("2026-10-19T07:05:00Z")).run).toBe(false);
+    expect(shouldRunNow({}, new Date("2026-10-19T08:05:00Z")).run).toBe(false); // 10:05, a 8 órás sáv lejárt
     expect(shouldRunNow({}, new Date("2026-10-17T06:05:00Z")).run).toBe(false); // szombat
     expect(shouldRunNow({ paused: true }, new Date("2026-10-19T06:05:00Z")).run).toBe(false);
     expect(shouldRunNow({ schedule: { days: [6], hours: [10] } }, new Date("2026-10-17T08:20:00Z")).run).toBe(true);
     expect(shouldRunNow({ schedule: { hours: [] } }, new Date("2026-10-19T06:05:00Z")).run).toBe(false);
+  });
+
+  it("a késve induló ütemezés még elindítja a munkanapot, de egy munkaóra csak egyszer fut", () => {
+    // 9:20 budapesti idő: a 8 órás sáv még él, ha ma még nem futott.
+    expect(shouldRunNow({}, new Date("2026-10-19T07:20:00Z")).run).toBe(true);
+    expect(shouldRunNow({}, new Date("2026-10-19T07:20:00Z"), "2026-10-19T06:17:00Z").run).toBe(false);
+    // Tegnapi futás nem számít.
+    expect(shouldRunNow({}, new Date("2026-10-19T06:17:00Z"), "2026-10-16T14:17:00Z").run).toBe(true);
+    // 9:35 már túl késő a 8 órás sávhoz.
+    expect(shouldRunNow({}, new Date("2026-10-19T07:35:00Z")).run).toBe(false);
+  });
+
+  it("egy modell ára egészben cserélődik, és az előtag írásmódja nem számít", () => {
+    const root = tmp();
+    applySettings(emptyState(), root, { prices: { "openai:sajat": { input: 1, output: 2, cacheRead: 0.5 } } });
+    applySettings(emptyState(), root, { prices: { "openai:sajat": { input: 3, output: 4 } } });
+    expect(readSettings(root).prices).toEqual({ "openai:sajat": { input: 3, output: 4 } });
+    applySettings(emptyState(), root, { prices: { "moonshot:k-x": { input: 1, output: 1 } } });
+    loadConfig({ ANTHROPIC_API_KEY: "a" }, root);
+    expect(costUsd("kimi:k-x", { input_tokens: 1_000_000, output_tokens: 0 })).toBe(1);
+    applySettings(emptyState(), root, { prices: { "openai:sajat": null, "moonshot:k-x": null } });
+    expect(readSettings(root).prices).toBeUndefined();
   });
 });

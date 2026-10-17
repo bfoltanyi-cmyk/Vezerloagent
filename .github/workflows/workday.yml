@@ -6,7 +6,8 @@ name: Munkanap
 
 on:
   schedule:
-    - cron: "0 * * * *"
+    # Nem egész órakor: az óra eleji ütemezések késnek és maradnak ki a leggyakrabban.
+    - cron: "17 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -15,10 +16,6 @@ permissions:
   pull-requests: write
   pages: write
   id-token: write
-
-concurrency:
-  group: alicya-workday
-  cancel-in-progress: false
 
 env:
   WORK_BRANCH: alicya/munka
@@ -42,12 +39,27 @@ jobs:
           if [ "${{ github.event_name }}" != "schedule" ]; then
             echo "Kézi indítás." >> "$GITHUB_STEP_SUMMARY"; echo "run=true" >> "$GITHUB_OUTPUT"; exit 0
           fi
-          gh api "repos/${{ github.repository }}/contents/state/settings.json?ref=$WORK_BRANCH" -H "Accept: application/vnd.github.raw" > settings.json 2>/dev/null || echo '{}' > settings.json
-          node scripts/schedule.mjs settings.json
+          # Ami nincs meg (404: még nincs beállítás vagy munkaág), az az alapérték; más hibánál inkább kimarad a futás,
+          # hogy egy szüneteltetett cég ne induljon el egy GitHub-zavar miatt.
+          fetch() {
+            if gh api "repos/${{ github.repository }}/contents/$1?ref=$WORK_BRANCH" -H "Accept: application/vnd.github.raw" > "$2" 2> err.txt; then return 0; fi
+            if grep -q "HTTP 404" err.txt; then echo '{}' > "$2"; return 0; fi
+            cat err.txt; return 1
+          }
+          if ! fetch state/settings.json settings.json; then
+            echo "::warning::A beállítások nem olvashatók, ez az ütemezett munkanap kimarad."
+            echo "run=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          fetch state/company.json company.json || echo '{}' > company.json
+          node scripts/schedule.mjs settings.json company.json
 
   work:
     needs: gate
     if: needs.gate.outputs.run == 'true'
+    # Csak a valódi munkanap áll sorba a levelekkel, döntésekkel és a chattel; az óránkénti kapu nem tolja ki őket.
+    concurrency:
+      group: alicya-workday
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:

@@ -989,7 +989,7 @@ function setEffective(st) {
     inbox: (st.models || {}).inbox || "",
     roles: { ...((st.models || {}).roles || {}) },
     effort: { lead: "medium", worker: "medium", bulk: "low", ...(st.effort || {}) },
-    personal: [...(st.personalDataProviders || ["anthropic", "openai"])].sort(),
+    personal: [...(st.personalDataProviders || S.meta.personalDataProviders || ["anthropic", "openai"])].sort(),
     budget: { monthlyUsd: b.monthlyUsd ?? M.monthlyBudgetUsd ?? 50, runUsd: b.runUsd ?? 3, taskUsd: b.taskUsd ?? 0.6, chatUsd: b.chatUsd ?? 0.5, maxTasksPerRun: b.maxTasksPerRun ?? 6, maxTurnsPerTask: b.maxTurnsPerTask ?? 8 },
     days: [...((st.schedule || {}).days || [1, 2, 3, 4, 5])].sort((a, c) => a - c),
     hours: [...((st.schedule || {}).hours || [8, 16])].sort((a, c) => a - c),

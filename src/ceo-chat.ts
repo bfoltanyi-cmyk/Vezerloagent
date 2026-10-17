@@ -13,7 +13,7 @@ import { gitCheckpoint } from "./checkpoint.js";
 import { loadConfig, missingKeysText, modelFor, personalDataAllowed, type Config } from "./config.js";
 import { realGh, type Gh } from "./gates.js";
 import type { ModelClient } from "./llm.js";
-import { MultiClient } from "./providers.js";
+import { MultiClient, PROVIDERS, providerKey, providerOf } from "./providers.js";
 import { loadState, saveState } from "./state.js";
 import { CHAT_TOOLS, runTool, toolDefinitions, type ToolContext } from "./tools.js";
 import type { Task } from "./types.js";
@@ -172,12 +172,15 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   (async () => {
     const issue = readIssue(gh, n);
     if (!toMessages(issue, owner)) return console.log("Nincs megválaszolatlan üzenet.");
-    if (config.dryRun) return say(`Most nem tudok válaszolni: ${missingKeysText(config) || "próbafutás van beállítva"}.`);
+    // A chathez csak a vezérigazgató modelljének kulcsa kell; egy másik agent hiányzó kulcsa nem némítja el.
+    const ceoProvider = providerOf(modelFor(config, roleById("ceo")!));
+    const missing = providerKey(ceoProvider) ? [] : [PROVIDERS[ceoProvider].keyEnv[0]!];
+    if (process.env.DRY_RUN === "1" || missing.length) return say(`Most nem tudok válaszolni: ${missingKeysText(config, missing) || "próbafutás van beállítva"}.`);
     const s = loadState(config.rootDir);
     const left = config.monthlyBudgetUsd - spentThisMonth(s);
     if (left <= 0) return say(`Ebben a hónapban elfogyott a keret (${config.monthlyBudgetUsd} USD), ezért a hónap végéig nem tudok válaszolni.`);
     const maxUsd = Math.min(left, config.chatBudgetUsd);
-    const r = await ceoReply({ config, client: new MultiClient(), issue, owner, maxUsd });
+    const r = await ceoReply({ config, client: new MultiClient(process.env, undefined, { timeoutMs: 5 * 60_000, retries: 1 }), issue, owner, maxUsd });
     if (!r) return;
     say(r.text);
     if (process.env.ALICYA_CHECKPOINT === "1") gitCheckpoint(config.rootDir, process.env.WORK_BRANCH || "alicya/munka")(`Vezérigazgató válasza (issue #${n})`);

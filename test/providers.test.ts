@@ -10,7 +10,7 @@ import { loadConfig, personalDataAllowed } from "../src/config.js";
 import { emptyInbox, saveInbox } from "../src/inbox-store.js";
 import { processEmails } from "../src/inbox.js";
 import type { ModelClient, ModelRequest } from "../src/llm.js";
-import { fromChatResponse, fromResponses, KimiClient, MultiClient, OpenAIClient, parseModel, toChatMessages } from "../src/providers.js";
+import { fromChatResponse, fromResponses, KimiClient, MultiClient, OpenAIClient, parseModel, ProviderAccountError, toChatMessages, toResponsesInput } from "../src/providers.js";
 import { runTool } from "../src/tools.js";
 import { Workspace } from "../src/workspace.js";
 
@@ -167,6 +167,37 @@ describe("modellszolgáltatók", () => {
     expect(fromResponses({ status: "completed", output: [{ type: "message", content: [{ type: "refusal", refusal: "Nem" }] }] }, "openai:x").stop_reason).toBe("refusal");
   });
 
+  it("OpenAI: a párja nélküli gondolatmenetet nem küldi vissza, a többrészes választ nem duplázza", () => {
+    // A kimeneti keret a gondolkodás közben fogyott el: csak egy gondolatmenet-elem jött.
+    const cut = fromResponses({ status: "incomplete", incomplete_details: { reason: "max_output_tokens" }, output: [{ type: "reasoning", id: "rs_9", encrypted_content: "X" }] }, "openai:x");
+    expect(toResponsesInput([{ role: "user", content: "Szia" }, { role: "assistant", content: cut.content as any }, { role: "user", content: "Folytasd" }])).toEqual([
+      { role: "user", content: "Szia" },
+      { role: "user", content: "Folytasd" },
+    ]);
+    const msg = { type: "message", id: "msg_1", role: "assistant", content: [{ type: "output_text", text: "Egy" }, { type: "output_text", text: "Kettő" }] };
+    const two = fromResponses({ status: "completed", output: [{ type: "reasoning", id: "rs_1" }, msg] }, "openai:x");
+    expect(two.content).toHaveLength(3);
+    expect(toResponsesInput([{ role: "assistant", content: two.content as any }])).toEqual([{ type: "reasoning", id: "rs_1" }, msg]);
+  });
+
+  it("OpenAI: régebbi, nem gondolkodó modellnek nem küld gondolkodási mezőket", async () => {
+    const { f, calls } = fakeFetch([{ json: { status: "completed", output: [] } }]);
+    await new OpenAIClient({ env: { OPENAI_API_KEY: "k" }, fetchImpl: f, retries: 0 }).create(req("openai:gpt-4.1"));
+    expect(calls[0]!.body.reasoning).toBeUndefined();
+    expect(calls[0]!.body.include).toBeUndefined();
+  });
+
+  it("rossz kulcsnál és elfogyott egyenlegnél külön hibát ad, hogy a munkanap átléphesse a szolgáltatót", async () => {
+    const auth = fakeFetch([{ status: 401, json: { error: { message: "Incorrect API key" } } }]);
+    const e = await new OpenAIClient({ env: { OPENAI_API_KEY: "k" }, fetchImpl: auth.f, retries: 3, retryBaseMs: 1 }).create(req("openai:gpt-6-sol")).catch((x) => x);
+    expect(e).toBeInstanceOf(ProviderAccountError);
+    expect(e.provider).toBe("openai");
+    const quota = fakeFetch([{ status: 429, json: { error: { type: "exceeded_current_quota_error" } } }]);
+    expect(await new KimiClient({ env: { MOONSHOT_API_KEY: "k" }, fetchImpl: quota.f, retries: 3 }).create(req("kimi:kimi-k2.6")).catch((x) => x)).toBeInstanceOf(ProviderAccountError);
+    const bad = fakeFetch([{ status: 400 }]);
+    expect(await new KimiClient({ env: { MOONSHOT_API_KEY: "k" }, fetchImpl: bad.f, retries: 0 }).create(req("kimi:kimi-k2.6")).catch((x) => x)).not.toBeInstanceOf(ProviderAccountError);
+  });
+
   it("túlterhelésnél újrapróbál; hibás kérésnél és elfogyott egyenlegnél nem", async () => {
     const ok = fakeFetch([{ status: 429, json: { error: { type: "engine_overloaded_error" } }, headers: { "retry-after": "0" } }, { status: 503 }, { json: chat({ content: "Kész." }) }]);
     await expect(new KimiClient({ env: { MOONSHOT_API_KEY: "k" }, fetchImpl: ok.f, retries: 3, retryBaseMs: 1 }).create(req("kimi:kimi-k2.6"))).resolves.toBeTruthy();
@@ -209,6 +240,15 @@ describe("modellszolgáltatók", () => {
     expect(personalDataAllowed(c, "claude-sonnet-5-5")).toBe(true);
     const explicit = loadConfig({ ANTHROPIC_API_KEY: "a", MOONSHOT_API_KEY: "m", MODEL_BULK: "kimi:kimi-k2.6", PERSONAL_DATA_PROVIDERS: "anthropic, openai, kimi" });
     expect(explicit.inboxModel).toBe("kimi:kimi-k2.6");
+    // Ha egyik beállított modell szolgáltatója sem kaphat személyes adatot, nem esünk vissza a tiltottra: a Posta áll.
+    const none = loadConfig({ ANTHROPIC_API_KEY: "a", MOONSHOT_API_KEY: "m", MODEL_STRATEGIC: "kimi:kimi-k3", MODEL_LEAD: "kimi:kimi-k3", MODEL_WORKER: "kimi:kimi-k2.6", MODEL_BULK: "kimi:kimi-k2.6", PERSONAL_DATA_PROVIDERS: "openai" });
+    expect(none.inboxModel).toBe("");
+    expect(personalDataAllowed(none, none.inboxModel)).toBe(false);
+    expect(none.dryRun).toBe(false);
+    // A levélmodell hiányzó kulcsa csak a Postát állítja meg, a céget nem.
+    const mailOnly = loadConfig({ MOONSHOT_API_KEY: "m", MODEL_STRATEGIC: "kimi:kimi-k3", MODEL_LEAD: "kimi:kimi-k3", MODEL_WORKER: "kimi:kimi-k2.6", MODEL_BULK: "kimi:kimi-k2.6", MODEL_INBOX: "openai:gpt-6-luna" });
+    expect(mailOnly.dryRun).toBe(false);
+    expect(mailOnly.inboxMissingKeys).toEqual(["OPENAI_API_KEY"]);
   });
 
   it("a levélfeldolgozás az engedélyezett modellt használja", async () => {

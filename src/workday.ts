@@ -9,15 +9,14 @@ import { roleById } from "../company/org.js";
 import { runAgent } from "./agent.js";
 import { boardSummary, createTask, logEvent, runnableTasks, seedBacklog, seedPrivacyBacklog } from "./board.js";
 import { compactLedger, spentSince, spentThisMonth } from "./budget.js";
-import { loadConfig, missingKeysText, type Config } from "./config.js";
+import { loadConfig, missingKeysText, modelFor, type Config } from "./config.js";
 import { githubAvailable, openIssues, realGh, syncDecisions, type Gh } from "./gates.js";
 import { gitCheckpoint, type Checkpoint } from "./checkpoint.js";
 import { sweepDecisionIssues } from "./decide.js";
 import { sweepBrandingIssues } from "./branding.js";
 import { sweepSettingsIssues } from "./settings.js";
-import { providerKey } from "./providers.js";
 import type { ModelClient } from "./llm.js";
-import { MultiClient } from "./providers.js";
+import { MultiClient, ProviderAccountError, providerKey, providerOf, type ProviderId } from "./providers.js";
 import { loadState, saveState } from "./state.js";
 import type { CompanyState } from "./types.js";
 import { Workspace } from "./workspace.js";
@@ -38,24 +37,36 @@ export async function workday(opts: { config: Config; client?: ModelClient; gh?:
   seedPrivacyBacklog(s, now);
   if (opts.gh) {
     syncDecisions(s, opts.gh);
-    try {
-      sweepDecisionIssues(s, config.rootDir, opts.gh, process.env.GITHUB_REPOSITORY_OWNER ?? "");
-      await sweepBrandingIssues(s, config.rootDir, opts.gh, process.env.GITHUB_REPOSITORY_OWNER ?? "");
+    const owner = process.env.GITHUB_REPOSITORY_OWNER ?? "";
+    // Egymástól függetlenül, hogy egy hibás issue ne akassza meg a többit.
+    const sweeps: [string, () => unknown][] = [
+      ["döntés", () => sweepDecisionIssues(s, config.rootDir, opts.gh!, owner)],
+      ["márkázás", () => sweepBrandingIssues(s, config.rootDir, opts.gh!, owner)],
       // Az elmaradt beállítás-kérések; a következő munkanaptól érvényesek.
-      sweepSettingsIssues(s, config.rootDir, opts.gh, process.env.GITHUB_REPOSITORY_OWNER ?? "");
-    } catch (e) {
-      logEvent(s, { actor: "system", department: "system", kind: "warn", text: `A döntés-issue-kat nem sikerült beolvasni: ${e instanceof Error ? e.message.split("\n")[0] : String(e)}` });
+      ["beállítás", () => sweepSettingsIssues(s, config.rootDir, opts.gh!, owner)],
+    ];
+    for (const [name, sweep] of sweeps) {
+      try {
+        await sweep();
+      } catch (e) {
+        logEvent(s, { actor: "system", department: "system", kind: "warn", text: `A(z) ${name}-issue-kat nem sikerült beolvasni: ${e instanceof Error ? e.message.split("\n")[0] : String(e)}` });
+      }
     }
   }
 
   const result: WorkdayResult = { status: "worked", tasksRun: 0, usd: 0, files: [] };
   s.meta.models = { strategic: config.strategic.model, strategicRoles: config.strategic.roles, ...config.models, inbox: config.inboxModel, roles: config.roleModels };
   // Melyik kulcs van beállítva (csak igen/nem): a Beállítások fül ebből mutatja, mi hiányzik.
+  s.meta.personalDataProviders = config.personalDataProviders;
   s.meta.keys = { anthropic: Boolean(providerKey("anthropic")), openai: Boolean(providerKey("openai")), kimi: Boolean(providerKey("kimi")), imap: Boolean(process.env.IMAP_HOST && process.env.INBOX_PASSPHRASE), at: now.toISOString() };
 
   if (spentThisMonth(s, now) >= config.monthlyBudgetUsd) {
     logEvent(s, { actor: "controller", department: "finance", kind: "warn", text: `Elérte a havi keretet (${config.monthlyBudgetUsd} USD); a cég a hónap végéig pihen.` }, now);
     result.status = "over-budget";
+  } else if (config.paused && process.env.GITHUB_EVENT_NAME === "schedule") {
+    // Az ütemező kapuja ezt már kiszűri; ez a második védvonal, ha a kapu nem tudta beolvasni a beállítást.
+    logEvent(s, { actor: "system", department: "system", kind: "info", text: "A cég szünetel, az ütemezett munkanap kimaradt." }, now);
+    result.status = "dry-run";
   } else if (config.dryRun || !opts.client) {
     logEvent(s, { actor: "system", department: "system", kind: "warn", text: `${missingKeysText(config) || "Próbafutás (DRY_RUN)"}, ezért a cég csak a táblát frissítette, munka nem folyt.` }, now);
     result.status = "dry-run";
@@ -104,12 +115,17 @@ async function work(s: CompanyState, config: Config, client: ModelClient, startI
     }, "system");
   }
 
+  const deadProviders = new Set<ProviderId>();
   for (let i = 0; i < config.maxTasksPerRun; i++) {
     if (remainingUsd() <= 0) {
       logEvent(s, { actor: "controller", department: "finance", kind: "warn", text: "A munkanap költségkerete elfogyott." });
       break;
     }
-    const task = runnableTasks(s, 1)[0];
+    // Akinek a szolgáltatójánál rossz a kulcs vagy elfogyott az egyenleg, azt ma kihagyjuk; a többiek dolgoznak.
+    const task = runnableTasks(s, s.tasks.length).find((t) => {
+      const r = roleById(t.assignee);
+      return !r || !deadProviders.has(providerOf(modelFor(config, r)));
+    });
     if (!task) break;
     const role = roleById(task.assignee);
     if (!role) {
@@ -125,7 +141,8 @@ async function work(s: CompanyState, config: Config, client: ModelClient, startI
       task.status = "todo";
       const msg = e instanceof Error ? e.message : String(e);
       logEvent(s, { actor: "system", department: "system", kind: "warn", text: `Hiba ${task.id} közben: ${msg.slice(0, 300)}` });
-      if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) break;
+      if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) deadProviders.add("anthropic");
+      else if (e instanceof ProviderAccountError) deadProviders.add(e.provider);
     }
   }
   result.usd = spentSince(s, startIso);

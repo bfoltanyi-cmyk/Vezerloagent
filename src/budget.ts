@@ -1,4 +1,5 @@
 import { MODEL_CATALOG } from "./catalog.js";
+import { parseModel } from "./providers.js";
 import type { CompanyState, LedgerEntry } from "./types.js";
 
 /** USD / millió token, a modellkatalógusból. Gyorsítótár-írás az input ár 1,25-szöröse. */
@@ -17,6 +18,16 @@ export interface Usage {
 
 type Price = { input: number; output: number; cacheRead: number };
 
+/** Egységes név: Anthropicnál előtag nélkül, máshol a szolgáltató saját nevével (moonshot:x → kimi:x). */
+function canon(m: string): string {
+  try {
+    const { provider, model } = parseModel(m.trim());
+    return provider === "anthropic" ? model : `${provider}:${model}`;
+  } catch {
+    return m.trim();
+  }
+}
+
 /** Saját árak a MODEL_PRICES változóból (JSON: {"openai:gpt-5-mini": {"input": 0.25, "output": 2, "cacheRead": 0.025}}). */
 function overrides(): Record<string, Price> {
   try {
@@ -24,7 +35,7 @@ function overrides(): Record<string, Price> {
     return Object.fromEntries(
       Object.entries(v)
         .filter(([, p]) => p && Number.isFinite(p.input) && Number.isFinite(p.output))
-        .map(([k, p]) => [k, { input: p.input!, output: p.output!, cacheRead: Number.isFinite(p.cacheRead) ? p.cacheRead! : p.input! }]),
+        .map(([k, p]) => [canon(k), { input: p.input!, output: p.output!, cacheRead: Number.isFinite(p.cacheRead) ? p.cacheRead! : p.input! }]),
     );
   } catch {
     return {};
@@ -34,14 +45,15 @@ function overrides(): Record<string, Price> {
 let registered: Record<string, Price> = {};
 /** A Beállítások fülön megadott árak (a GitHub-változóban megadottaknál erősebbek). */
 export function registerPrices(prices: Record<string, { input: number; output: number; cacheRead?: number }>): void {
-  registered = Object.fromEntries(Object.entries(prices).map(([k, p]) => [k, { input: p.input, output: p.output, cacheRead: p.cacheRead ?? p.input }]));
+  registered = Object.fromEntries(Object.entries(prices).map(([k, p]) => [canon(k), { input: p.input, output: p.output, cacheRead: p.cacheRead ?? p.input }]));
 }
 
 export function priceOf(model: string): Price {
   const own = { ...overrides(), ...registered };
+  const c = canon(model);
   // A szolgáltató előtagja nélkül is keresünk (pl. "openai:gpt-5-mini" → "gpt-5-mini").
-  const bare = model.includes(":") ? model.slice(model.indexOf(":") + 1) : model;
-  return own[model] ?? own[bare] ?? PRICES[model] ?? PRICES[bare] ?? FALLBACK_PRICE;
+  const bare = c.includes(":") ? c.slice(c.indexOf(":") + 1) : c;
+  return own[c] ?? own[bare] ?? PRICES[c] ?? PRICES[bare] ?? FALLBACK_PRICE;
 }
 
 export function costUsd(model: string, u: Usage): number {
