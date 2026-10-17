@@ -3,12 +3,18 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { loadConfig } from "../src/config.js";
+import { loadConfig as loadFullConfig } from "../src/config.js";
 import type { ModelClient, ModelRequest } from "../src/llm.js";
 import { loadState } from "../src/state.js";
 import { workday } from "../src/workday.js";
 import { ProviderAccountError } from "../src/providers.js";
 import type { Gh } from "../src/gates.js";
+
+// Ezek a tesztek a munkanapot vizsgálják; a belső versenynek külön tesztje van (arena.test.ts).
+const loadConfig = (...a: Parameters<typeof loadFullConfig>) => {
+  const c = loadFullConfig(...a);
+  return { ...c, arena: { ...c.arena, enabled: false } };
+};
 
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), "nexus-wd-"));
 

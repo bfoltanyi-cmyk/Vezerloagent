@@ -65,6 +65,8 @@ export interface LedgerEntry {
   cacheReadTokens: number;
   cacheWriteTokens: number;
   usd: number;
+  /** A belső verseny költsége (kihívó és bíró): a párbaj azonosítója. */
+  arena?: string;
 }
 
 export interface CompanyState {

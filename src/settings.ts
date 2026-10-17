@@ -72,6 +72,17 @@ export const settingsPatch = z
     paused: z.boolean().nullable(),
     inbox: z.object({ enabled: z.boolean().nullable(), createTasks: z.boolean().nullable() }).partial().strict(),
     prices: z.record(modelSpec, price.nullable()),
+    arena: z
+      .object({
+        enabled: z.boolean().nullable(),
+        duelsPerRun: z.number().int().min(0).max(5).nullable(),
+        monthlyUsd: usd(10_000).nullable(),
+        contestants: z.array(modelSpec).max(20).nullable(),
+        judge: modelSpec.nullable(),
+        disabledLessons: z.array(z.string().regex(/^L-\d{1,5}$/)).max(500).nullable(),
+      })
+      .partial()
+      .strict(),
     departments: z.partialRecord(z.enum(depIds), z.boolean()),
   })
   .partial()
@@ -91,6 +102,8 @@ export interface Settings {
   paused?: boolean;
   inbox?: { enabled?: boolean; createTasks?: boolean };
   prices?: Record<string, { input: number; output: number; cacheRead?: number }>;
+  /** Belső verseny: párbajok munkanaponként, saját havi keret, versenyzők, bíró, kikapcsolt tanulságok. */
+  arena?: { enabled?: boolean; duelsPerRun?: number; monthlyUsd?: number; contestants?: string[]; judge?: string; disabledLessons?: string[] };
 }
 
 export interface SettingsFile {
@@ -145,6 +158,7 @@ const LABELS: Record<string, string> = {
   paused: "szünet",
   inbox: "posta",
   prices: "árak",
+  arena: "belső verseny",
   departments: "részlegek",
 };
 

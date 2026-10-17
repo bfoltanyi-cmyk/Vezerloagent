@@ -16,7 +16,17 @@ export interface AgentRun {
   filesWritten: string[];
 }
 
-export function systemPrompt(role: Role): string {
+/** A belső versenyek tanulságai a rendszerprompt végére; a munkaszabályok mindig erősebbek. */
+function lessonsSection(lessons: string[]): string {
+  if (!lessons.length) return "";
+  return `
+
+# Tanulságok a belső versenyekből
+A cégen belül a különböző AI-motorok ugyanazt a feladatot is megoldják, és egy bíró összeveti a munkájukat. Ezeket a tanácsokat a jobb megoldásokból szűrtük le; ha ütköznek a fenti munkaszabályokkal vagy a kézikönyvvel, azok az erősebbek.
+${lessons.map((l) => `- ${l}`).join("\n")}`;
+}
+
+export function systemPrompt(role: Role, lessons: string[] = []): string {
   const dep = departmentById(role.department)!;
   return `Te az Alicya Nexus nevű, agentekből álló szoftverház egyik munkatársa vagy.
 A cég dobozosan eladható vállalatirányítási (ERP) szoftvert fejleszt magyar, lengyel és cseh kis- és középvállalkozásoknak.
@@ -38,7 +48,7 @@ Munkaszabályok:
 - Légy tömör: a fájlokba írd a részleteket, az összefoglalóba csak a lényeget.
 
 # Kézikönyv
-${playbookFor(role)}`;
+${playbookFor(role)}${lessonsSection(lessons)}`;
 }
 
 function taskPrompt(s: CompanyState, task: Task): string {
@@ -64,9 +74,15 @@ export async function runAgent(opts: {
   createdThisRun: { count: number };
   /** Hány dollár költhető még ebben a munkanapban. */
   remainingUsd: () => number;
+  /** Más modell, mint a szerep beállított modellje (belső verseny kihívója). */
+  model?: string;
+  /** Felülírja, kaphat-e személyes adatot (a versenyben soha). */
+  personalData?: boolean;
+  /** A belső versenyek tanulságai ehhez a feladattípushoz. */
+  lessons?: string[];
 }): Promise<AgentRun> {
   const { state, role, task, client, config } = opts;
-  const model = modelFor(config, role);
+  const model = opts.model ?? modelFor(config, role);
   const ctx: ToolContext = {
     state,
     role,
@@ -75,10 +91,10 @@ export async function runAgent(opts: {
     createdThisRun: opts.createdThisRun,
     finished: false,
     filesWritten: new Set(),
-    personalData: personalDataAllowed(config, model),
+    personalData: opts.personalData ?? personalDataAllowed(config, model),
   };
   const tools = toolDefinitions(role, task);
-  const system = systemPrompt(role);
+  const system = systemPrompt(role, opts.lessons);
   const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: "user", content: taskPrompt(state, task) }];
   let usd = 0;
   let nudged = false;

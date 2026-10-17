@@ -96,9 +96,9 @@ export function compactLedger(s: CompanyState, now = new Date()): void {
   if (old.length === 0) return;
   const merged = new Map<string, LedgerEntry>();
   for (const e of old) {
-    const key = `${e.at.slice(0, 7)}|${e.role}|${e.model}`;
+    const key = `${e.at.slice(0, 7)}|${e.role}|${e.model}|${e.arena ? "arena" : ""}`;
     const cur = merged.get(key);
-    if (!cur) merged.set(key, { ...e, at: `${e.at.slice(0, 7)}-01T00:00:00.000Z` });
+    if (!cur) merged.set(key, { ...e, at: `${e.at.slice(0, 7)}-01T00:00:00.000Z`, ...(e.arena ? { arena: "havi" } : {}) });
     else {
       cur.inputTokens += e.inputTokens;
       cur.outputTokens += e.outputTokens;
@@ -108,4 +108,10 @@ export function compactLedger(s: CompanyState, now = new Date()): void {
     }
   }
   s.ledger = [...merged.values(), ...s.ledger.filter((e) => e.at.startsWith(m))];
+}
+
+/** A belső versenyre (kihívók és bírók) ebben a hónapban elköltött összeg. */
+export function arenaSpentThisMonth(s: CompanyState, now = new Date()): number {
+  const m = monthKey(now);
+  return s.ledger.filter((e) => e.arena && e.at.startsWith(m)).reduce((a, e) => a + e.usd, 0);
 }

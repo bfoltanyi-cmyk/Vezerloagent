@@ -33,6 +33,10 @@ export interface Config {
   inboxModel: string;
   /** Ezek a szolgáltatók kaphatnak személyes adatot (ügyféllevelek). */
   personalDataProviders: ProviderId[];
+  /** Belső verseny (Aréna): a kihívó ugyanazt a feladatot árnyékban megoldja, egy bíró összeveti. */
+  arena: { enabled: boolean; duelsPerRun: number; monthlyUsd: number; contestants: string[]; judge?: string; disabledLessons: string[] };
+  /** Mely szolgáltatókhoz van kulcs (a belső verseny csak ezek modelljeit hívja). */
+  availableProviders: ProviderId[];
   /** Hiányzó API-kulcsok az agentek modelljeihez; ha van ilyen, a cég nem dolgozik (dryRun). */
   missingKeys: string[];
   /** Hiányzó kulcs a levélfeldolgozás modelljéhez; csak a Postát állítja meg. */
@@ -102,6 +106,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, rootDir = proce
     personalDataProviders,
     missingKeys,
     inboxMissingKeys,
+    availableProviders: (Object.keys(PROVIDERS) as ProviderId[]).filter((p) => providerKey(p, env)),
     monthlyBudgetUsd: st.budget?.monthlyUsd ?? num(env.MONTHLY_BUDGET_USD, 50),
     runBudgetUsd: st.budget?.runUsd ?? num(env.RUN_BUDGET_USD, 3),
     maxTasksPerRun: st.budget?.maxTasksPerRun ?? num(env.MAX_TASKS_PER_RUN, 6),
@@ -110,6 +115,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, rootDir = proce
     chatBudgetUsd: st.budget?.chatUsd ?? num(env.CHAT_BUDGET_USD, 0.5),
     paused: st.paused === true,
     inbox: { enabled: inboxEnabled, createTasks: st.inbox?.createTasks ?? true },
+    arena: {
+      enabled: st.arena?.enabled ?? true,
+      duelsPerRun: st.arena?.duelsPerRun ?? 1,
+      monthlyUsd: st.arena?.monthlyUsd ?? 5,
+      contestants: (st.arena?.contestants ?? []).flatMap((m) => valid(m) ?? []),
+      judge: valid(st.arena?.judge),
+      disabledLessons: st.arena?.disabledLessons ?? [],
+    },
     rootDir,
     dryRun: env.DRY_RUN === "1" || missingKeys.length > 0,
   };

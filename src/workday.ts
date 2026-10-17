@@ -15,6 +15,7 @@ import { gitCheckpoint, type Checkpoint } from "./checkpoint.js";
 import { sweepDecisionIssues } from "./decide.js";
 import { sweepBrandingIssues } from "./branding.js";
 import { sweepSettingsIssues } from "./settings.js";
+import { ArenaSession } from "./arena.js";
 import type { ModelClient } from "./llm.js";
 import { MultiClient, ProviderAccountError, providerKey, providerOf, type ProviderId } from "./providers.js";
 import { loadState, saveState } from "./state.js";
@@ -116,6 +117,7 @@ async function work(s: CompanyState, config: Config, client: ModelClient, startI
   }
 
   const deadProviders = new Set<ProviderId>();
+  const arena = new ArenaSession(s, config, client, workspace);
   for (let i = 0; i < config.maxTasksPerRun; i++) {
     if (remainingUsd() <= 0) {
       logEvent(s, { actor: "controller", department: "finance", kind: "warn", text: "A munkanap költségkerete elfogyott." });
@@ -132,12 +134,20 @@ async function work(s: CompanyState, config: Config, client: ModelClient, startI
       task.status = "blocked";
       continue;
     }
+    // Belső verseny: egy másik modell előbb árnyékban megoldja ugyanezt, aztán a bíró összeveti a kettőt.
+    const duel = await arena.challenge(role, task, modelFor(config, role), remainingUsd, createdThisRun);
     try {
-      const run = await runAgent({ state: s, role, task, client, config, workspace, createdThisRun, remainingUsd });
+      const run = await runAgent({ state: s, role, task, client, config, workspace, createdThisRun, remainingUsd, lessons: arena.lessons(task.kind) });
       result.tasksRun++;
       run.filesWritten.forEach((f) => files.add(f));
+      if (duel) {
+        await arena.judge(duel, run).catch((e) => {
+          logEvent(s, { actor: "system", department: "system", kind: "warn", text: `Aréna ${duel.id}: a pontozás nem sikerült: ${(e instanceof Error ? e.message : String(e)).slice(0, 200)}` });
+        });
+      }
       progress(`Munkanap folyamatban: ${task.id} ${role.name}`);
     } catch (e) {
+      if (duel) arena.abandon(duel);
       task.status = "todo";
       const msg = e instanceof Error ? e.message : String(e);
       logEvent(s, { actor: "system", department: "system", kind: "warn", text: `Hiba ${task.id} közben: ${msg.slice(0, 300)}` });
