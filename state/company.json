@@ -5,7 +5,30 @@
     "nextTask": 48,
     "nextGate": 2,
     "lastRun": "2026-10-16T15:47:58.174Z",
-    "disabledDepartments": []
+    "disabledDepartments": [],
+    "models": {
+      "strategic": "claude-opus-5-5",
+      "strategicRoles": [
+        "ceo"
+      ],
+      "lead": "claude-sonnet-5-5",
+      "worker": "claude-sonnet-5-5",
+      "bulk": "claude-haiku-5-5",
+      "inbox": "claude-haiku-5-5",
+      "roles": {}
+    },
+    "personalDataProviders": [
+      "anthropic",
+      "openai"
+    ],
+    "keys": {
+      "anthropic": true,
+      "openai": false,
+      "kimi": false,
+      "imap": false,
+      "at": "2026-10-17T10:44:13.152Z"
+    },
+    "running": "2026-10-17T10:44:13.152Z"
   },
   "tasks": [
     {
