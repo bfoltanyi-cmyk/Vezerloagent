@@ -166,6 +166,8 @@ function execute(ctx: ToolContext, name: ToolName, input: any): string {
           assignee: input.assignee,
           priority: input.priority,
           dependsOn: input.depends_on,
+          // A projekt feladatából kiadott munka is a projekthez tartozik.
+          project: ctx.task.project,
         },
         role.id,
       );

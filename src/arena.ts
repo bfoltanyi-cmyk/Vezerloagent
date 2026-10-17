@@ -250,18 +250,75 @@ ${v.created.length ? `Létrehozott feladatok:\n${v.created.map((c) => `- ${c}`).
 ${files.join("\n\n")}`;
 }
 
-/** Egy bírói vélemény: a két megoldás adott sorrendben. */
-async function judgeOnce(client: ModelClient, judge: string, taskText: string, known: string, first: SideView, second: SideView): Promise<{ verdict: Verdict | null; res: Anthropic.Beta.BetaMessage }> {
-  const res = await client.create({
-    model: judge,
-    effort: "medium",
-    system: JUDGE_SYSTEM,
-    tools: [verdictTool],
-    messages: [{ role: "user", content: `${taskText}\n\n${known}\n\n${sideText(1, first)}\n\n${sideText(2, second)}` }],
-  });
-  const call = res.content.find((b): b is Anthropic.Beta.BetaToolUseBlock => b.type === "tool_use" && b.name === "record_verdict");
-  const p = call ? verdictSchema.safeParse(call.input) : null;
-  return { verdict: p?.success ? p.data : null, res };
+/**
+ * A bíró válaszának értelmezése. A döntés és a pontok kötelezők; a szöveges mezőket megengedően kezeli
+ * (a túl hosszút levágja, a hibás tanulságot elhagyja), mert egy túl hosszú indoklás miatt
+ * ne vesszen el az egész vélemény.
+ */
+export function parseVerdict(input: unknown): { verdict: Verdict } | { error: string } {
+  const o = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
+  const jobb = String(o.jobb ?? "").trim().toLowerCase().replace("egyenlő", "egyenlo");
+  const num = (v: unknown) => (typeof v === "string" ? Number(v.replace(",", ".")) : v);
+  const scores = (v: unknown) => {
+    const x = (v && typeof v === "object" ? v : {}) as Record<string, unknown>;
+    return Object.fromEntries(CRITERIA.map((k) => {
+      const n = num(x[k]);
+      return [k, typeof n === "number" && Number.isFinite(n) ? Math.min(10, Math.max(1, Math.round(n))) : NaN];
+    })) as Scores;
+  };
+  const kinds = ["all", "doc", "code", "plan"] as const;
+  const raw = {
+    jobb,
+    pont_1: scores(o.pont_1),
+    pont_2: scores(o.pont_2),
+    indoklas: String(o.indoklas ?? "").slice(0, 900),
+    tanulsagok: (Array.isArray(o.tanulsagok) ? o.tanulsagok : []).flatMap((l: unknown) => {
+      const x = (l && typeof l === "object" ? l : {}) as Record<string, unknown>;
+      const szoveg = typeof x.szoveg === "string" ? x.szoveg.trim().slice(0, 220) : "";
+      const tipus = (Array.isArray(x.tipus) ? x.tipus : [x.tipus]).filter((t): t is (typeof kinds)[number] => kinds.includes(t as never)).slice(0, 3);
+      return szoveg.length >= 15 ? [{ szoveg, tipus: tipus.length ? [...new Set(tipus)] : ["all" as const] }] : [];
+    }).slice(0, 3),
+    megerositett: (Array.isArray(o.megerositett) ? o.megerositett : []).filter((x): x is string => typeof x === "string" && /^L-\d+$/.test(x)).slice(0, 5),
+  };
+  const p = verdictSchema.safeParse(raw);
+  return p.success ? { verdict: p.data } : { error: p.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ").slice(0, 300) };
+}
+
+/**
+ * Egy bírói vélemény: a két megoldás adott sorrendben. Ha a bíró nem hívta meg az eszközt, vagy a
+ * válasza hibás, egyszer még kérjük, a hiba megnevezésével. Minden válasz költségét a hívó rögzíti.
+ */
+async function judgeOnce(
+  client: ModelClient,
+  judge: string,
+  taskText: string,
+  known: string,
+  first: SideView,
+  second: SideView,
+  onResponse: (res: Anthropic.Beta.BetaMessage) => void,
+): Promise<{ verdict: Verdict } | { error: string }> {
+  const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: "user", content: `${taskText}\n\n${known}\n\n${sideText(1, first)}\n\n${sideText(2, second)}` }];
+  let error = "";
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const res = await client.create({ model: judge, effort: "medium", system: JUDGE_SYSTEM, tools: [verdictTool], messages });
+    onResponse(res);
+    if (res.stop_reason === "refusal") return { error: "a bíró visszautasította a döntést" };
+    const call = res.content.find((b): b is Anthropic.Beta.BetaToolUseBlock => b.type === "tool_use" && b.name === "record_verdict");
+    const r = call ? parseVerdict(call.input) : { error: res.stop_reason === "max_tokens" ? "a válasz túl hosszú lett, nem jutott el a döntésig" : "nem hívta meg a record_verdict eszközt" };
+    if ("verdict" in r) return r;
+    error = r.error;
+    const others = res.content.filter((b): b is Anthropic.Beta.BetaToolUseBlock => b.type === "tool_use" && b !== call);
+    messages.push({ role: "assistant", content: res.content });
+    const fix = `A döntés nem rögzült (${error}). Hívd meg most a record_verdict eszközt a sémának megfelelően: a jobb mező "1", "2" vagy "egyenlo", minden pont 1 és 10 közötti egész, az indoklás legfeljebb 900 karakter.`;
+    messages.push({
+      role: "user",
+      content: [
+        ...[...(call ? [call] : []), ...others].map((c) => ({ type: "tool_result" as const, tool_use_id: c.id, content: c === call ? `Hibás: ${error}` : "Ismeretlen eszköz.", is_error: true })),
+        { type: "text" as const, text: fix },
+      ],
+    });
+  }
+  return { error };
 }
 
 const mean = (s: Scores) => CRITERIA.reduce((a, k) => a + s[k], 0) / CRITERIA.length;
@@ -559,11 +616,16 @@ export class ArenaSession {
         const judge = p.judges[i]!;
         if (Math.min(remainingUsd(), this.budgetLeft()) - judgeUsd < JUDGE_RESERVE_USD / 2) break;
         try {
-          const { verdict, res } = await judgeOnce(this.client, judge, taskText, known, flip ? p.bView : aView, flip ? aView : p.bView);
-          const e = record(this.s, "arena-judge", res.model ?? judge, res.usage);
-          e.arena = p.id;
-          judgeUsd += e.usd;
-          if (verdict) verdicts.push({ v: verdict, flip, judge });
+          const r = await judgeOnce(this.client, judge, taskText, known, flip ? p.bView : aView, flip ? aView : p.bView, (res) => {
+            const e = record(this.s, "arena-judge", res.model ?? judge, res.usage);
+            e.arena = p.id;
+            judgeUsd += e.usd;
+          });
+          if ("verdict" in r) verdicts.push({ v: r.verdict, flip, judge });
+          else {
+            logEvent(this.s, { actor: "system", department: "system", kind: "warn", text: `Aréna ${p.id}: a bíró (${judge}) véleménye nem használható: ${r.error}` });
+            break;
+          }
         } catch (err) {
           if (err instanceof ProviderAccountError) this.dead.add(err.provider);
           else if (err instanceof Anthropic.AuthenticationError || err instanceof Anthropic.PermissionDeniedError) this.dead.add("anthropic");
