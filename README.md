@@ -110,6 +110,19 @@ Mentéskor a vezérlőterem egy jelölt issue-t nyit a változtatással; a köve
 
 **Kimi:** a Moonshot fiókra legalább 10 USD feltöltés kell a használható sebességkorláthoz (a K3-hoz legalább 1 USD).
 
+## Aréna: belső verseny az AI-motorok között
+
+A vezérlőterem **Aréna** lapján látszik, melyik AI-motor dolgozik a legjobban és a leghatékonyabban.
+
+- **Párbaj:** munkanaponként egy (a Beállításokban 0–5) feladatot egy másik motor is megold, árnyék-munkaterületen: a cég valódi fájljait olvassa, de amit ír, az nem kerül a cég munkájába, és az általa létrehozott feladatok sem kerülnek a táblára. A cég munkáját továbbra is a beállított motor („bajnok”) végzi.
+- **Kihívó:** alapból a szerep szintjének és a szomszédos szinteknek ajánlott modellek közül az, amelyikhez van kulcs, és amelyik a bajnokkal a legkevesebbet mérkőzött. Így egyetlen Anthropic-kulccsal is van verseny (pl. Sonnet és Haiku), és kiderül, elég-e az olcsóbb motor. A Beállításokban versenyzők is kijelölhetők.
+- **Bíró:** erős modell, lehetőleg olyan szolgáltatótól, amelyik nem versenyez. Vakon (modellnév nélkül), kétszer, felcserélt sorrendben dönt; ha a két vélemény eltér, döntetlen. Szempontok: teljesség, helyesség, szabálykövetés, hasznosság (1–10).
+- **Rangsor:** Élő-pontszám (összesítve és feladattípusonként), győzelmek, átlagos minőség, költség feladatonként és hatékonyság (minőségpont / dollár). Szintenként ajánlást is ad, amelyet egy gombbal be lehet állítani.
+- **Tanulás egymástól:** a jobb megoldásból a bíró legfeljebb három általános munkamódszert szűr le. Minden agent a feladattípusához illő, legtöbbször megerősített hat tanulságot kapja meg a rendszerpromptjában; a munkaszabályok és a kézikönyv ezeknél erősebbek. A nem tetsző tanulság az Aréna lapon kikapcsolható.
+- **Keret:** a versenynek saját havi kerete van (alapból 5 USD), amely a cég havi keretébe is beleszámít. Ügyféllevelet érintő feladat nem kerül versenybe, és a kihívó személyes adatot nem kap.
+
+Az eredmény a `state/arena.json` fájlban, a két megoldás pillanatképe a `state/arena/<párbaj>/` alatt van (a legutóbbi 40 párbajé).
+
 ## Modellek
 
 Alapbeállítás (a Beállítások fülön módosítható):
