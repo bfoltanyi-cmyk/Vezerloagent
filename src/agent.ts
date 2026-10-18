@@ -2,8 +2,9 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { departmentById, type Role } from "../company/org.js";
 import { playbookFor } from "../company/playbook.js";
 import { addNote, blockTask, boardSummary, logEvent } from "./board.js";
+import { checksAvailable } from "./checks.js";
 import { record } from "./budget.js";
-import { modelFor, personalDataAllowed, type Config } from "./config.js";
+import { modelFor, personalDataAllowed, taskLimits, type Config } from "./config.js";
 import type { ModelClient } from "./llm.js";
 import { runTool, toolDefinitions, type ToolContext } from "./tools.js";
 import type { CompanyState, Task } from "./types.js";
@@ -28,6 +29,17 @@ A cégen belül a különböző AI-motorok ugyanazt a feladatot is megoldják, �
 ${lessons.map((l) => `- ${l}`).join("\n")}`;
 }
 
+/** A fejlesztés menete a kódszerepeknek: írás, ellenőrzés, javítás, és csak zölden lezárás. */
+function codeRules(role: Role): string {
+  if (role.access !== "code") return "";
+  return checksAvailable()
+    ? `
+- Kódfeladatnál a menet: térkép és olvasás → a változás és a hozzá tartozó teszt megírása → run_checks az érintett projekten (pl. product/backend) → a hibák javítása → újra run_checks. Csak zölden zárhatod le (complete_task); az eredmény az átvizsgálókhoz is eljut. Ha rajtad kívül álló ok miatt nem lehet zöld, block_task az okkal.
+- Új függőséget a package.json-ba írj; a telepítés a run_checks első lépése. Az install szkriptek nem futnak, és a tesztek nem érik el a hálózatot.`
+    : `
+- A kódellenőrzés (run_checks) itt nem érhető el; a teszteket gondosan írd meg, az átvizsgálók elolvassák őket.`;
+}
+
 export function systemPrompt(role: Role, lessons: string[] = []): string {
   const dep = departmentById(role.department)!;
   return `Te az Alicya Nexus nevű, agentekből álló szoftverház egyik munkatársa vagy.
@@ -41,8 +53,8 @@ Feladatod: ${role.mission}
 Munkaszabályok:
 - Egyszerre egy feladaton dolgozol; amit kapsz, azt fejezd be ebben a körben, ha lehet.
 - Dokumentumokat magyarul írsz Markdownban a docs/<részleg>/ alá. A kód és a kódkommentek angolul készülnek a product/ alá.
-- Mielőtt írsz, nézd meg a meglévő fájlokat (list_files, read_file), és építs rájuk; ne írj felül más munkáját indok nélkül.
-- Kódot csak tesztekkel együtt adj le. Titkot, jelszót, API-kulcsot soha ne írj fájlba.
+- Mielőtt írsz, nézd meg a meglévőt, és építs rá; ne írj felül más munkáját indok nélkül. A kódot így olvasd: code_map (a terület térképe: fájlok, exportok, végpontok, táblák), search_code (hol van definiálva vagy használva valami), aztán read_file csak arra, ami kell.
+- Kódot csak tesztekkel együtt adj le. Titkot, jelszót, API-kulcsot soha ne írj fájlba.${codeRules(role)}
 - Célpiacunk Magyarország, Lengyelország és Csehország. Ha a munkád személyes adatot érint, előbb nézd meg a vonatkozó szabályokat a privacy_lookup eszközzel, és kövesd a "Teendő nálunk" pontokat.
 - Kifelé (ügyfélnek, nyilvánosságnak) nem kommunikálsz; amit kifelé szánnál, vázlatként írd meg és kérj "outbound" jóváhagyást.
 - Ha a munkád másik szerep feladata is, hozz létre neki jól körülhatárolt feladatot (create_task). Ne gyárts fölösleges feladatot.
@@ -96,6 +108,7 @@ export async function runAgent(opts: {
     personalData: opts.personalData ?? personalDataAllowed(config, model),
   };
   const tools = toolDefinitions(role, task);
+  const limits = taskLimits(config, task.kind);
   const system = systemPrompt(role, opts.lessons);
   const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: "user", content: taskPrompt(state, task) }];
   let usd = 0;
@@ -115,7 +128,7 @@ export async function runAgent(opts: {
     return { outcome, turns, usd, filesWritten: [...ctx.filesWritten], sawPersonalData };
   };
 
-  while (turns < config.maxTurnsPerTask + (wrapUp ? 1 : 0)) {
+  while (turns < limits.turns + (wrapUp ? 1 : 0)) {
     if (opts.remainingUsd() <= 0) return finish("budget");
     turns++;
     const res = await client.create({ model, effort: config.effort[role.tier], system, messages, tools });
@@ -143,7 +156,7 @@ export async function runAgent(opts: {
       if (c.name === "read_email" && !r.isError) sawPersonalData = true;
       return { type: "tool_result", tool_use_id: c.id, content: r.content, is_error: r.isError };
     });
-    if (!wrapUp && usd >= config.taskBudgetUsd && !ctx.finished) {
+    if (!wrapUp && usd >= limits.usd && !ctx.finished) {
       // Feladatkeret: ne fusson el egy feladat a napi keretből, inkább zárja le, amit eddig elkészített.
       wrapUp = true;
       messages.push({ role: "user", content: [...results, { type: "text", text: "Elérted a feladatra szánt keretet. Ne olvass többet: mentsd write_file-lal, amit eddig elkészítettél, a fájl végére írd fel röviden a hátralévő teendőket, és állj meg. Ha a feladat ténylegesen kész, zárd le complete_task-kal; ha nem, ne zárd le és ne jelöld elakadtnak, a következő munkanapon innen folytatod." }] });

@@ -56,9 +56,11 @@ export const settingsPatch = z
         monthlyUsd: usd(100_000).nullable(),
         runUsd: usd(10_000).nullable(),
         taskUsd: usd(1_000).nullable(),
+        codeTaskUsd: usd(1_000).nullable(),
         chatUsd: usd(1_000).nullable(),
         maxTasksPerRun: z.number().int().min(1).max(50).nullable(),
         maxTurnsPerTask: z.number().int().min(1).max(40).nullable(),
+        maxTurnsPerCodeTask: z.number().int().min(1).max(60).nullable(),
       })
       .partial()
       .strict(),
@@ -96,7 +98,7 @@ export interface Settings {
   models?: { strategic?: string; lead?: string; worker?: string; bulk?: string; inbox?: string; roles?: Record<string, string> };
   effort?: { lead?: Effort; worker?: Effort; bulk?: Effort };
   personalDataProviders?: ProviderId[];
-  budget?: { monthlyUsd?: number; runUsd?: number; taskUsd?: number; chatUsd?: number; maxTasksPerRun?: number; maxTurnsPerTask?: number };
+  budget?: { monthlyUsd?: number; runUsd?: number; taskUsd?: number; codeTaskUsd?: number; chatUsd?: number; maxTasksPerRun?: number; maxTurnsPerTask?: number; maxTurnsPerCodeTask?: number };
   /** Munkarend budapesti idő szerint: napok (1 = hétfő … 7 = vasárnap) és órák, amikor munkanap indul. */
   schedule?: { days?: number[]; hours?: number[] };
   /** Szünet: ütemezett munkanap és levélfeldolgozás nem fut (kézzel indítva igen). */
