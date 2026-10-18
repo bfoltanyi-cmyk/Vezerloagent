@@ -2110,6 +2110,13 @@
       "department": "core",
       "kind": "info",
       "text": "Beállítások módosítva: belső verseny."
+    },
+    {
+      "at": "2026-10-18T22:43:50.766Z",
+      "actor": "owner",
+      "department": "core",
+      "kind": "info",
+      "text": "Beállítások módosítva: szünet."
     }
   ],
   "ledger": [

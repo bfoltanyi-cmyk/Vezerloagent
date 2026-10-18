@@ -1,10 +1,11 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-17T10:52:14.483Z",
-  "issue": 10,
+  "updatedAt": "2026-10-18T22:43:50.766Z",
+  "issue": 13,
   "settings": {
     "arena": {
       "enabled": false
-    }
+    },
+    "paused": true
   }
 }
