@@ -287,6 +287,30 @@ button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:tra
 .set-bar .acts{display:flex;gap:8px;flex-wrap:wrap}
 .secret{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .secret input{flex:1 1 200px}
+/* Projektek */
+.proj{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:900px){.proj{grid-template-columns:minmax(0,1fr)}}
+.proj .br{display:block}
+.proj p.lead{margin:0 0 14px;color:var(--ink-2);font-size:13px}
+.pj-msg{grid-column:1/-1;font-size:13px;margin:0}
+.pj-msg.ok{color:var(--ok)}
+.pj-msg.err{color:var(--red)}
+.pj-msg[hidden]{display:none}
+.pj-list{display:flex;flex-direction:column;gap:12px}
+.pj{border:1px solid var(--holo-3);background:rgba(6,22,38,.5);padding:12px 14px;min-width:0}
+.pj-h{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.pj-h b{font-size:15px;color:var(--ink)}
+.pj-h small{font-family:var(--f-mono);font-size:11px;color:var(--ink-3)}
+.pj p{margin:6px 0 0;font-size:13px;color:var(--ink-2);overflow-wrap:anywhere}
+.pj-bar{height:6px;background:rgba(111,243,255,.08);margin:10px 0 4px;overflow:hidden}
+.pj-bar i{display:block;height:100%;background:var(--ok);box-shadow:0 0 10px var(--ok)}
+.pj-meta{display:flex;gap:6px 14px;flex-wrap:wrap;font-family:var(--f-mono);font-size:11px;color:var(--ink-3)}
+.pj ul{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 10px}
+.pj li{display:contents;font-size:12px;color:var(--ink-2)}
+.pj li span{font-family:var(--f-mono);font-size:11px;color:var(--ink-3);white-space:nowrap}
+.pj li em{font-style:normal;min-width:0;overflow-wrap:anywhere}
+.pj li.done em{color:var(--ink-3)}
+.pj .chip{margin-top:10px;cursor:pointer;background:none;display:inline-block}
 /* Aréna */
 .arena{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start}
 .arena>.wide{grid-column:1/-1}
@@ -537,6 +561,7 @@ button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:tra
 
   <nav class="tabs" role="tablist" aria-label="Nézetek">
     <button type="button" role="tab" id="tab-main" aria-controls="view-main" aria-selected="true">Vezérlőterem</button>
+    <button type="button" role="tab" id="tab-proj" aria-controls="view-proj" aria-selected="false">Projektek <b id="proj-count"></b></button>
     <button type="button" role="tab" id="tab-out" aria-controls="view-out" aria-selected="false">Eredmények <b id="out-count"></b></button>
     <button type="button" role="tab" id="tab-rel" aria-controls="view-rel" aria-selected="false">Kész szoftverek <b id="rel-count"></b></button>
     <button type="button" role="tab" id="tab-mail" aria-controls="view-mail" aria-selected="false">Posta <b id="mail-count"></b></button>
@@ -655,6 +680,32 @@ button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:tra
       <section class="panel out-view">
         <div class="panel-h"><h2 id="mail-title">Válassz egy levelet</h2><span class="label" id="mail-meta"></span></div>
         <div class="panel-b"><div class="mail-d" id="mail-d"><p class="out-empty">Bal oldalt a cég postafiókjába érkezett levelek vannak. A rendszer mindegyikből kiszedi a lényeget: ki írt, mit kér, határidő, összegek, teendők, és ha kell, feladatot ad a megfelelő részlegnek.</p></div></div>
+      </section>
+    </div>
+  </section>
+
+  <section class="view" id="view-proj" role="tabpanel" aria-labelledby="tab-proj" hidden>
+    <div class="proj">
+      <section class="panel">
+        <div class="panel-h"><h2>Új projekt</h2><span class="label">a vezérigazgatónak</span></div>
+        <div class="panel-b br">
+          <p class="lead">Írd le, mi a feladat és mikor tekinted késznek. A vezérigazgató a következő munkanapon feladatokra bontja a részlegek között, és ha valami nem egyértelmű, megkérdez (a Rád vár listában).</p>
+          <form id="pj-form" novalidate>
+            <label class="wide">Projekt neve<input id="pj-name" required maxlength="120" placeholder="pl. Webshop-integráció"></label>
+            <label class="wide">Mi a feladat? Mit kell csinálni?<textarea id="pj-goal" rows="7" maxlength="8000" required placeholder="Minél konkrétabban: mi a cél, kinek készül, mit kell tudnia, mi a háttér. Pl. Az ERP számlázása kapcsolódjon a Shoprenter webshophoz: minden új rendelésből automatikusan számla legyen, és a készlet is csökkenjen."></textarea></label>
+            <label class="wide">Mikor kész? Mit vársz el a végén? (nem kötelező)<textarea id="pj-done" rows="3" maxlength="4000" placeholder="pl. Egy próbarendelésből NAV-kompatibilis számla lesz, a készlet csökken, és van hozzá rövid útmutató."></textarea></label>
+            <label class="wide">Megkötések (nem kötelező)<textarea id="pj-cons" rows="2" maxlength="4000" placeholder="pl. csak magyar nyelvű felület, ne kerüljön pénzbe külső szolgáltatás"></textarea></label>
+            <label>Felelős részleg<select id="pj-dep"><option value="">A vezérigazgató dönti el</option></select></label>
+            <label>Prioritás<select id="pj-prio"><option value="1">Sürgős</option><option value="2" selected>Normál</option><option value="3">Ráér</option></select></label>
+            <label>Határidő (nem kötelező)<input id="pj-due" type="date"></label>
+            <div class="acts"><button type="submit" class="btn yes" id="pj-send">Projekt kiadása</button></div>
+            <p class="pj-msg" id="pj-msg" role="status" hidden></p>
+          </form>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-h"><h2>Projektek</h2><span class="label" id="pj-sum"></span></div>
+        <div class="panel-b"><div class="pj-list" id="pj-list"><p class="empty">Betöltés…</p></div></div>
       </section>
     </div>
   </section>
@@ -1018,7 +1069,7 @@ async function openFile(p) {
 }
 $("out-filter").addEventListener("input", () => outFiles && renderOutList());
 function showTab(which) {
-  const views = { main: "view-main", out: "view-out", rel: "view-rel", mail: "view-mail", arena: "view-arena", set: "view-set" };
+  const views = { main: "view-main", proj: "view-proj", out: "view-out", rel: "view-rel", mail: "view-mail", arena: "view-arena", set: "view-set" };
   for (const [k, v] of Object.entries(views)) { $(v).hidden = k !== which; $(`tab-${k}`).setAttribute("aria-selected", String(k === which)); }
   $("view-dept").hidden = true;
   const tb = $(`tab-${which}`), bar = tb.parentElement; if (bar.scrollWidth > bar.clientWidth) bar.scrollLeft = tb.offsetLeft - bar.offsetLeft - 16;
@@ -1027,6 +1078,7 @@ function showTab(which) {
   else if (which === "mail") { loadMail(); history.replaceState(null, "", "#posta"); }
   else if (which === "set") { loadSettings(); history.replaceState(null, "", "#beallitasok"); }
   else if (which === "arena") { loadArenaView(); history.replaceState(null, "", "#arena"); }
+  else if (which === "proj") { loadProjects(); history.replaceState(null, "", "#projektek"); }
   else { history.replaceState(null, "", location.pathname + location.search); dispatchEvent(new Event("resize")); }
 }
 $("tab-main").onclick = () => showTab("main");
@@ -1037,6 +1089,8 @@ if (location.hash === "#kesz-szoftverek") setTimeout(() => showTab("rel"));
 $("tab-mail").onclick = () => showTab("mail");
 $("tab-set").onclick = () => showTab("set");
 $("tab-arena").onclick = () => showTab("arena");
+$("tab-proj").onclick = () => showTab("proj");
+if (location.hash === "#projektek") setTimeout(() => showTab("proj"));
 if (location.hash === "#arena") setTimeout(() => showTab("arena"));
 if (location.hash === "#beallitasok") setTimeout(() => showTab("set"));
 
@@ -2097,6 +2151,96 @@ async function loadBrands() {
     card.append(t); box.append(card);
   }
 }
+
+// ── Projektek: a tulajdonos új projektjei és az állásuk ──
+// Az űrlap egy jelölt issue-t küld; a Döntés munkafolyamat projektlapot készít a docs/projektek/
+// alá, és indító feladatot ad a vezérigazgatónak. A projekt feladatai a „project” mezőjükről
+// ismerhetők fel, így itt látszik, hol tart.
+const PJ_MARKER = "<!-- alicya-projekt -->";
+const PJ_PRIO = { 1: "sürgős", 2: "normál", 3: "ráér" };
+let pjData = null;
+for (const d of org.departments) { const o = el("option", null, d.name); o.value = d.id; $("pj-dep").append(o); }
+const pjMsg = (text, kind) => { const m = $("pj-msg"); m.textContent = text; m.className = `pj-msg ${kind}`; m.hidden = !text; };
+$("pj-form").onsubmit = async (e) => {
+  e.preventDefault();
+  const v = (id) => $(id).value.trim();
+  const req = { nev: v("pj-name"), cel: v("pj-goal"), eredmeny: v("pj-done"), megkotesek: v("pj-cons"), reszleg: $("pj-dep").value, prioritas: Number($("pj-prio").value), hatarido: $("pj-due").value };
+  if (req.nev.length < 3) { pjMsg("Adj a projektnek nevet (legalább 3 karakter).", "err"); $("pj-name").focus(); return; }
+  if (req.cel.length < 10) { pjMsg("Írd le, mi a feladat (legalább egy mondat).", "err"); $("pj-goal").focus(); return; }
+  const title = `Új projekt: ${req.nev}`;
+  const body = `${PJ_MARKER}\n<!-- A vezérlőterem Projektek fülén kiadott projekt. A blokk alá még írhatsz kiegészítést vagy csatolhatsz fájlt; aztán Create / Submit. -->\n\n\`\`\`json\n${JSON.stringify(req, null, 2)}\n\`\`\`\n`;
+  $("pj-send").disabled = true;
+  try {
+    if (ghTok() && M.repo) {
+      try {
+        const is = await ghRepo("/issues", { method: "POST", body: JSON.stringify({ title, body }) });
+        pjMsg(`Elküldve (#${is.number}). Pár percen belül megjelenik a listában, és a következő munkanapon a vezérigazgató feladatokra bontja.`, "ok");
+        $("pj-form").reset(); watchProjects();
+        return;
+      } catch { /* token nélkül: a GitHub-űrlapon küldi el */ }
+    }
+    const url = `${M.repoUrl}/issues/new?${new URLSearchParams({ title, body })}`;
+    if (url.length > 7800) { pjMsg("A leírás túl hosszú a GitHub-űrlaphoz. Rövidítsd itt, a részleteket pedig a megnyíló GitHub-oldalon írd a blokk alá.", "err"); return; }
+    window.open(url, "_blank", "noopener");
+    pjMsg("Megnyitottam a GitHubon: kattints a Create / Submit gombra. Pár percen belül megjelenik a listában.", "ok");
+    watchProjects();
+  } finally { $("pj-send").disabled = false; }
+};
+async function loadProjects(force) {
+  if (pjData && !force) return renderProjects();
+  pjData = (await live("state/projects.json")) || { projects: [] };
+  renderProjects();
+}
+/** Pár percig figyeli, hogy a rendszer rögzítette-e az új projektet. */
+async function watchProjects() {
+  const before = (pjData && pjData.projects.length) || 0;
+  for (let i = 0; i < 40; i++) {
+    await new Promise((r) => setTimeout(r, 15000));
+    const f = await live("state/projects.json").catch(() => null);
+    if (f && f.projects.length > before) { pjData = f; renderProjects(); return; }
+  }
+}
+function openDoc(p) {
+  history.replaceState(null, "", `#eredmenyek/${encodeURIComponent(p)}`);
+  showTab("out");
+  if (outFiles && outFiles.some((f) => f.path === p)) openFile(p);
+}
+function renderProjects() {
+  const box = $("pj-list"); box.replaceChildren();
+  const list = [...(pjData.projects || [])].reverse();
+  $("proj-count").textContent = list.length ? String(list.length) : "";
+  const open = list.filter((p) => { const ts = S.tasks.filter((t) => t.project === p.id); return !ts.length || ts.some((t) => t.status !== "done"); }).length;
+  $("pj-sum").textContent = list.length ? `${open} folyamatban · ${list.length} összesen` : "";
+  if (!list.length) { box.append(el("p", "empty", "Még nincs projekt. Bal oldalt adhatsz ki egyet.")); return; }
+  for (const p of list) {
+    const ts = S.tasks.filter((t) => t.project === p.id && !t.reviewOf);
+    const reviews = S.tasks.filter((t) => t.project === p.id && t.reviewOf);
+    const done = ts.filter((t) => t.status === "done").length;
+    const waiting = S.gates.filter((g) => g.status === "pending" && ts.some((t) => t.id === g.taskId)).length;
+    const c = el("article", "pj");
+    const h = el("div", "pj-h"); h.append(el("b", null, p.title), el("small", null, `${p.id} · ${PJ_PRIO[p.priority] || ""}${p.deadline ? ` · határidő ${p.deadline}` : ""}`));
+    c.append(h, el("p", null, p.goal.length > 260 ? `${p.goal.slice(0, 260)}…` : p.goal));
+    const bar = el("div", "pj-bar"); const fill = el("i"); fill.style.width = `${ts.length ? Math.round((done / ts.length) * 100) : 0}%`; bar.append(fill); c.append(bar);
+    const meta = el("div", "pj-meta");
+    const kick = S.tasks.find((t) => t.id === p.kickoff);
+    const phase = !kick || kick.status === "todo" ? "a következő munkanapon indul" : kick.status !== "done" ? "a vezérigazgató tervezi" : done === ts.length ? "kész" : "folyamatban";
+    meta.append(el("span", null, phase), el("span", null, `${done}/${ts.length} feladat kész`));
+    if (reviews.length) meta.append(el("span", null, `${reviews.filter((t) => t.status === "done").length}/${reviews.length} átvizsgálás`));
+    if (waiting) meta.append(el("span", null, `${waiting} döntés rád vár`));
+    meta.append(el("span", null, `kiadva ${fmt(p.createdAt)}`));
+    c.append(meta);
+    if (ts.length) {
+      const ul = el("ul");
+      for (const t of ts.slice(0, 12)) { const li = el("li", t.status === "done" ? "done" : null); li.append(el("span", null, `${t.id} · ${ST[t.status]}`), el("em", null, `${t.title} · ${(roleBy[t.assignee] || {}).name || t.assignee}`)); ul.append(li); }
+      if (ts.length > 12) { const li = el("li"); li.append(el("span", null, "…"), el("em", null, `és még ${ts.length - 12} feladat`)); ul.append(li); }
+      c.append(ul);
+    }
+    const doc = el("button", "chip", "Projektlap megnyitása"); doc.type = "button"; doc.onclick = () => openDoc(p.doc); c.append(doc);
+    box.append(c);
+  }
+}
+// Darabszám a fülön, a lap megnyitása nélkül is.
+live("state/projects.json").then((f) => { if (f && f.projects && f.projects.length) { pjData = pjData || f; $("proj-count").textContent = String(f.projects.length); } }).catch(() => {});
 
 // ── Holografikus HUD ──
 const cv = $("hud"), cx = cv.getContext("2d");

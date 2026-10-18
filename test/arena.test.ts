@@ -8,7 +8,7 @@ import { systemPrompt, type AgentRun } from "../src/agent.js";
 import { arenaSpentThisMonth } from "../src/budget.js";
 import { createTask, emptyState } from "../src/board.js";
 import { loadConfig } from "../src/config.js";
-import { applyResult, ArenaSession, cleanLesson, duelEligible, emptyArena, lessonsFor, loadArena, mergeLessons, pickChallenger, pickJudges, type Duel } from "../src/arena.js";
+import { applyResult, ArenaSession, cleanLesson, duelEligible, emptyArena, lessonsFor, loadArena, mergeLessons, parseVerdict, pickChallenger, pickJudges, type Duel } from "../src/arena.js";
 import type { ModelClient, ModelRequest } from "../src/llm.js";
 import { applySettings } from "../src/settings.js";
 import { saveState, loadState } from "../src/state.js";
@@ -282,5 +282,34 @@ describe("aréna munkamenet", () => {
     expect(a.duels).toHaveLength(0);
     expect(a.lessons).toHaveLength(0);
     expect(fs.existsSync(path.join(root, "state/arena/D-0001"))).toBe(false);
+  });
+
+  it("a bíró túl hosszú vagy hiányos válaszát megengedően értelmezi, és egyszer újrakéri", async () => {
+    const s10 = { teljesseg: "8", helyesseg: 7.6, szabalyok: 9, hasznossag: 12 };
+    const r = parseVerdict({ jobb: "Egyenlő", pont_1: s10, pont_2: s10, indoklas: "x".repeat(2000), tanulsagok: [{ szoveg: "y".repeat(400), tipus: ["doc", "rossz"] }, { szoveg: "rövid" }], megerositett: ["L-001", "rossz"] });
+    expect("verdict" in r && r.verdict).toMatchObject({ jobb: "egyenlo", pont_1: { teljesseg: 8, helyesseg: 8, hasznossag: 10 }, megerositett: ["L-001"] });
+    expect("verdict" in r && r.verdict.indoklas.length).toBe(900);
+    expect("verdict" in r && r.verdict.tanulsagok).toEqual([{ szoveg: "y".repeat(220), tipus: ["doc"] }]);
+    expect(parseVerdict({ jobb: "3", pont_1: s10, pont_2: s10 })).toHaveProperty("error");
+
+    // Az első bírói válasz csak szöveg: egyszer újrakérjük, a második már rögzíti a döntést.
+    const { root, config } = setup();
+    const inner = new Fake("claude-sonnet-5-5");
+    const seen = new Set<string>();
+    const client: ModelClient = {
+      create: (q) => {
+        const key = String(q.messages[0]!.content).slice(-200);
+        if (q.system.includes("bírája") && q.messages.length === 1 && !seen.has(key)) {
+          seen.add(key);
+          return Promise.resolve(msg(q.model, [{ type: "text", text: "Szerintem a második jobb." }], "end_turn"));
+        }
+        return inner.create({ ...q, messages: q.system.includes("bírája") ? [q.messages[0]!] : q.messages });
+      },
+    };
+    await workday({ config, client, now: new Date() });
+    const a = loadArena(root);
+    expect(a.duels).toHaveLength(1);
+    expect(a.duels[0]!.winner).toBe("b");
+    expect(loadState(root).ledger.filter((e) => e.role === "arena-judge")).toHaveLength(4);
   });
 });

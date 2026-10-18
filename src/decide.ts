@@ -10,6 +10,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { decideGate, logEvent, setDepartmentEnabled } from "./board.js";
 import { sweepBrandingIssues } from "./branding.js";
+import { sweepProjectIssues } from "./projects.js";
 import { sweepSettingsIssues } from "./settings.js";
 import { gitCheckpoint } from "./checkpoint.js";
 import { GUIDANCE_FILE } from "./ceo-chat.js";
@@ -189,6 +190,8 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
     ["beállítás", () => sweepSettingsIssues(s, root, gh, owner, settingsCloses)],
     // Márkázási kérések logóval.
     ["márkázás", () => sweepBrandingIssues(s, root, gh, owner)],
+    // A Projektek fülről kiadott új projektek; az issue csak sikeres mentés után zárul.
+    ["projekt", () => sweepProjectIssues(s, root, gh, owner, settingsCloses)],
   ];
   for (const [name, sweep] of sweeps) {
     try {
