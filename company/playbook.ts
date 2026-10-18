@@ -127,6 +127,7 @@ export interface Duty {
 /** Szerepenként a munka bemenete, kimenete és továbbadása. */
 export const DUTIES: Record<string, Duty> = {
   ceo: { inputs: "feladattábla, napi jelentés, tulajdonosi iránymutatás, függő kapuk", outputs: "docs/core/napi-terv-<dátum>.md, új feladatok a fázisok tulajdonosainak", handoff: "részlegvezetők; a tulajdonosnak a jelentésíró összegez" },
+  kaizen: { inputs: "a nap átvizsgálói visszadobásai, elutasított kapuk, elakadt és keretet túllépő feladatok", outputs: "tanulságok a szerepeknek (state/learning.json), motorfejlesztési feladat", handoff: "tech lead (motorfejlesztés)" },
   coo: { inputs: "feladattábla", outputs: "függőségek rendezése, elakadt jegyek átadása, docs/core/ops.md", handoff: "vezérigazgató" },
   reporter: { inputs: "a nap eseményei és lezárt feladatai", outputs: "docs/core/jelentes-<dátum>.md: mi készült, mi vár a tulajdonosra, költség", handoff: "tulajdonos" },
   "market-researcher": { inputs: "célpiacok, versenytársak", outputs: "docs/product/market.md és országonkénti kiegészítések", handoff: "termékmenedzser, árazási elemző" },

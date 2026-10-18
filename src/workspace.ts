@@ -12,7 +12,7 @@ const MAX_SOURCES = 5000;
 export class Workspace {
   constructor(readonly root: string) {}
 
-  private allowedRoots(access: Access, mode: "read" | "write"): string[] {
+  protected allowedRoots(access: Access, mode: "read" | "write"): string[] {
     if (mode === "read") return ["docs", "product", "branding"];
     if (access === "code") return ["docs", "product"];
     if (access === "design") return ["docs", "branding"];

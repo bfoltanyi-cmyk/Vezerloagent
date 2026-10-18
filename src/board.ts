@@ -38,6 +38,7 @@ export interface NewTask {
   dependsOn?: string[];
   reviewOf?: string;
   project?: string;
+  engine?: boolean;
 }
 
 export function createTask(s: CompanyState, input: NewTask, by: string, now = new Date()): Task {
@@ -62,6 +63,7 @@ export function createTask(s: CompanyState, input: NewTask, by: string, now = ne
     dependsOn: input.dependsOn ?? [],
     reviewOf: input.reviewOf,
     ...(input.project ? { project: input.project } : {}),
+    ...(input.engine ? { engine: true } : {}),
     createdBy: by,
     createdAt: iso(now),
     updatedAt: iso(now),

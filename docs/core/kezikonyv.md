@@ -63,6 +63,7 @@ Stratégia, prioritások, erőforrás-elosztás és napi jelentés a tulajdonosn
 |---|---|---|---|---|
 | Vezérigazgató | Célokat és prioritásokat állítasz, feladatokat osztasz ki a részlegeknek, feloldod a blokkolókat. | feladattábla, napi jelentés, tulajdonosi iránymutatás, függő kapuk | docs/core/napi-terv-<dátum>.md, új feladatok a fázisok tulajdonosainak | részlegvezetők; a tulajdonosnak a jelentésíró összegez |
 | Operációs vezető | Rendben tartod a feladattáblát: határidők, függőségek, elakadt jegyek. | feladattábla | függőségek rendezése, elakadt jegyek átadása, docs/core/ops.md | vezérigazgató |
+| Fejlődési vezető | A cég hibáiból és visszajelzéseiből tanulságokat szűrsz le minden szerepnek, és javaslatot teszel a cég saját működésének (a motornak) a javítására. | a nap átvizsgálói visszadobásai, elutasított kapuk, elakadt és keretet túllépő feladatok | tanulságok a szerepeknek (state/learning.json), motorfejlesztési feladat | tech lead (motorfejlesztés) |
 | Jelentésíró | Egyoldalas napi jelentést írsz a tulajdonosnak magyarul: mi történt, mi vár rá. | a nap eseményei és lezárt feladatai | docs/core/jelentes-<dátum>.md: mi készült, mi vár a tulajdonosra, költség | tulajdonos |
 
 ## Termék & kutatás

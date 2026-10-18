@@ -28,6 +28,10 @@ export interface Task {
   gateId?: string;
   /** A tulajdonos projektje, amelyhez a feladat tartozik (P-001). */
   project?: string;
+  /** Motorfejlesztés: a cég a saját működését (src/, company/, dashboard/) javítja; a változás a state/motor/<id>/ alá kerül. */
+  engine?: boolean;
+  /** A motorfejlesztés átadása: a pull request (vagy issue) címe a main ágra. */
+  enginePr?: string;
   createdBy: string;
   createdAt: string;
   updatedAt: string;

@@ -566,6 +566,7 @@ button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:tra
     <button type="button" role="tab" id="tab-rel" aria-controls="view-rel" aria-selected="false">Kész szoftverek <b id="rel-count"></b></button>
     <button type="button" role="tab" id="tab-mail" aria-controls="view-mail" aria-selected="false">Posta <b id="mail-count"></b></button>
     <button type="button" role="tab" id="tab-arena" aria-controls="view-arena" aria-selected="false">Aréna <b id="arena-count"></b></button>
+    <button type="button" role="tab" id="tab-grow" aria-controls="view-grow" aria-selected="false">Fejlődés <b id="grow-count"></b></button>
     <button type="button" role="tab" id="tab-set" aria-controls="view-set" aria-selected="false">Beállítások <b id="set-count"></b></button>
   </nav>
 
@@ -715,6 +716,14 @@ button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:tra
     <div class="set-bar" id="arena-bar" hidden>
       <span id="arena-bar-t"></span>
       <div class="acts"><button type="button" class="btn ask" id="arena-reset">Elvetés</button><button type="button" class="btn yes" id="arena-save">Mentés</button></div>
+    </div>
+  </section>
+
+  <section class="view" id="view-grow" role="tabpanel" aria-labelledby="tab-grow" hidden>
+    <div class="arena" id="grow-root"><p class="empty">Betöltés…</p></div>
+    <div class="set-bar" id="grow-bar" hidden>
+      <span id="grow-bar-t"></span>
+      <div class="acts"><button type="button" class="btn ask" id="grow-reset">Elvetés</button><button type="button" class="btn yes" id="grow-save">Mentés</button></div>
     </div>
   </section>
 
@@ -1069,7 +1078,7 @@ async function openFile(p) {
 }
 $("out-filter").addEventListener("input", () => outFiles && renderOutList());
 function showTab(which) {
-  const views = { main: "view-main", proj: "view-proj", out: "view-out", rel: "view-rel", mail: "view-mail", arena: "view-arena", set: "view-set" };
+  const views = { main: "view-main", proj: "view-proj", out: "view-out", rel: "view-rel", mail: "view-mail", arena: "view-arena", grow: "view-grow", set: "view-set" };
   for (const [k, v] of Object.entries(views)) { $(v).hidden = k !== which; $(`tab-${k}`).setAttribute("aria-selected", String(k === which)); }
   $("view-dept").hidden = true;
   const tb = $(`tab-${which}`), bar = tb.parentElement; if (bar.scrollWidth > bar.clientWidth) bar.scrollLeft = tb.offsetLeft - bar.offsetLeft - 16;
@@ -1078,6 +1087,7 @@ function showTab(which) {
   else if (which === "mail") { loadMail(); history.replaceState(null, "", "#posta"); }
   else if (which === "set") { loadSettings(); history.replaceState(null, "", "#beallitasok"); }
   else if (which === "arena") { loadArenaView(); history.replaceState(null, "", "#arena"); }
+  else if (which === "grow") { loadGrowth(); history.replaceState(null, "", "#fejlodes"); }
   else if (which === "proj") { loadProjects(); history.replaceState(null, "", "#projektek"); }
   else { history.replaceState(null, "", location.pathname + location.search); dispatchEvent(new Event("resize")); }
 }
@@ -1089,6 +1099,8 @@ if (location.hash === "#kesz-szoftverek") setTimeout(() => showTab("rel"));
 $("tab-mail").onclick = () => showTab("mail");
 $("tab-set").onclick = () => showTab("set");
 $("tab-arena").onclick = () => showTab("arena");
+$("tab-grow").onclick = () => showTab("grow");
+if (location.hash === "#fejlodes") setTimeout(() => showTab("grow"));
 $("tab-proj").onclick = () => showTab("proj");
 if (location.hash === "#projektek") setTimeout(() => showTab("proj"));
 if (location.hash === "#arena") setTimeout(() => showTab("arena"));
@@ -1563,7 +1575,7 @@ async function watchSettings(issue) {
 // ── Aréna: az AI-motorok belső versenye ──
 // A munkanap néhány feladatot egy másik motorral is megoldat (árnyékban), egy bíró vakon összeveti őket.
 // Ez a nézet a state/arena.json-t mutatja: rangsor, ajánlás szintenként, párbajok, tanulságok.
-const KIND_HU = { doc: "dokumentum", code: "kód", plan: "terv", all: "minden" };
+const KIND_HU = { doc: "dokumentum", code: "kód", plan: "terv", review: "átvizsgálás", all: "minden" };
 const CRIT_HU = { teljesseg: "teljesség", helyesseg: "helyesség", szabalyok: "szabályok", hasznossag: "hasznosság" };
 let arData = null, arSet = null, arDisabled = null, arOrigDisabled = null, arApproved = null, arOrigApproved = null, arShown = 12;
 /** Egy tanulság magától aktív, ha két különböző feladaton is igazolódott (a motor szabálya szerint). */
@@ -1789,6 +1801,111 @@ $("arena-save").onclick = async () => {
     setTimeout(() => { delete $("arena-bar").dataset.msg; arenaChanged(); }, 20000);
   } finally { $("arena-save").disabled = false; }
 };
+// ── Fejlődés: tanulás a saját munkából és önfejlesztés ──
+// A state/learning.json a napi visszatekintés eredménye; a motorfejlesztések a feladattáblából jönnek.
+const STATUS_HU = { todo: "teendő", in_progress: "folyamatban", review: "átvizsgálás", awaiting_approval: "jóváhagyásra vár", blocked: "elakadt", done: "kész" };
+let grData = null, grTasks = null, grSet = null, grOrig = null, grForm = null;
+async function loadGrowth() {
+  const [l, st, c] = await Promise.all([live("state/learning.json"), live("state/settings.json"), live("state/company.json")]);
+  grData = l || { lessons: [], retros: [] };
+  grTasks = ((c && c.tasks) || S.tasks || []);
+  grSet = (st && st.settings) || {};
+  grOrig = { learning: (grSet.learning || {}).enabled ?? true, selfdev: (grSet.selfdev || {}).enabled ?? true, disabled: [...((grSet.learning || {}).disabled || [])].sort() };
+  if (!grForm) grForm = { ...grOrig, disabled: new Set(grOrig.disabled) };
+  renderGrowth();
+  $("grow-root").setAttribute("aria-busy", "false");
+}
+function renderGrowth() {
+  const root = $("grow-root"); root.replaceChildren();
+  const active = grData.lessons.filter((x) => !x.retired);
+  const engine = grTasks.filter((t) => t.engine);
+  $("grow-count").textContent = active.length ? String(active.length) : "";
+
+  const [ov, ovb] = panel("Önfejlesztő cég", "tanulás és motorfejlesztés", "wide");
+  ovb.append(el("p", "lead", "Minden munkanap végén a fejlődési vezető átnézi, mi ment rosszul (átvizsgálói visszadobás, elutasított jóváhagyás, elakadás, piros teszt, kifogyott keret), és ebből tanulságot ír az érintett szerepeknek; ezeket a következő munkanaptól megkapják. Ha a hiba a cég működésében van, motorfejlesztést ad ki: az agentek a saját motorjukat javítják, átvizsgálják, és a változás pull requestként hozzád kerül. A main ágra csak a te beolvasztásoddal jut."));
+  const stats = el("div", "ar-stats");
+  const stat = (v, t) => { const b = el("div", "ar-stat"); b.append(el("b", null, v), el("small", null, t)); stats.append(b); };
+  stat(String(active.length), "aktív tanulság");
+  stat(String(grData.retros.length), "visszatekintés");
+  stat(String(engine.filter((t) => t.status !== "done").length), "motorfejlesztés folyamatban");
+  stat(String(engine.filter((t) => t.enginePr && t.enginePr !== "-").length), "átadva neked");
+  ovb.append(stats);
+  const rows = el("div", "set-rows");
+  rows.append(row("Tanulás", "napi visszatekintés és tanulságok az agenteknek", switchBtn(grForm.learning, (v) => (v ? "BEKAPCSOLVA" : "KIKAPCSOLVA"), (v) => { grForm.learning = v; growChanged(); })));
+  rows.append(row("Önfejlesztés", "az agentek a saját motorjukat is javíthatják (pull requestként)", switchBtn(grForm.selfdev, (v) => (v ? "BEKAPCSOLVA" : "KIKAPCSOLVA"), (v) => { grForm.selfdev = v; growChanged(); })));
+  ovb.append(rows);
+  root.append(ov);
+
+  const [en, enb] = panel("Motorfejlesztések", engine.length ? `${engine.length} db` : "");
+  if (!engine.length) enb.append(el("p", "empty", "Még nincs. A fejlődési vezető vagy egy vezető adja ki, ha a cég működésében talál hibát."));
+  const list = el("div", "lessons");
+  for (const t of [...engine].reverse()) {
+    const r = el("div", "lesson");
+    const d = el("div"); d.append(el("p", null, t.title), el("small", null, `${t.id} · ${(roleBy[t.assignee] || {}).name || t.assignee} · ${STATUS_HU[t.status] || t.status} · ${fmt(t.updatedAt)}`));
+    r.append(d);
+    if (t.enginePr && t.enginePr !== "-") { const a = el("a", "btn ask", "Átnézés"); a.href = t.enginePr; a.target = "_blank"; a.rel = "noopener"; r.append(a); }
+    else r.append(el("span"));
+    list.append(r);
+  }
+  enb.append(list);
+  root.append(en);
+
+  const [rt, rtb] = panel("Visszatekintések", "legutóbbiak");
+  if (!grData.retros.length) rtb.append(el("p", "empty", "Az első visszatekintés az első olyan munkanap végén lesz, amikor valami nem sikerült."));
+  const rl = el("div", "lessons");
+  for (const x of [...grData.retros].reverse().slice(0, 8)) {
+    const r = el("div", "lesson"); const d = el("div");
+    d.append(el("p", null, x.summary), el("small", null, `${fmt(x.at)} · ${x.signals} jelzés · ${x.added.length} új, ${x.confirmed.length} megerősített, ${x.retired.length} visszavont tanulság${x.engineTask ? ` · motorfejlesztés: ${x.engineTask}` : ""} · $${(x.usd || 0).toFixed(3)}`));
+    r.append(d, el("span")); rl.append(r);
+  }
+  rtb.append(rl);
+  root.append(rt);
+
+  const [ls, lsb] = panel("Tanulságok a saját munkánkból", "a szerepek megkapják", "wide");
+  lsb.append(el("p", "lead", "Minden agent a saját szerepéhez, részlegéhez és feladattípusához illő, legtöbbször megerősített hat tanulságot kapja. Ami nem tetszik, kapcsold ki."));
+  if (!active.length) lsb.append(el("p", "empty", "Még nincs tanulság."));
+  const box = el("div", "lessons");
+  const scope = (x) => [x.role && ((roleBy[x.role] || {}).name || x.role), x.department && ((depBy[x.department] || {}).name || x.department), x.kind && (KIND_HU[x.kind] || x.kind)].filter(Boolean).join(" · ") || "mindenki";
+  for (const x of [...active].sort((a, b) => b.confirmations - a.confirmations || b.lastAt.localeCompare(a.lastAt))) {
+    const on = !grForm.disabled.has(x.id);
+    const r = el("div", `lesson${on ? "" : " off"}`);
+    const d = el("div"); d.append(el("p", null, x.text), el("small", null, `${x.id} · ${scope(x)} · ${x.confirmations}× megerősítve · ${x.evidence.join(", ")}`));
+    r.append(d, switchBtn(on, (v) => (v ? "AKTÍV" : "KIKAPCSOLVA"), (v) => { if (v) grForm.disabled.delete(x.id); else grForm.disabled.add(x.id); r.classList.toggle("off", !v); growChanged(); }));
+    box.append(r);
+  }
+  lsb.append(box);
+  root.append(ls);
+  growChanged();
+}
+function growPatch() {
+  const p = {};
+  const off = [...grForm.disabled].sort();
+  if (grForm.learning !== grOrig.learning || JSON.stringify(off) !== JSON.stringify(grOrig.disabled)) p.learning = { enabled: grForm.learning, disabled: off.length ? off : null };
+  if (grForm.selfdev !== grOrig.selfdev) p.selfdev = { enabled: grForm.selfdev };
+  return p;
+}
+function growChanged() {
+  const changed = Object.keys(growPatch()).length > 0;
+  const bar = $("grow-bar");
+  bar.hidden = !changed && !bar.dataset.msg;
+  $("grow-bar-t").textContent = bar.dataset.msg || "A módosítás mentésre vár.";
+  $("grow-save").hidden = $("grow-reset").hidden = !changed;
+}
+$("grow-reset").onclick = () => { grForm = { ...grOrig, disabled: new Set(grOrig.disabled) }; delete $("grow-bar").dataset.msg; renderGrowth(); };
+$("grow-save").onclick = async () => {
+  const patch = growPatch();
+  if (!Object.keys(patch).length) return;
+  $("grow-save").disabled = true;
+  try {
+    const r = await submitSettings(patch, "Fejlődés");
+    $("grow-bar").dataset.msg = r.msg;
+    grOrig = { learning: grForm.learning, selfdev: grForm.selfdev, disabled: [...grForm.disabled].sort() };
+    growChanged();
+    setTimeout(() => { delete $("grow-bar").dataset.msg; growChanged(); }, 20000);
+  } finally { $("grow-save").disabled = false; }
+};
+live("state/learning.json").then((l) => { const n = l && l.lessons ? l.lessons.filter((x) => !x.retired).length : 0; if (n) $("grow-count").textContent = String(n); }).catch(() => {});
+
 // Szünet jelzése a felső sávban.
 live("state/settings.json").then((f) => { if (f && f.settings && f.settings.paused) { $("state").textContent = "SZÜNETEL"; $("state").classList.remove("busy"); $("state").classList.add("off"); } }).catch(() => {});
 

@@ -38,6 +38,10 @@ export interface Config {
   personalDataProviders: ProviderId[];
   /** Belső verseny (Aréna): a kihívó ugyanazt a feladatot árnyékban megoldja, egy bíró összeveti. */
   arena: { enabled: boolean; duelsPerRun: number; monthlyUsd: number; contestants: string[]; judge?: string; disabledLessons: string[]; approvedLessons: string[] };
+  /** Tanulás a saját munkából (napi visszatekintés) és a kikapcsolt tanulságok. */
+  learning: { enabled: boolean; disabled: string[] };
+  /** Önfejlesztés: motorfejlesztési feladatok és pull requestek a main ágra. */
+  selfdev: { enabled: boolean };
   /** Mely szolgáltatókhoz van kulcs (a belső verseny csak ezek modelljeit hívja). */
   availableProviders: ProviderId[];
   /** Hiányzó API-kulcsok az agentek modelljeihez; ha van ilyen, a cég nem dolgozik (dryRun). */
@@ -129,6 +133,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, rootDir = proce
       disabledLessons: st.arena?.disabledLessons ?? [],
       approvedLessons: st.arena?.approvedLessons ?? [],
     },
+    learning: { enabled: st.learning?.enabled ?? true, disabled: st.learning?.disabled ?? [] },
+    selfdev: { enabled: st.selfdev?.enabled ?? true },
     rootDir,
     dryRun: env.DRY_RUN === "1" || missingKeys.length > 0,
   };

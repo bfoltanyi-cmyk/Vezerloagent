@@ -53,6 +53,7 @@ export const ROLES: Role[] = [
   // Core
   r("ceo", "Vezérigazgató", "core", "lead", "docs", "Célokat és prioritásokat állítasz, feladatokat osztasz ki a részlegeknek, feloldod a blokkolókat."),
   r("coo", "Operációs vezető", "core", "worker", "docs", "Rendben tartod a feladattáblát: határidők, függőségek, elakadt jegyek."),
+  r("kaizen", "Fejlődési vezető", "core", "lead", "docs", "A cég hibáiból és visszajelzéseiből tanulságokat szűrsz le minden szerepnek, és javaslatot teszel a cég saját működésének (a motornak) a javítására."),
   r("reporter", "Jelentésíró", "core", "worker", "docs", "Egyoldalas napi jelentést írsz a tulajdonosnak magyarul: mi történt, mi vár rá."),
 
   // Termék

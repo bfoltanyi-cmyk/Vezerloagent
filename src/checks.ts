@@ -62,7 +62,7 @@ export function projectOf(projects: string[], rel: string): string | undefined {
 }
 
 export interface StepResult {
-  step: CheckStep;
+  step: CheckStep | "generate";
   status: "ok" | "fail" | "skipped";
   note?: string;
   output?: string;
@@ -73,7 +73,19 @@ export interface ChecksResult {
   project: string;
   ok: boolean;
   steps: StepResult[];
+  /** A generáló lépés által előállított fájlok tartalma (pl. a motor kézikönyve). */
+  generated?: { rel: string; content: string }[];
 }
+
+/** Ellenőrzés előtti generálás: rögzített parancsok, és a fájlok, amelyeket előállítanak. */
+export interface Generate {
+  cmds: string[][];
+  outputs: string[];
+}
+
+const GEN_MARK = "@@ALICYA-GENERATED@@";
+// A generált fájlokat a homokozott folyamat írja ki a kimenetére: a futtató semmit nem olvas a munkakönyvtárból.
+const COLLECT_SCRIPT = `const fs=require("fs"),p=require("path");const o={};for(const r of process.argv.slice(1)){try{const a=p.join(process.cwd(),r);const st=fs.lstatSync(a);if(st.isFile()&&st.size<400000)o[r]=fs.readFileSync(a,"utf8")}catch{}}process.stdout.write("\\n${GEN_MARK}"+JSON.stringify(o));`;
 
 const ANSI = /\x1b\[[0-9;?]*[ -/]*[@-~]/g;
 const tail = (s: string, n = OUTPUT_TAIL) => {
@@ -157,7 +169,7 @@ function readPkg(dir: string): { scripts: Record<string, string>; deps: number }
 }
 
 /** Lefuttatja a kért lépéseket egy projekten. A telepítés csak akkor fut újra, ha a függőségek változtak. */
-export function runChecks(ws: Workspace, access: Access, project: string, steps?: readonly CheckStep[], env: NodeJS.ProcessEnv = process.env): ChecksResult {
+export function runChecks(ws: Workspace, access: Access, project: string, steps?: readonly CheckStep[], env: NodeJS.ProcessEnv = process.env, generate?: Generate): ChecksResult {
   const mode = checksMode(env);
   if (mode === "off") throw new Error("A kódellenőrzés itt nem érhető el.");
   if (spentMs >= totalLimitMs(env)) throw new Error("Ebben a munkanapban elfogyott a kódellenőrzésre szánt idő.");
@@ -181,7 +193,7 @@ export function runChecks(ws: Workspace, access: Access, project: string, steps?
   }
   const want = new Set(steps ?? CHECK_STEPS);
   const results: StepResult[] = [];
-  const run = (step: CheckStep, cmd: string[], network = false): StepResult => {
+  const run = (step: StepResult["step"], cmd: string[], network = false): StepResult => {
     const t0 = Date.now();
     const { code, out } = exec(r, dir, cmd, network);
     const ms = Date.now() - t0;
@@ -209,6 +221,28 @@ export function runChecks(ws: Workspace, access: Access, project: string, steps?
     }
   }
 
+  let generated: ChecksResult["generated"];
+  if (generate) {
+    for (const cmd of generate.cmds) {
+      const g = run("generate", cmd);
+      if (g.status === "fail") {
+        results.push(g);
+        return { project, ok: false, steps: results };
+      }
+    }
+    const { code, out } = exec(r, dir, ["node", "-e", COLLECT_SCRIPT, ...generate.outputs], false);
+    const at = out.lastIndexOf(GEN_MARK);
+    try {
+      if (code !== 0 || at < 0) throw new Error("nincs kimenet");
+      const files = JSON.parse(out.slice(at + GEN_MARK.length).trim().split("\n")[0]!) as Record<string, unknown>;
+      generated = generate.outputs.flatMap((rel) => (typeof files[rel] === "string" ? [{ rel, content: files[rel] as string }] : []));
+      results.push({ step: "generate", status: "ok", note: generated.map((g) => g.rel).join(", "), ms: 0 });
+    } catch {
+      results.push({ step: "generate", status: "fail", note: "a generált fájlok nem olvashatók", output: tail(out, 1500), ms: 0 });
+      return { project, ok: false, steps: results };
+    }
+  }
+
   if (want.has("typecheck")) {
     if (pkg.scripts.typecheck) results.push(run("typecheck", ["npm", "run", "--silent", "typecheck"]));
     else if (tsconfig) results.push(run("typecheck", ["npx", "--no-install", "tsc", "--noEmit", "-p", "tsconfig.json"]));
@@ -220,7 +254,7 @@ export function runChecks(ws: Workspace, access: Access, project: string, steps?
   if (want.has("test")) {
     results.push(pkg.scripts.test ? run("test", ["npm", "test", "--silent"]) : { step: "test", status: "skipped", note: "nincs test szkript", ms: 0 });
   }
-  return { project, ok: results.every((s) => s.status !== "fail"), steps: results };
+  return { project, ok: results.every((s) => s.status !== "fail"), steps: results, generated };
 }
 
 const ICON = { ok: "✓", fail: "✗", skipped: "–" } as const;
