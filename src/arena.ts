@@ -153,7 +153,7 @@ export function lessonsFor(a: Arena, kind: TaskKind, disabled: string[] = [], ap
 
 /** Versenyezhet-e a feladat: dokumentum, kód vagy terv, ügyféllevél (személyes adat) nélkül. */
 export function duelEligible(task: Task): boolean {
-  return DUEL_KINDS.includes(task.kind) && !task.reviewOf && !/\bE-\d{3,}\b/.test(`${task.title}\n${task.description}`);
+  return DUEL_KINDS.includes(task.kind) && !task.reviewOf && !task.engine && !/\bE-\d{3,}\b/.test(`${task.title}\n${task.description}`);
 }
 
 const TIERS: CatalogTier[] = ["strategic", "lead", "worker", "bulk"];

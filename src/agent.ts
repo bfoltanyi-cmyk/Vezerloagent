@@ -7,6 +7,7 @@ import { checksAvailable } from "./checks.js";
 import { record } from "./budget.js";
 import { modelFor, personalDataAllowed, taskLimits, type Config } from "./config.js";
 import type { ModelClient } from "./llm.js";
+import { EngineWorkspace } from "./selfdev.js";
 import { runTool, toolDefinitions, type ToolContext } from "./tools.js";
 import type { CompanyState, Task } from "./types.js";
 import type { Workspace } from "./workspace.js";
@@ -41,7 +42,23 @@ function codeRules(role: Role): string {
 - A kódellenőrzés (run_checks) itt nem érhető el; a teszteket gondosan írd meg, az átvizsgálók elolvassák őket.`;
 }
 
-export function systemPrompt(role: Role, lessons: string[] = []): string {
+/** A saját munkánk tanulságai (napi visszatekintés); ezek a szerephez szabottak. */
+function experienceSection(experience: string[]): string {
+  if (!experience.length) return "";
+  return `
+
+# Tanulságok a saját munkánkból
+A fejlődési vezető a korábbi munkanapok hibáiból (átvizsgálói visszadobás, elutasított jóváhagyás, elakadás) szűrte le ezeket neked. Kövesd őket; ha ütköznek a munkaszabályokkal, azok az erősebbek.
+${experience.map((l) => `- ${l}`).join("\n")}`;
+}
+
+/** Vezetőknek: a cég saját működésének javítása. */
+const selfdevRule = (role: Role, selfdev: boolean) =>
+  selfdev && role.tier === "lead"
+    ? "\n- Ha a cég működésében (eszköz, szabály, keret, folyamat) látsz visszatérő hibát, adj ki motorfejlesztési feladatot (create_task, motor: true) egy kódszerepnek, jellemzően a tech leadnek; a változás pull requestként a tulajdonoshoz kerül."
+    : "";
+
+export function systemPrompt(role: Role, lessons: string[] = [], experience: string[] = [], selfdev = false): string {
   const dep = departmentById(role.department)!;
   return `${companyIntro()}
 Alapértelmezett technológia: NestJS + PostgreSQL + React, moduláris monolit, Docker alapú telepítő; a termék architektúrája felülírhatja.
@@ -54,7 +71,7 @@ Munkaszabályok:
 - Egyszerre egy feladaton dolgozol; amit kapsz, azt fejezd be ebben a körben, ha lehet.
 - Dokumentumokat magyarul írsz Markdownban a docs/<részleg>/ alá. A kód és a kódkommentek angolul készülnek a product/ alá.
 - Mielőtt írsz, nézd meg a meglévőt, és építs rá; ne írj felül más munkáját indok nélkül. A kódot így olvasd: code_map (a terület térképe: fájlok, exportok, végpontok, táblák), search_code (hol van definiálva vagy használva valami), aztán read_file csak arra, ami kell.
-- Kódot csak tesztekkel együtt adj le. Titkot, jelszót, API-kulcsot soha ne írj fájlba.${codeRules(role)}
+- Kódot csak tesztekkel együtt adj le. Titkot, jelszót, API-kulcsot soha ne írj fájlba.${codeRules(role)}${selfdevRule(role, selfdev)}
 - Piacaink: ${marketNames()}; először az aktív piacon. Ha a munkád személyes adatot érint, előbb nézd meg a vonatkozó szabályokat a privacy_lookup eszközzel, és kövesd a "Teendő nálunk" pontokat.
 - Kifelé (ügyfélnek, nyilvánosságnak) nem kommunikálsz; amit kifelé szánnál, vázlatként írd meg és kérj "outbound" jóváhagyást.
 - Ha a munkád másik szerep feladata is, hozz létre neki jól körülhatárolt feladatot (create_task). Ne gyárts fölösleges feladatot.
@@ -62,7 +79,7 @@ Munkaszabályok:
 - Légy tömör: a fájlokba írd a részleteket, az összefoglalóba csak a lényeget.
 
 # Kézikönyv
-${playbookFor(role)}${lessonsSection(lessons)}`;
+${playbookFor(role)}${experienceSection(experience)}${lessonsSection(lessons)}`;
 }
 
 function taskPrompt(s: CompanyState, task: Task): string {
@@ -94,6 +111,10 @@ export async function runAgent(opts: {
   personalData?: boolean;
   /** A belső versenyek tanulságai ehhez a feladattípushoz. */
   lessons?: string[];
+  /** A saját munkánk tanulságai ehhez a szerephez és feladattípushoz. */
+  experience?: string[];
+  /** Kiadhat-e motorfejlesztést (Beállítások → Önfejlesztés). */
+  selfdev?: boolean;
 }): Promise<AgentRun> {
   const { state, role, task, client, config } = opts;
   const model = opts.model ?? modelFor(config, role);
@@ -106,10 +127,11 @@ export async function runAgent(opts: {
     finished: false,
     filesWritten: new Set(),
     personalData: opts.personalData ?? personalDataAllowed(config, model),
+    selfdev: opts.selfdev ?? config.selfdev.enabled,
   };
-  const tools = toolDefinitions(role, task);
+  const tools = toolDefinitions(role, task, undefined, opts.workspace instanceof EngineWorkspace);
   const limits = taskLimits(config, task.kind);
-  const system = systemPrompt(role, opts.lessons);
+  const system = systemPrompt(role, opts.lessons, opts.experience, ctx.selfdev);
   const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: "user", content: taskPrompt(state, task) }];
   let usd = 0;
   let nudged = false;

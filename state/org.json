@@ -73,6 +73,14 @@
       "mission": "Rendben tartod a feladattáblát: határidők, függőségek, elakadt jegyek."
     },
     {
+      "id": "kaizen",
+      "name": "Fejlődési vezető",
+      "department": "core",
+      "tier": "lead",
+      "access": "docs",
+      "mission": "A cég hibáiból és visszajelzéseiből tanulságokat szűrsz le minden szerepnek, és javaslatot teszel a cég saját működésének (a motornak) a javítására."
+    },
+    {
       "id": "reporter",
       "name": "Jelentésíró",
       "department": "core",

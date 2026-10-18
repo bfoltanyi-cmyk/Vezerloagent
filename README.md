@@ -132,6 +132,17 @@ A vezérlőterem **Aréna** lapján látszik, melyik AI-motor dolgozik a legjobb
 
 Az eredmény a `state/arena.json` fájlban, a két megoldás pillanatképe a `state/arena/<párbaj>/` alatt van (a legutóbbi 40 párbajé).
 
+## Fejlődés fül: tanulás és önfejlesztés
+
+**Tanulás.** Minden munkanap végén a fejlődési vezető (új szerep a Core részlegben) átnézi a nap jelzéseit: mit dobott vissza egy átvizsgáló, mit utasítottál el, mi akadt el, hol maradt piros a teszt, és mi nem fért bele a keretbe. Ebből rövid tanulságokat ír egy-egy szerepnek, részlegnek vagy feladattípusnak, bizonyítékkal (feladatazonosítókkal), és a meglévőket megerősíti vagy visszavonja. A következő munkanaptól minden agent a hozzá illő, legtöbbször megerősített hat tanulságot kapja a rendszerpromptjában. Ha nem volt jelzés, nincs modellhívás. A tanulságok a `state/learning.json`-ban vannak; a Fejlődés fülön egyenként kikapcsolhatók.
+
+**Önfejlesztés.** Ha egy hiba a cég működéséből fakad (hiányzó eszköz, rossz szabály, szűk keret), a fejlődési vezető vagy bármelyik vezető motorfejlesztési feladatot ad ki egy kódszerepnek (jellemzően a tech leadnek). Ez a feladat a valódi motort olvassa (`src/`, `company/`, `test/`, `dashboard/`), de amit ír, az csak javaslat a `state/motor/<feladat>/` alatt, a futó cég nem változik. A `show_changes` mutatja a diffet, a `run_checks` (`path: "motor"`) a motor típusellenőrzését és teljes tesztkészletét futtatja a homokozóban, és a kézikönyvet meg az adatvédelmi összefoglalót is újragenerálja. Csak zölden zárható, utána a kódellenőr és az appsec is átnézi. Ha mindketten jóváhagyták, a munkanap a változást háromutas összefésüléssel egy `alicya/motor-<feladat>` ágra teszi a mostani main fölé, és pull requestet nyit. **A main ágra csak akkor kerül, ha beolvasztod.** Ha a main közben ugyanott változott, a feladat az ütközésjelekkel visszamegy a fejlesztőhöz.
+
+- A munkafolyamatokhoz (`.github/`), a függőségekhez (`package.json`) és a `scripts/`-hez az agentek nem nyúlhatnak.
+- Ha a repóban nincs engedélyezve, hogy a GitHub Actions pull requestet nyisson (Settings → Actions → General → „Allow GitHub Actions to create and approve pull requests”), a munkanap egy issue-t nyit a kész összehasonlító linkkel; onnan egy kattintás a pull request.
+- A GitHub Actions által feltöltött ágon a CI magától nem indul; a motor tesztjei a homokozóban már zölden futottak, beolvasztás előtt kézzel is elindíthatod az ágon (Actions → CI → Run workflow), a beolvasztás után pedig a main ágon magától lefut.
+- Kikapcsolás: Fejlődés fül → Tanulás / Önfejlesztés.
+
 ## Modellek
 
 Alapbeállítás (a Beállítások fülön módosítható):

@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Az agentek motorfejlesztési ágán kézzel indítható (az Actions által feltöltött ágon magától nem fut).
+  workflow_dispatch:
 
 permissions:
   contents: read

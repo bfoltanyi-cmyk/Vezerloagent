@@ -17,6 +17,8 @@ import { sweepBrandingIssues } from "./branding.js";
 import { sweepProjectIssues } from "./projects.js";
 import { sweepSettingsIssues } from "./settings.js";
 import { ArenaSession } from "./arena.js";
+import { lessonsForRole, loadLearning, retrospective } from "./learning.js";
+import { deliverEngineChanges, engineTaskOf, EngineWorkspace, ensureEngineBase, type DeliveryResult } from "./selfdev.js";
 import type { ModelClient } from "./llm.js";
 import { MultiClient, ProviderAccountError, providerKey, providerOf, type ProviderId } from "./providers.js";
 import { loadState, saveState } from "./state.js";
@@ -30,7 +32,15 @@ export interface WorkdayResult {
   files: string[];
 }
 
-export async function workday(opts: { config: Config; client?: ModelClient; gh?: Gh; now?: Date; checkpoint?: Checkpoint }): Promise<WorkdayResult> {
+export async function workday(opts: {
+  config: Config;
+  client?: ModelClient;
+  gh?: Gh;
+  now?: Date;
+  checkpoint?: Checkpoint;
+  /** Az átvizsgált motorfejlesztések átadása pull requestként (csak a GitHubon). */
+  deliver?: (s: CompanyState) => DeliveryResult[];
+}): Promise<WorkdayResult> {
   const { config } = opts;
   const now = opts.now ?? new Date();
   const startIso = now.toISOString();
@@ -89,6 +99,13 @@ export async function workday(opts: { config: Config; client?: ModelClient; gh?:
     }
   }
 
+  if (opts.deliver && config.selfdev.enabled) {
+    try {
+      opts.deliver(s);
+    } catch (e) {
+      logEvent(s, { actor: "system", department: "system", kind: "warn", text: `A motorfejlesztések átadása nem sikerült: ${e instanceof Error ? e.message.split("\n")[0] : String(e)}` });
+    }
+  }
   if (opts.gh) openIssues(s, opts.gh);
   s.meta.runs++;
   s.meta.lastRun = startIso;
@@ -121,6 +138,7 @@ async function work(s: CompanyState, config: Config, client: ModelClient, startI
 
   const deadProviders = new Set<ProviderId>();
   const arena = new ArenaSession(s, config, client, workspace);
+  const learning = loadLearning(config.rootDir);
   for (let i = 0; i < config.maxTasksPerRun; i++) {
     if (remainingUsd() <= 0) {
       logEvent(s, { actor: "controller", department: "finance", kind: "warn", text: "A munkanap költségkerete elfogyott." });
@@ -129,6 +147,8 @@ async function work(s: CompanyState, config: Config, client: ModelClient, startI
     // Akinek a szolgáltatójánál rossz a kulcs vagy elfogyott az egyenleg, azt ma kihagyjuk; a többiek dolgoznak.
     const task = runnableTasks(s, s.tasks.length).find((t) => {
       const r = roleById(t.assignee);
+      // Kikapcsolt önfejlesztésnél a motorfejlesztés és annak átvizsgálása vár.
+      if (!config.selfdev.enabled && engineTaskOf(s, t)) return false;
       return !r || !deadProviders.has(providerOf(modelFor(config, r)));
     });
     if (!task) break;
@@ -140,7 +160,12 @@ async function work(s: CompanyState, config: Config, client: ModelClient, startI
     // Belső verseny: egy másik modell előbb árnyékban megoldja ugyanezt, aztán a bíró összeveti a kettőt.
     const duel = await arena.challenge(role, task, modelFor(config, role), remainingUsd, createdThisRun);
     try {
-      const run = await runAgent({ state: s, role, task, client, config, workspace, createdThisRun, remainingUsd, lessons: arena.lessons(task.kind) });
+      // Motorfejlesztésnél (és annak átvizsgálásánál) a javasolt motort látja, és oda ír.
+      const engineId = engineTaskOf(s, task);
+      if (engineId) ensureEngineBase(config.rootDir, engineId);
+      const ws = engineId ? new EngineWorkspace(config.rootDir, engineId) : workspace;
+      const experience = config.learning.enabled ? lessonsForRole(learning, role, task.kind, config.learning.disabled) : [];
+      const run = await runAgent({ state: s, role, task, client, config, workspace: ws, createdThisRun, remainingUsd, lessons: arena.lessons(task.kind), experience });
       result.tasksRun++;
       run.filesWritten.forEach((f) => files.add(f));
       if (duel) {
@@ -159,8 +184,29 @@ async function work(s: CompanyState, config: Config, client: ModelClient, startI
       else if (e instanceof ProviderAccountError) deadProviders.add(e.provider);
     }
   }
+  // Napi visszatekintés: a mai hibákból tanulságok, és ha a motorban van a hiba, motorfejlesztés.
+  if (config.learning.enabled) {
+    try {
+      await retrospective({ state: s, config, client, since: startIso, remainingUsd });
+    } catch (e) {
+      logEvent(s, { actor: "kaizen", department: "core", kind: "warn", text: `A napi visszatekintés nem sikerült: ${(e instanceof Error ? e.message : String(e)).slice(0, 200)}` });
+    }
+  }
   result.usd = spentSince(s, startIso);
   result.files = [...files].sort();
+}
+
+/** A nap tanulsága és a motorfejlesztések a jelentésbe. */
+function growthLines(root: string, s: CompanyState, startIso: string): string[] {
+  const r = loadLearning(root).retros.filter((x) => x.at >= startIso).at(-1);
+  const waiting = s.tasks.filter((t) => t.engine && t.enginePr && t.enginePr !== "-" && t.updatedAt >= startIso);
+  if (!r && !waiting.length) return [];
+  return [
+    "## Tanulás és önfejlesztés",
+    ...(r ? [`- ${r.summary}`, `- ${r.added.length} új, ${r.confirmed.length} megerősített, ${r.retired.length} visszavont tanulság${r.engineTask ? `; motorfejlesztés: ${r.engineTask}` : ""}.`] : []),
+    ...waiting.map((t) => `- Motorfejlesztés jóváhagyásra vár: ${t.id} ${t.title} (${t.enginePr})`),
+    "",
+  ];
 }
 
 function writeReport(root: string, s: CompanyState, startIso: string, r: WorkdayResult): void {
@@ -183,6 +229,7 @@ function writeReport(root: string, s: CompanyState, startIso: string, r: Workday
     "## Elakadt",
     ...(blocked.length ? blocked.map((t) => `- ${t.id} ${t.title}: ${t.notes.at(-1)?.text ?? ""}`) : ["- Nincs."]),
     "",
+    ...growthLines(root, s, startIso),
     `Tábla: ${b.todo} teendő · ${b.in_progress} folyamatban · ${b.review} átvizsgálás · ${b.awaiting_approval} jóváhagyásra vár · ${b.blocked} elakadt · ${b.done} kész.`,
     `Havi költés: ${spentThisMonth(s, new Date(startIso)).toFixed(2)} USD.`,
     "",
@@ -197,7 +244,9 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   const gh = githubAvailable() ? realGh : undefined;
   const client = config.dryRun ? undefined : new MultiClient();
   const checkpoint = process.env.ALICYA_CHECKPOINT === "1" ? gitCheckpoint(config.rootDir, process.env.WORK_BRANCH || "alicya/munka") : undefined;
-  workday({ config, client, gh, checkpoint })
+  const repo = process.env.GITHUB_REPOSITORY;
+  const deliver = gh && repo && process.env.GITHUB_ACTIONS === "true" ? (s: CompanyState) => deliverEngineChanges(s, config.rootDir, gh, repo) : undefined;
+  workday({ config, client, gh, checkpoint, deliver })
     .then((r) => {
       console.log(JSON.stringify(r, null, 2));
       if (process.env.GITHUB_OUTPUT) {

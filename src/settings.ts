@@ -87,6 +87,14 @@ export const settingsPatch = z
       .partial()
       .strict(),
     departments: z.partialRecord(z.enum(depIds), z.boolean()),
+    learning: z
+      .object({
+        enabled: z.boolean().nullable(),
+        disabled: z.array(z.string().regex(/^S-\d{1,5}$/)).max(500).nullable(),
+      })
+      .partial()
+      .strict(),
+    selfdev: z.object({ enabled: z.boolean().nullable() }).partial().strict(),
   })
   .partial()
   .strict();
@@ -107,6 +115,10 @@ export interface Settings {
   prices?: Record<string, { input: number; output: number; cacheRead?: number }>;
   /** Belső verseny: párbajok munkanaponként, saját havi keret, versenyzők, bíró, kikapcsolt tanulságok. */
   arena?: { enabled?: boolean; duelsPerRun?: number; monthlyUsd?: number; contestants?: string[]; judge?: string; disabledLessons?: string[]; approvedLessons?: string[] };
+  /** Tanulás a saját munkából: a napi visszatekintés tanulságai, és a kikapcsoltak. */
+  learning?: { enabled?: boolean; disabled?: string[] };
+  /** Önfejlesztés: az agentek a cég motorját is javíthatják (pull request a main ágra, a tulajdonos olvasztja be). */
+  selfdev?: { enabled?: boolean };
 }
 
 export interface SettingsFile {
@@ -163,6 +175,8 @@ const LABELS: Record<string, string> = {
   prices: "árak",
   arena: "belső verseny",
   departments: "részlegek",
+  learning: "tanulás",
+  selfdev: "önfejlesztés",
 };
 
 /** A változtatás kinyerése az issue szövegéből (a jelölő utáni JSON-blokk). */
