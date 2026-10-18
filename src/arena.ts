@@ -14,7 +14,7 @@ import { runAgent, type AgentRun } from "./agent.js";
 import { logEvent } from "./board.js";
 import { arenaSpentThisMonth, record } from "./budget.js";
 import { MODEL_CATALOG, type CatalogTier } from "./catalog.js";
-import { personalDataAllowed, type Config } from "./config.js";
+import { personalDataAllowed, taskLimits, type Config } from "./config.js";
 import type { ModelClient } from "./llm.js";
 import { parseModel, ProviderAccountError, type ProviderId } from "./providers.js";
 import type { CompanyState, Task, TaskKind } from "./types.js";
@@ -496,8 +496,9 @@ export class ArenaSession {
     // A napi tervezés minden nap elsőként fut; hogy ne csak az versenyezzen, a párbajoknak legfeljebb harmada lehet terv.
     if (task.kind === "plan" && this.arena.duels.filter((d) => d.kind === "plan").length * 3 > this.arena.duels.length) return undefined;
     // A kihívó nem eheti fel a bajnok és a bíró pénzét: mindkettőnek marad tartalék a munkanap keretéből.
-    const cap = Math.max(MIN_DUEL_USD, this.config.taskBudgetUsd);
-    const incumbentReserve = this.config.taskBudgetUsd * 1.5;
+    const taskUsd = taskLimits(this.config, task.kind).usd;
+    const cap = Math.max(MIN_DUEL_USD, taskUsd);
+    const incumbentReserve = taskUsd * 1.5;
     if (remainingUsd() < cap + incumbentReserve + JUDGE_RESERVE_USD || this.budgetLeft() < cap + JUDGE_RESERVE_USD) return undefined;
     const challenger = pickChallenger(this.arena, this.config, role, incumbent, this.dead);
     if (!challenger) return undefined;

@@ -23,6 +23,9 @@ export interface Config {
   maxTurnsPerTask: number;
   /** Egy feladatra szánt keret USD-ben; elérésekor az agent lezárásra kap utasítást. */
   taskBudgetUsd: number;
+  /** Kódfeladaton több lépés és keret kell: olvasás, írás, ellenőrzés, javítás. */
+  maxTurnsPerCodeTask: number;
+  codeTaskBudgetUsd: number;
   /** Egy vezérigazgatói chatválasz kerete USD-ben. */
   chatBudgetUsd: number;
   /** Szünet: az ütemezett munka és a levélfeldolgozás áll. */
@@ -112,6 +115,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, rootDir = proce
     maxTasksPerRun: st.budget?.maxTasksPerRun ?? num(env.MAX_TASKS_PER_RUN, 6),
     maxTurnsPerTask: st.budget?.maxTurnsPerTask ?? num(env.MAX_TURNS_PER_TASK, 8),
     taskBudgetUsd: st.budget?.taskUsd ?? num(env.TASK_BUDGET_USD, 0.6),
+    maxTurnsPerCodeTask: st.budget?.maxTurnsPerCodeTask ?? num(env.MAX_TURNS_PER_CODE_TASK, 20),
+    codeTaskBudgetUsd: st.budget?.codeTaskUsd ?? num(env.CODE_TASK_BUDGET_USD, 1.2),
     chatBudgetUsd: st.budget?.chatUsd ?? num(env.CHAT_BUDGET_USD, 0.5),
     paused: st.paused === true,
     inbox: { enabled: inboxEnabled, createTasks: st.inbox?.createTasks ?? true },
@@ -135,6 +140,10 @@ export const personalDataAllowed = (config: Config, model: string): boolean => B
 /** Rövid magyar magyarázat, ha hiányzik kulcs. */
 export const missingKeysText = (config: Config, keys = config.missingKeys): string =>
   keys.length ? `Nincs beállítva a(z) ${keys.map((k) => `\`${k}\``).join(", ")} titok a repóban` : "";
+
+/** Egy feladat lépés- és költségkerete (a kódfeladaté nagyobb). */
+export const taskLimits = (config: Config, kind: string): { turns: number; usd: number } =>
+  kind === "code" ? { turns: config.maxTurnsPerCodeTask, usd: config.codeTaskBudgetUsd } : { turns: config.maxTurnsPerTask, usd: config.taskBudgetUsd };
 
 /** Melyik modellen dolgozik egy szerep. */
 export function modelFor(config: Config, role: Role): string {

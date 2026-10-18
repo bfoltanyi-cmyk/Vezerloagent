@@ -1127,7 +1127,7 @@ function setEffective(st) {
     roles: { ...((st.models || {}).roles || {}) },
     effort: { lead: "medium", worker: "medium", bulk: "low", ...(st.effort || {}) },
     personal: [...(st.personalDataProviders || S.meta.personalDataProviders || ["anthropic", "openai"])].sort(),
-    budget: { monthlyUsd: b.monthlyUsd ?? M.monthlyBudgetUsd ?? 50, runUsd: b.runUsd ?? 3, taskUsd: b.taskUsd ?? 0.6, chatUsd: b.chatUsd ?? 0.5, maxTasksPerRun: b.maxTasksPerRun ?? 6, maxTurnsPerTask: b.maxTurnsPerTask ?? 8 },
+    budget: { monthlyUsd: b.monthlyUsd ?? M.monthlyBudgetUsd ?? 50, runUsd: b.runUsd ?? 3, taskUsd: b.taskUsd ?? 0.6, codeTaskUsd: b.codeTaskUsd ?? 1.2, chatUsd: b.chatUsd ?? 0.5, maxTasksPerRun: b.maxTasksPerRun ?? 6, maxTurnsPerTask: b.maxTurnsPerTask ?? 8, maxTurnsPerCodeTask: b.maxTurnsPerCodeTask ?? 20 },
     days: [...((st.schedule || {}).days || [1, 2, 3, 4, 5])].sort((a, c) => a - c),
     hours: [...((st.schedule || {}).hours || [8, 16])].sort((a, c) => a - c),
     paused: st.paused === true,
@@ -1341,9 +1341,11 @@ function renderSettings() {
   num("monthlyUsd", "Havi keret", "elérésekor a cég a hónap végéig pihen", "1", 0, 100000);
   num("runUsd", "Egy munkanap kerete", "egy futás legfeljebb ennyit költhet", "0.5", 0, 10000);
   num("taskUsd", "Egy feladat kerete", "utána az agent lezárja, amit elkészített", "0.1", 0, 1000);
+  num("codeTaskUsd", "Egy kódfeladat kerete", "olvasás, írás, tesztek futtatása és javítás", "0.1", 0, 1000);
   num("chatUsd", "Egy chatválasz kerete", "a vezérigazgatóval folytatott beszélgetés", "0.1", 0, 1000);
   num("maxTasksPerRun", "Feladat munkanaponként", "legfeljebb ennyi feladatot dolgoz fel", "1", 1, 50);
   num("maxTurnsPerTask", "Lépés feladatonként", "ennyi modellhívás egy feladaton", "1", 1, 40);
+  num("maxTurnsPerCodeTask", "Lépés kódfeladatonként", "a kódfeladatnak több lépés kell", "1", 1, 60);
   bsb.append(br);
   root.append(bs);
 

@@ -7,6 +7,7 @@ import type { Access } from "../company/org.js";
 
 const MAX_FILE_BYTES = 200_000;
 const MAX_LIST = 400;
+const MAX_SOURCES = 5000;
 
 export class Workspace {
   constructor(readonly root: string) {}
@@ -61,13 +62,13 @@ export class Workspace {
     fs.writeFileSync(abs, content);
   }
 
-  list(rel: string, access: Access): string[] {
+  list(rel: string, access: Access, max = MAX_LIST): string[] {
     const abs = this.resolve(rel || "docs", access, "read");
     if (!fs.existsSync(abs)) return [];
     const out: string[] = [];
     const walk = (dir: string) => {
       for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-        if (out.length >= MAX_LIST) return;
+        if (out.length >= max) return;
         if (e.name === "node_modules" || e.name === ".git") continue;
         const p = path.join(dir, e.name);
         if (e.isDirectory()) walk(p);
@@ -76,6 +77,27 @@ export class Workspace {
     };
     if (fs.statSync(abs).isDirectory()) walk(abs);
     else out.push(rel);
+    return out;
+  }
+
+  /**
+   * Egy könyvtár összes fájlja a forrásukkal együtt (a kódellenőrzés ebből másolja ki a projektet).
+   * A node_modules, a .git, az .env* fájlok és a szimbolikus linkek kimaradnak.
+   */
+  sources(rel: string, access: Access): { rel: string; abs: string }[] {
+    const abs = this.resolve(rel, access, "read");
+    const out: { rel: string; abs: string }[] = [];
+    if (!fs.existsSync(abs) || !fs.statSync(abs).isDirectory()) return out;
+    const walk = (dir: string) => {
+      for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+        if (out.length >= MAX_SOURCES) throw new Error(`Túl sok fájl a(z) ${rel} alatt (max. ${MAX_SOURCES}).`);
+        if (e.name === "node_modules" || e.name === ".git" || e.name.startsWith(".env") || e.name.startsWith(".alicya")) continue;
+        const p = path.join(dir, e.name);
+        if (e.isDirectory()) walk(p);
+        else if (e.isFile()) out.push({ rel: path.relative(abs, p).split(path.sep).join("/"), abs: p });
+      }
+    };
+    walk(abs);
     return out;
   }
 }
@@ -113,8 +135,8 @@ export class ShadowWorkspace extends Workspace {
     fs.writeFileSync(o, content);
   }
 
-  override list(rel: string, access: Access): string[] {
-    const real = super.list(rel, access);
+  override list(rel: string, access: Access, max = MAX_LIST): string[] {
+    const real = super.list(rel, access, max);
     const abs = this.resolve(rel || "docs", access, "read");
     const o = this.shadowOf(abs);
     const extra: string[] = [];
@@ -127,7 +149,23 @@ export class ShadowWorkspace extends Workspace {
     };
     if (fs.existsSync(o) && fs.statSync(o).isDirectory()) walk(o);
     else if (fs.existsSync(o)) extra.push(path.relative(this.overlay, o).split(path.sep).join("/"));
-    return [...new Set([...real, ...extra])].sort().slice(0, MAX_LIST);
+    return [...new Set([...real, ...extra])].sort().slice(0, max);
+  }
+
+  /** A valódi fájlok, a kihívó által írtakkal felülírva. */
+  override sources(rel: string, access: Access): { rel: string; abs: string }[] {
+    const base = this.resolve(rel, access, "read");
+    const merged = new Map(super.sources(rel, access).map((f) => [f.rel, f.abs]));
+    const o = this.shadowOf(base);
+    const walk = (dir: string) => {
+      for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+        const p = path.join(dir, e.name);
+        if (e.isDirectory()) walk(p);
+        else if (e.isFile()) merged.set(path.relative(o, p).split(path.sep).join("/"), p);
+      }
+    };
+    if (fs.existsSync(o) && fs.statSync(o).isDirectory()) walk(o);
+    return [...merged].map(([r, abs]) => ({ rel: r, abs }));
   }
 
   /** A kihívó által írt fájl tartalma (nem a valódi). */
