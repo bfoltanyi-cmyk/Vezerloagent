@@ -136,13 +136,20 @@ interface Runner {
   user?: string;
 }
 
+/** A GNU timeout (Linuxon mindig van, macOS-en csak coreutils-szal). Nélküle a spawnSync időkorlátja véd. */
+let timeoutCmd: string[] | undefined;
+function stepTimeout(): string[] {
+  timeoutCmd ??= spawnSync("timeout", ["--version"], { stdio: "ignore" }).status === 0 ? ["timeout", "-k", "10", String(STEP_TIMEOUT_S)] : [];
+  return timeoutCmd;
+}
+
 /** Egy rögzített parancs futtatása üres környezettel, időkorláttal; homokozóban más felhasználóként. */
 function exec(r: Runner, dir: string, cmd: string[], network: boolean): { code: number; out: string } {
   const bin = path.dirname(process.execPath);
   const envv = [`PATH=${bin}:/usr/local/bin:/usr/bin:/bin`, `HOME=${path.join(dir, ".home")}`, "CI=1", "NODE_ENV=test", "npm_config_update_notifier=false", "LANG=C.UTF-8"];
   // A telepítés a hálózati beállításokat (proxy, saját tanúsítvány, registry) megkapja, mást nem.
   if (network) for (const k of NET_ENV) if (process.env[k]) envv.push(`${k}=${process.env[k]}`);
-  const inner = ["/usr/bin/env", "-i", ...envv, "/bin/sh", "-c", 'umask 000; exec "$@"', "sh", "timeout", "-k", "10", String(STEP_TIMEOUT_S), ...cmd];
+  const inner = ["/usr/bin/env", "-i", ...envv, "/bin/sh", "-c", 'umask 000; exec "$@"', "sh", ...stepTimeout(), ...cmd];
   let argv: string[];
   if (r.mode === "sandbox") {
     const drop = ["setpriv", `--reuid=${r.user}`, `--regid=${r.user}`, "--init-groups", "--"];
