@@ -14,19 +14,9 @@ import { realGh, type Gh } from "./gates.js";
 import { loadState, saveState } from "./state.js";
 import type { CompanyState, Gate } from "./types.js";
 
-export interface ProductLine {
-  id: string;
-  name: string;
-  match: RegExp;
-}
-
-/** A cég termékvonalai. Ami egyikre sem illik, az az ERP-hez tartozik. */
-export const PRODUCTS: ProductLine[] = [
-  { id: "praxis", name: "Alicya Praxis", match: /praxis|rendel[őo]|eeszt/i },
-  { id: "erp", name: "Alicya ERP", match: /.*/ },
-];
-
-export const productOf = (text: string): ProductLine => PRODUCTS.find((p) => p.match.test(text))!;
+// A termékvonalak a company/portfolio.ts-ben vannak; ami egyikre sem illik, a DEFAULT_PRODUCT-hoz tartozik.
+export { PRODUCTS, productOf, type Product as ProductLine } from "../company/portfolio.js";
+import { productOf } from "../company/portfolio.js";
 
 /** Verziószám a kapu címéből vagy összefoglalójából (pl. "v0.1.0", "0.2"), különben dátum alapú. */
 export function versionOf(g: Gate, now = new Date()): string {

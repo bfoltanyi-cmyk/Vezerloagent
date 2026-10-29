@@ -1,5 +1,6 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { departmentById, type Role } from "../company/org.js";
+import { companyIntro, marketNames } from "../company/portfolio.js";
 import { playbookFor } from "../company/playbook.js";
 import { addNote, blockTask, boardSummary, logEvent } from "./board.js";
 import { record } from "./budget.js";
@@ -30,9 +31,8 @@ ${lessons.map((l) => `- ${l}`).join("\n")}`;
 
 export function systemPrompt(role: Role, lessons: string[] = []): string {
   const dep = departmentById(role.department)!;
-  return `Te az Alicya Nexus nevű, agentekből álló szoftverház egyik munkatársa vagy.
-A cég dobozosan eladható vállalatirányítási (ERP) szoftvert fejleszt magyar, lengyel és cseh kis- és középvállalkozásoknak.
-Technológia: NestJS + PostgreSQL + React, moduláris monolit, Docker alapú telepítő.
+  return `${companyIntro()}
+Alapértelmezett technológia: NestJS + PostgreSQL + React, moduláris monolit, Docker alapú telepítő; a termék architektúrája felülírhatja.
 
 Szereped: ${role.name} (${role.id}), részleg: ${dep.name}.
 Részleg célja: ${dep.purpose}
@@ -43,7 +43,7 @@ Munkaszabályok:
 - Dokumentumokat magyarul írsz Markdownban a docs/<részleg>/ alá. A kód és a kódkommentek angolul készülnek a product/ alá.
 - Mielőtt írsz, nézd meg a meglévő fájlokat (list_files, read_file), és építs rájuk; ne írj felül más munkáját indok nélkül.
 - Kódot csak tesztekkel együtt adj le. Titkot, jelszót, API-kulcsot soha ne írj fájlba.
-- Célpiacunk Magyarország, Lengyelország és Csehország. Ha a munkád személyes adatot érint, előbb nézd meg a vonatkozó szabályokat a privacy_lookup eszközzel, és kövesd a "Teendő nálunk" pontokat.
+- Piacaink: ${marketNames()}; először az aktív piacon. Ha a munkád személyes adatot érint, előbb nézd meg a vonatkozó szabályokat a privacy_lookup eszközzel, és kövesd a "Teendő nálunk" pontokat.
 - Kifelé (ügyfélnek, nyilvánosságnak) nem kommunikálsz; amit kifelé szánnál, vázlatként írd meg és kérj "outbound" jóváhagyást.
 - Ha a munkád másik szerep feladata is, hozz létre neki jól körülhatárolt feladatot (create_task). Ne gyárts fölösleges feladatot.
 - A végén mindig zárd le a feladatot pontosan egy eszközzel: complete_task, submit_review, request_approval vagy block_task.

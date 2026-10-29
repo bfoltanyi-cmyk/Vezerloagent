@@ -548,7 +548,7 @@ button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:tra
   <header class="bar">
     <div class="brand">
       <h1>ALICYA <span>NEXUS</span></h1>
-      <span class="label">Autonóm szoftverház · vezérlőterem</span>
+      <span class="label">Az ACHIEVE-R ügynöksége · vezérlőterem</span>
     </div>
     <div class="chips">
       <span class="chip state" id="state">BETÖLTÉS</span>
@@ -646,7 +646,7 @@ button.chip{font:inherit;font-family:var(--f-mono);font-size:12px;background:tra
       <div class="panel-b br">
         <form id="br-form">
           <label class="wide">Cégnév (így jelenik meg a szoftverben)<input id="br-name" required autocomplete="organization" placeholder="pl. Kovács és Társa Kft."></label>
-          <label>Termék<select id="br-product"><option>Alicya ERP</option><option>Alicya Praxis</option></select></label>
+          <label>Termék<select id="br-product"><option>Alicya ERP</option><option>Alicya Praxis</option><option>ACHIEVE-R HLD</option></select></label>
           <label>Cég színei<span class="colors"><input type="color" id="br-c1" value="#0a3d62" aria-label="Fő szín"><input type="color" id="br-c2" value="#f6b93b" aria-label="Kiemelő szín"></span></label>
           <label class="wide">Kapcsolattartó (nem kötelező)<input id="br-contact" placeholder="név, e-mail"></label>
           <label class="wide">Megjegyzés (nem kötelező)<textarea id="br-note" rows="2" placeholder="pl. a számlaképen is legyen rajta a logó"></textarea></label>
@@ -2030,11 +2030,13 @@ $("dopen").onclick = () => openDept(sel);
 { const m = location.hash.match(/^#reszleg\/(\w+)/); if (m && depBy[m[1]]) openDept(m[1]); }
 
 // ── Kész szoftverek: GitHub Release-ek és a termékvonalak útja a kiadásig ──
+// Tartsd szinkronban a company/portfolio.ts-szel.
 const PRODUCT_LINES = [
+  { id: "hld", name: "ACHIEVE-R HLD", sub: "Lead-generáló SaaS értékesítőknek · él, külön repó", match: /\bhld\b|lead-?gener|piackutat/i },
   { id: "erp", name: "Alicya ERP", sub: "Dobozos ERP KKV-knak · első kiadás: Számla + Készlet Start", match: null },
-  { id: "praxis", name: "Alicya Praxis", sub: "Praxiskezelő magánrendelőknek", match: /praxis|rendel[őo]|eeszt/i },
+  { id: "praxis", name: "Alicya Praxis", sub: "Praxiskezelő magánrendelőknek · ötlet", match: /praxis|rendel[őo]|eeszt/i },
 ];
-const lineOf = (text) => (PRODUCT_LINES[1].match.test(text) ? "praxis" : "erp");
+const lineOf = (text) => (PRODUCT_LINES.find((l) => l.match && l.match.test(text)) || { id: "erp" }).id;
 const STAGES = [
   ["research", "Piackutatás", ["market-researcher", "pricing-analyst"]],
   ["spec", "Specifikáció", ["product-manager", "ux-designer", "legal", "privacy-officer", "privacy-hu", "privacy-pl", "privacy-cz"]],

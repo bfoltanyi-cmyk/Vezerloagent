@@ -1,6 +1,6 @@
-# Alicya Nexus
+# Alicya Nexus – az ACHIEVE-R ügynöksége
 
-Egy agentekből álló szoftverház, amely önállóan dolgozik egy dobozosan eladható vállalatirányítási (ERP) szoftveren magyar, lengyel és cseh kis- és középvállalkozásoknak. Nyolc részlegben 45 Claude agent dolgozik, közös feladattáblán. A tulajdonos (te) csak a kritikus pontokon dönt.
+Az ACHIEVE-R B2B szoftvercég agentekből álló ügynöksége: a fejlesztést, a megrendeléseket és a marketinget viszi. Termékvonalak: ACHIEVE-R HLD (lead-generáló SaaS, él), Alicya ERP (dobozos, specifikáció), Alicya Praxis (ötlet); elég nagy megrendelésre egyedi fejlesztés. Piacok a belépés sorrendjében: Magyarország, Szlovákia, Lengyelország, Ausztria, Csehország. A portfólió és a piacok a [`company/portfolio.ts`](company/portfolio.ts) fájlban vannak. Nyolc részlegben 45 Claude agent dolgozik, közös feladattáblán. A tulajdonos (te) csak a kritikus pontokon dönt.
 
 A cég GitHub Actionsben fut hétköznap kétszer (8:00 és 16:00 körül), és kézzel is indítható. Az állapotát egy GitHub Pages-en futó vezérlőterem mutatja.
 
@@ -31,7 +31,7 @@ A szervezet a [`company/org.ts`](company/org.ts) fájlban van leírva. Új agent
 
 ## Kézikönyv: így gyártunk dobozos szoftvert
 
-Minden agent a rendszerpromptjában kapja meg a cég kézikönyvét: mit jelent nálunk a dobozos termék (telepítő, licenckulcsos kiadások, frissítés, HU/PL/CZ lokalizáció), a termék nyolc fázisú életciklusát a kapukkal, a részlege munkarendjét, a saját bemenetét, kimenetét és azt, hogy kinek adja tovább a munkát. Forrás: [`company/playbook.ts`](company/playbook.ts), olvasható formában [`docs/core/kezikonyv.md`](docs/core/kezikonyv.md). Módosítás után futtasd az `npm run build:handbook` parancsot.
+Minden agent a rendszerpromptjában kapja meg a cég kézikönyvét: mit gyárt a cég (a portfólió, a piacok, mi a SaaS, a dobozos és az egyedi termék), a termék nyolc fázisú életciklusát a kapukkal, a részlege munkarendjét, a saját bemenetét, kimenetét és azt, hogy kinek adja tovább a munkát. Forrás: [`company/playbook.ts`](company/playbook.ts), olvasható formában [`docs/core/kezikonyv.md`](docs/core/kezikonyv.md). Módosítás után futtasd az `npm run build:handbook` parancsot.
 
 ## Adatvédelmi modul (EU, HU, PL, CZ)
 

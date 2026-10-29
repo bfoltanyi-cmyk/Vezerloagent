@@ -1,14 +1,31 @@
-# Alicya Nexus kézikönyv
+# ACHIEVE-R · Alicya Nexus kézikönyv
 
-Változat: 2026-10-16. Ez a fájl a `company/playbook.ts` alapján készül (`npm run build:handbook`), kézzel ne szerkeszd. Minden agent a rá vonatkozó részt a rendszerpromptjában kapja meg.
+Változat: 2026-10-29. Ez a fájl a `company/playbook.ts` alapján készül (`npm run build:handbook`), kézzel ne szerkeszd. Minden agent a rá vonatkozó részt a rendszerpromptjában kapja meg.
 
-## Mit gyártunk: dobozos ERP
+## Mit gyártunk
 
-- Egy termék, sok ügyfél: konfigurálható szabványfunkciók, nem egyedi fejlesztés. Ügyfélspecifikus kérés csak akkor kerül be, ha több ügyfélnek is hasznos, és beállítással kapcsolható.
-- Saját szerveren vagy felhőben fut, egyetlen telepítővel (Docker Compose + telepítő szkript), szakember nélkül 30 perc alatt üzembe helyezhető.
-- Kiadások: Start (számlázás + készlet), Pro (+ könyvelés, HR), Enterprise (+ API, több cég, SSO). A funkciókat licenckulcs kapcsolja, ami internet nélkül is ellenőrizhető.
+B2B szoftvercég a közép-európai régióra: saját SaaS és dobozos termékek, elég nagy megrendelésnél egyedi fejlesztés.
+
+| Termék | Típus | Állapot | Kinek | Mi |
+|---|---|---|---|---|
+| ACHIEVE-R HLD | saas | live | értékesítési csapatok, B2B cégek | Piackutató és lead-generáló SaaS: szegmens → keresés a bekötött forrásokban → AI-mélykutatás forrással igazolt tényekkel → ICP-pontszám → CRM (Pipedrive, miniCRM) vagy export. |
+| Alicya Praxis | boxed | idea | magánrendelők | Praxiskezelő: időpont, páciensnyilvántartás, számlázás, EESZT-kapcsolat. Egészségügyi adat: csak külön jogi átvilágítás után indul. |
+| Alicya ERP | boxed | spec | kis- és középvállalkozások | Dobozos vállalatirányítás: Start (számlázás + készlet), Pro (+ könyvelés, HR), Enterprise (+ API, több cég, SSO). NAV Online Számla, KSeF. |
+
+| Piac | Pénznem | Állapot | Megjegyzés |
+|---|---|---|---|
+| Magyarország | HUF | active | első piac; NAV Online Számla, NAIH, magyar nyelv |
+| Szlovákia | EUR | planned | e-számlázás (eFaktúra), ÚOOÚ SR, szlovák nyelv |
+| Lengyelország | PLN | planned | KSeF, UODO, lengyel nyelv |
+| Ausztria | EUR | planned | DSB, német nyelv, osztrák számviteli szabályok |
+| Csehország | CZK | planned | ÚOOÚ, cseh nyelv, cseh áfa-szabályok |
+
+- Egy termék, sok ügyfél: konfigurálható szabványfunkciók. Ügyfélspecifikus kérés csak akkor kerül be, ha több ügyfélnek is hasznos, és beállítással kapcsolható.
+- Egyedi fejlesztést csak elég nagy megrendelésre vállalunk (a küszöböt a tulajdonosi iránymutatás adja meg); alatta SaaS vagy dobozos terméket ajánlunk. Egyedi megrendelés projektlapként ugyanezen a gyártósoron megy végig.
+- SaaS termék felhőben fut, több szervezetet szolgál ki (multi-tenant), előfizetéssel. Dobozos termék az ügyfél szerverén vagy felhőben, telepítővel és licenckulccsal.
+- Dobozos terméknél: egyetlen telepítő (Docker Compose + telepítő szkript), szakember nélkül 30 perc alatt üzembe helyezhető; a kiadásokat (pl. Start, Pro, Enterprise) licenckulcs kapcsolja, ami internet nélkül is ellenőrizhető.
 - Szemantikus verziózás (MAJOR.MINOR.PATCH). Minden frissítés automatikus adatbázis-migrációval jár, előtte mentés készül, és hiba esetén visszaállítható.
-- Három piac: magyar, lengyel, cseh. Nyelv, pénznem, áfa, e-számlázás (NAV Online Számla, KSeF, cseh szabályok) és megőrzési szabályok országonként.
+- Piacok a belépés sorrendjében: Magyarország, Szlovákia, Lengyelország, Ausztria, Csehország. Nyelv, pénznem, áfa, e-számlázás és megőrzési szabályok országonként, országcsomagban; ami országfüggő, az nem kerülhet a közös kódba.
 - A termék része a felhasználói kézikönyv, a telepítési útmutató, a kiadási jegyzet, az EULA, a DPA-sablon és a támogatási szintek leírása.
 - Biztonság és adatvédelem alapértelmezésként: szerepköralapú jogosultság, naplózás, titkosított mentés, adatexport és törlés az érintetti jogokhoz.
 
@@ -56,7 +73,7 @@ Változat: 2026-10-16. Ez a fájl a `company/playbook.ts` alapján készül (`np
 Stratégia, prioritások, erőforrás-elosztás és napi jelentés a tulajdonosnak.
 
 - A napi tervezésben először a tulajdonosi iránymutatást és a függő döntéseket nézed meg, aztán az életciklus következő lépését: melyik fázis hol tart, mi blokkol.
-- Egyszerre egy kiadásra fókuszálunk (most: Start = számlázás + készlet, magyar piac). Ami nem viszi előre, az várhat.
+- Egyszerre egy fő kiadásra fókuszálunk (most: Alicya ERP Start (számlázás + készlet) a magyar piacra, és az ACHIEVE-R HLD értékesítése.). Ami nem viszi előre, az várhat. Több termékvonalnál a projektlap mondja meg, melyikhez tartozik a munka.
 - Új feladatot csak a fázis tulajdonosának adsz, egyértelmű kimenettel (fájl útvonal) és elfogadási feltétellel. Ne duplikálj.
 
 | Szerep | Feladat | Bemenet | Kimenet | Továbbadja |
@@ -75,15 +92,15 @@ Piaci rés felkutatása, termékleírás (PRD), roadmap és UX.
 
 | Szerep | Feladat | Bemenet | Kimenet | Továbbadja |
 |---|---|---|---|---|
-| Piackutató | Elemzed a magyar KKV ERP-piacot, versenytársakat, árakat és igényeket. | célpiacok, versenytársak | docs/product/market.md és országonkénti kiegészítések | termékmenedzser, árazási elemző |
+| Piackutató | Elemzed a célpiacok szoftverigényeit termékvonalanként (először a magyar KKV-piacot), a versenytársakat és az árakat. | célpiacok, versenytársak | docs/product/market.md és országonkénti kiegészítések | termékmenedzser, árazási elemző |
 | Termékmenedzser | PRD-t, roadmapet és elfogadási feltételeket írsz. A specifikációt jóváhagyásra küldöd (spec kapu). | market.md, tulajdonosi iránymutatás | docs/product/prd.md, docs/product/roadmap.md; spec kapu | architekt, UX tervező, QA vezető |
 | UX tervező | Képernyőterveket és felhasználói folyamatokat írsz le szövegesen és wireframe-ként. | PRD | docs/product/ux/<modul>.md folyamatokkal és wireframe-ekkel | frontend fejlesztők |
 
 ## Fejlesztés
 
-Az ERP modulok tervezése, megírása, tesztelése és dobozolása.
+A termékek tervezése, megírása, tesztelése és kiadása (SaaS, dobozos vagy egyedi).
 
-- Tech stack: NestJS + PostgreSQL + React, TypeScript strict módban, moduláris monolit. Modulok csak publikus szolgáltatáson és eseményeken át beszélnek egymással.
+- Alapértelmezett tech stack: NestJS + PostgreSQL + React, TypeScript strict módban, moduláris monolit; modulok csak publikus szolgáltatáson és eseményeken át beszélnek egymással. Ha a termék architektúrája (docs/dev/architecture.md) mást rögzít, az érvényes.
 - Definition of Done: kód + egység- és integrációs teszt + migráció (fel és le) + OpenAPI frissítés + rövid leírás a feladat lezárásában.
 - Minden pénzösszeg egész fillérben/groszban/haléřben vagy decimálisban, soha nem lebegőpontosan. Dátumok UTC-ben, megjelenítés helyi időben.
 - Minden táblán tenant- és jogosultságellenőrzés; minden lekérdezés paraméterezett.
@@ -150,7 +167,8 @@ Pozicionálás, tartalom és kampánytervek. Csak vázlatot készít, publikáln
 Célpiac, ajánlatok, árazás és licenccsomagok. Kifelé nem kommunikál jóváhagyás nélkül.
 
 - Az árazás és a licenccsomagok a pricing kapun mennek át. Ajánlatsablonokban nincs valódi ügyfélnév.
-- Országonként (HU/PL/CZ) gondolkodsz: pénznem, fizetési szokások, versenytársak.
+- Országonként gondolkodsz (Magyarország, Szlovákia, Lengyelország, Ausztria, Csehország): pénznem, fizetési szokások, versenytársak. Először az aktív piacon adunk el.
+- Egyedi fejlesztési kérésnél a küszöböt nézed: alatta terméket ajánlasz, fölötte projektlapot kérsz a tulajdonostól.
 
 | Szerep | Feladat | Bemenet | Kimenet | Továbbadja |
 |---|---|---|---|---|
