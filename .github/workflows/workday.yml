@@ -85,6 +85,14 @@ jobs:
           cache: npm
       - run: npm ci
 
+      - name: Elszigetelt kódellenőrzés előkészítése
+        run: |
+          # Az agentek kódját (tesztek, lint) külön, jog nélküli felhasználó futtatja: a repó tokenjét
+          # (a checkout a /home/runner alatt tárolja) és a titkokat nem éri el.
+          id alicya-sandbox >/dev/null 2>&1 || sudo useradd --system --create-home --shell /usr/sbin/nologin alicya-sandbox
+          chmod 700 /home/runner
+          echo "ALICYA_SANDBOX_USER=alicya-sandbox" >> "$GITHUB_ENV"
+
       - name: Munkanap
         id: workday
         env:

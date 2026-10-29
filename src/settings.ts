@@ -56,9 +56,11 @@ export const settingsPatch = z
         monthlyUsd: usd(100_000).nullable(),
         runUsd: usd(10_000).nullable(),
         taskUsd: usd(1_000).nullable(),
+        codeTaskUsd: usd(1_000).nullable(),
         chatUsd: usd(1_000).nullable(),
         maxTasksPerRun: z.number().int().min(1).max(50).nullable(),
         maxTurnsPerTask: z.number().int().min(1).max(40).nullable(),
+        maxTurnsPerCodeTask: z.number().int().min(1).max(60).nullable(),
       })
       .partial()
       .strict(),
@@ -85,6 +87,14 @@ export const settingsPatch = z
       .partial()
       .strict(),
     departments: z.partialRecord(z.enum(depIds), z.boolean()),
+    learning: z
+      .object({
+        enabled: z.boolean().nullable(),
+        disabled: z.array(z.string().regex(/^S-\d{1,5}$/)).max(500).nullable(),
+      })
+      .partial()
+      .strict(),
+    selfdev: z.object({ enabled: z.boolean().nullable() }).partial().strict(),
   })
   .partial()
   .strict();
@@ -96,7 +106,7 @@ export interface Settings {
   models?: { strategic?: string; lead?: string; worker?: string; bulk?: string; inbox?: string; roles?: Record<string, string> };
   effort?: { lead?: Effort; worker?: Effort; bulk?: Effort };
   personalDataProviders?: ProviderId[];
-  budget?: { monthlyUsd?: number; runUsd?: number; taskUsd?: number; chatUsd?: number; maxTasksPerRun?: number; maxTurnsPerTask?: number };
+  budget?: { monthlyUsd?: number; runUsd?: number; taskUsd?: number; codeTaskUsd?: number; chatUsd?: number; maxTasksPerRun?: number; maxTurnsPerTask?: number; maxTurnsPerCodeTask?: number };
   /** Munkarend budapesti idő szerint: napok (1 = hétfő … 7 = vasárnap) és órák, amikor munkanap indul. */
   schedule?: { days?: number[]; hours?: number[] };
   /** Szünet: ütemezett munkanap és levélfeldolgozás nem fut (kézzel indítva igen). */
@@ -105,6 +115,10 @@ export interface Settings {
   prices?: Record<string, { input: number; output: number; cacheRead?: number }>;
   /** Belső verseny: párbajok munkanaponként, saját havi keret, versenyzők, bíró, kikapcsolt tanulságok. */
   arena?: { enabled?: boolean; duelsPerRun?: number; monthlyUsd?: number; contestants?: string[]; judge?: string; disabledLessons?: string[]; approvedLessons?: string[] };
+  /** Tanulás a saját munkából: a napi visszatekintés tanulságai, és a kikapcsoltak. */
+  learning?: { enabled?: boolean; disabled?: string[] };
+  /** Önfejlesztés: az agentek a cég motorját is javíthatják (pull request a main ágra, a tulajdonos olvasztja be). */
+  selfdev?: { enabled?: boolean };
 }
 
 export interface SettingsFile {
@@ -161,6 +175,8 @@ const LABELS: Record<string, string> = {
   prices: "árak",
   arena: "belső verseny",
   departments: "részlegek",
+  learning: "tanulás",
+  selfdev: "önfejlesztés",
 };
 
 /** A változtatás kinyerése az issue szövegéből (a jelölő utáni JSON-blokk). */

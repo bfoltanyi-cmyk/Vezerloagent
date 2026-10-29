@@ -132,6 +132,17 @@ A vezérlőterem **Aréna** lapján látszik, melyik AI-motor dolgozik a legjobb
 
 Az eredmény a `state/arena.json` fájlban, a két megoldás pillanatképe a `state/arena/<párbaj>/` alatt van (a legutóbbi 40 párbajé).
 
+## Fejlődés fül: tanulás és önfejlesztés
+
+**Tanulás.** Minden munkanap végén a fejlődési vezető (új szerep a Core részlegben) átnézi a nap jelzéseit: mit dobott vissza egy átvizsgáló, mit utasítottál el, mi akadt el, hol maradt piros a teszt, és mi nem fért bele a keretbe. Ebből rövid tanulságokat ír egy-egy szerepnek, részlegnek vagy feladattípusnak, bizonyítékkal (feladatazonosítókkal), és a meglévőket megerősíti vagy visszavonja. A következő munkanaptól minden agent a hozzá illő, legtöbbször megerősített hat tanulságot kapja a rendszerpromptjában. Ha nem volt jelzés, nincs modellhívás. A tanulságok a `state/learning.json`-ban vannak; a Fejlődés fülön egyenként kikapcsolhatók.
+
+**Önfejlesztés.** Ha egy hiba a cég működéséből fakad (hiányzó eszköz, rossz szabály, szűk keret), a fejlődési vezető vagy bármelyik vezető motorfejlesztési feladatot ad ki egy kódszerepnek (jellemzően a tech leadnek). Ez a feladat a valódi motort olvassa (`src/`, `company/`, `test/`, `dashboard/`), de amit ír, az csak javaslat a `state/motor/<feladat>/` alatt, a futó cég nem változik. A `show_changes` mutatja a diffet, a `run_checks` (`path: "motor"`) a motor típusellenőrzését és teljes tesztkészletét futtatja a homokozóban, és a kézikönyvet meg az adatvédelmi összefoglalót is újragenerálja. Csak zölden zárható, utána a kódellenőr és az appsec is átnézi. Ha mindketten jóváhagyták, a munkanap a változást háromutas összefésüléssel egy `alicya/motor-<feladat>` ágra teszi a mostani main fölé, és pull requestet nyit. **A main ágra csak akkor kerül, ha beolvasztod.** Ha a main közben ugyanott változott, a feladat az ütközésjelekkel visszamegy a fejlesztőhöz.
+
+- A munkafolyamatokhoz (`.github/`), a függőségekhez (`package.json`) és a `scripts/`-hez az agentek nem nyúlhatnak.
+- Ha a repóban nincs engedélyezve, hogy a GitHub Actions pull requestet nyisson (Settings → Actions → General → „Allow GitHub Actions to create and approve pull requests”), a munkanap egy issue-t nyit a kész összehasonlító linkkel; onnan egy kattintás a pull request.
+- A GitHub Actions által feltöltött ágon a CI magától nem indul; a motor tesztjei a homokozóban már zölden futottak, beolvasztás előtt kézzel is elindíthatod az ágon (Actions → CI → Run workflow), a beolvasztás után pedig a main ágon magától lefut.
+- Kikapcsolás: Fejlődés fül → Tanulás / Önfejlesztés.
+
 ## Modellek
 
 Alapbeállítás (a Beállítások fülön módosítható):
@@ -142,13 +153,25 @@ Alapbeállítás (a Beállítások fülön módosítható):
 | Többi vezető (az architekt is) és munkatárs | `claude-sonnet-5-5` | közepes |
 | Tömeg (dokumentáció, tartalom) | `claude-haiku-5-5` | alacsony |
 
-Más szolgáltató modellje előtaggal adható meg: `openai:gpt-6.1-sol`, `kimi:kimi-k3`. GitHub-változóval is felülírható: `MODEL_STRATEGIC`, `MODEL_LEAD`, `MODEL_WORKER`, `MODEL_BULK`, `MODEL_INBOX`. Ha egy beállított modellhez hiányzik a kulcs, a cég nem dolgozik, csak a táblát frissíti, és a vezérlőterem megmutatja, melyik kulcs hiányzik. Egy feladat legfeljebb 8 kört és `TASK_BUDGET_USD` (alapból 0,60 USD) költést kap; a keretnél az agent lezárja a munkát.
+Más szolgáltató modellje előtaggal adható meg: `openai:gpt-6.1-sol`, `kimi:kimi-k3`. GitHub-változóval is felülírható: `MODEL_STRATEGIC`, `MODEL_LEAD`, `MODEL_WORKER`, `MODEL_BULK`, `MODEL_INBOX`. Ha egy beállított modellhez hiányzik a kulcs, a cég nem dolgozik, csak a táblát frissíti, és a vezérlőterem megmutatja, melyik kulcs hiányzik. Egy feladat legfeljebb 8 kört és `TASK_BUDGET_USD` (alapból 0,60 USD) költést kap, egy kódfeladat 20 kört és 1,20 USD-t (`MAX_TURNS_PER_CODE_TASK`, `CODE_TASK_BUDGET_USD`, vagy a Beállítások fül); a keretnél az agent lezárja a munkát.
+
+## Kódolvasás és fejlesztés az agenteknél
+
+Minden agent látja és olvassa a kódot:
+
+- `code_map`: a `product/` (vagy egy alkönyvtára) térképe: fájlok sorszámmal, exportok, osztályok, függvények, NestJS-végpontok, adatbázistáblák, npm-szkriptek.
+- `search_code`: szöveg vagy reguláris kifejezés keresése, `fájl:sor: szöveg` találatokkal.
+- `read_file`, `list_files`: a fájlok olvasása (hosszú fájl szeletekben).
+
+A kódszerepek (fejlesztők, tesztelők, biztonság, adatbázis stb.) futtatni is tudják a kódot a `run_checks` eszközzel. Ez egy `product/` alatti projekten (ahol `package.json` van, pl. `product/backend`) lefuttatja a telepítést (`npm ci` vagy `npm install`, install szkriptek nélkül), a típusellenőrzést (`typecheck` szkript vagy `tsc --noEmit`), a lintet és a teszteket, és visszaadja a hibák kimenetét. Kódfeladatot csak akkor lehet lezárni, ha az érintett projekt az utolsó módosítás után zöld; az eredmény és a módosított fájlok listája az átvizsgálókhoz is eljut.
+
+Csak rögzített parancsok futnak, szabad shell nincs. A GitHub Actionsben a munkanap egy külön, jog nélküli felhasználót (`alicya-sandbox`) hoz létre: a parancsok üres környezettel (titkok nélkül) futnak, a repó tokenjét nem látják, a telepítésen kívül nincs hálózatuk, lépésenként 5 perc, munkanaponként összesen 30 perc (`ALICYA_CHECKS_MINUTES`) az időkorlát. Ha ez a felhasználó nincs meg, az Actionsben a `run_checks` nem érhető el. Kikapcsolás: `ALICYA_CHECKS=off`.
 
 ## Biztonsági korlátok
 
 - Az agenteknek nincs eszközük kifelé kommunikálni (e-mail, közösségi média, fizetés). Amit kifelé szánnak, vázlatként írják meg és jóváhagyást kérnek.
 - Fájlt csak a `docs/` és `product/` alá írhatnak; a workflow-khoz, a motorhoz és a titkokhoz nem férnek hozzá.
-- Az agentek által írt kódot a munkanap nem futtatja.
+- Az agentek által írt kódot csak a `run_checks` futtatja, rögzített parancsokkal, külön felhasználóként, titkok és (a telepítésen kívül) hálózat nélkül.
 - Munkanaponként és havonta is van költségkorlát, és minden hívás költsége a `state/company.json` főkönyvében látszik.
 
 ## Fejlesztés
