@@ -1,10 +1,33 @@
 {
   "version": 1,
   "meta": {
-    "runs": 2,
-    "nextTask": 10,
-    "nextGate": 1,
-    "lastRun": "2026-10-13T06:51:54.268Z"
+    "runs": 15,
+    "nextTask": 64,
+    "nextGate": 2,
+    "lastRun": "2026-10-17T10:44:13.152Z",
+    "disabledDepartments": [],
+    "models": {
+      "strategic": "claude-opus-5-5",
+      "strategicRoles": [
+        "ceo"
+      ],
+      "lead": "claude-sonnet-5-5",
+      "worker": "claude-sonnet-5-5",
+      "bulk": "claude-haiku-5-5",
+      "inbox": "claude-haiku-5-5",
+      "roles": {}
+    },
+    "personalDataProviders": [
+      "anthropic",
+      "openai"
+    ],
+    "keys": {
+      "anthropic": true,
+      "openai": false,
+      "kimi": false,
+      "imap": false,
+      "at": "2026-10-17T10:44:13.152Z"
+    }
   },
   "tasks": [
     {
@@ -13,14 +36,20 @@
       "description": "Elemezd a magyar KKV-knak szóló számlázó és készletkezelő szoftverek piacát (funkciók, árak, NAV Online Számla, gyenge pontok). Írd le a docs/product/market.md fájlba, és javasolj egy első, gyorsan eladható termékszeletet.",
       "department": "product",
       "assignee": "market-researcher",
-      "status": "todo",
+      "status": "done",
       "kind": "doc",
       "priority": 1,
       "dependsOn": [],
       "createdBy": "ceo",
       "createdAt": "2026-10-13T05:57:15.602Z",
-      "updatedAt": "2026-10-13T05:57:15.602Z",
-      "notes": []
+      "updatedAt": "2026-10-13T10:36:19.961Z",
+      "notes": [
+        {
+          "at": "2026-10-13T10:36:19.961Z",
+          "by": "market-researcher",
+          "text": "Elkészült a docs/product/market.md: szegmensek, versenytársak, NAV Online Számla követelmények (privacy_lookup alapján, jogászi ellenőrzés jelölve), rések, javasolt első szelet (\"Számla + Készlet Start\": számlázás + NAV + több raktáras készlet, Docker), kockázatok. Az árak becslések, élő ellenőrzés szükséges. Új feladatot nem hoztam létre."
+        }
+      ]
     },
     {
       "id": "T-0002",
@@ -28,7 +57,7 @@
       "description": "A piackutatás alapján írd meg a termékleírást a docs/product/prd.md fájlba: célfelhasználó, modulok, elfogadási feltételek, nem-célok, licencmodell javaslat. Ha kész, kérj spec jóváhagyást.",
       "department": "product",
       "assignee": "product-manager",
-      "status": "todo",
+      "status": "done",
       "kind": "doc",
       "priority": 1,
       "dependsOn": [
@@ -36,8 +65,15 @@
       ],
       "createdBy": "ceo",
       "createdAt": "2026-10-13T05:57:15.602Z",
-      "updatedAt": "2026-10-13T05:57:15.602Z",
-      "notes": []
+      "updatedAt": "2026-10-16T15:24:09.467Z",
+      "notes": [
+        {
+          "at": "2026-10-16T15:24:09.467Z",
+          "by": "owner",
+          "text": "Jóváhagyva"
+        }
+      ],
+      "gateId": "G-001"
     },
     {
       "id": "T-0003",
@@ -45,14 +81,20 @@
       "description": "Írd meg a docs/security/policy.md fájlba a fejlesztés biztonsági szabályait: titokkezelés, függőségek, kódellenőrzés, adatkezelés (GDPR), és mit jelent a kiadás előtti biztonsági jóváhagyás.",
       "department": "security",
       "assignee": "ciso",
-      "status": "todo",
+      "status": "done",
       "kind": "doc",
       "priority": 1,
       "dependsOn": [],
       "createdBy": "ceo",
       "createdAt": "2026-10-13T05:57:15.602Z",
-      "updatedAt": "2026-10-13T05:57:15.602Z",
-      "notes": []
+      "updatedAt": "2026-10-13T10:44:39.052Z",
+      "notes": [
+        {
+          "at": "2026-10-13T10:44:39.052Z",
+          "by": "ciso",
+          "text": "Elkészült a docs/security/policy.md (v1.0). Tartalma: alapelvek (ASVS L2, biztonságos alapértelmezés), szerepek, súlyossági szintek javítási határidőkkel, titokkezelés, függőségek és ellátási lánc, kódolási minimum, GDPR a fejlesztésben, kódellenőrzés, valamint a kiadás előtti biztonsági jóváhagyás. A titokkezelés lényege: a telepítő telepítésenként egyedi kulcsot generál, az ügyfél kulcsai borítékos titkosítással tárolódnak, kiszivárgáskor a titkot azonnal visszavonjuk. A függőségeknél kötelező a lockfile, 7 napos várakozás van az új verziókra, tilos a GPL/AGPL, és minden kiadáshoz kell SBOM és aláírt csomag. Új személyes adatmező csak akkor kerülhet be, ha a cél, a jogalap és a megőrzés dokumentált, és a privacy-officer jóváhagyta; éles ügyféladat teszt- vagy fejlesztői környezetbe nem kerülhet.\n\nMit jelent a biztonsági jóváhagyás: a CISO egy konkrét buildre szóló, írásos döntése 12 feltétel alapján (K1–K12). A döntés lehet jóváhagyás, feltételes jóváhagyás vagy vétó. A jóváhagyás szükséges, de nem elég: utána a tulajdonos \"release\" jóváhagyása is kell. A szabályzatban van rövidített hotfix-út, kivételkezelés legfeljebb 90 napos lejárattal (kritikus hibára nincs kivétel), és sablon a kiadási jegyzőkönyvhöz.\n\nÚj feladat: T-0018 (incident-responder), az incidenskezelési eljárás és a SECURITY.md vázlata. A legal feladat (CRA-elemzés) nem jött létre, mert a mai feladatkeret betelt. Holnap fel kell venni. A szabályzat B melléklete már \"új feladatként\" hivatkozik rá, a CRA dátumai addig ⚠-val jelölve maradnak."
+        }
+      ]
     },
     {
       "id": "T-0004",
@@ -60,7 +102,7 @@
       "description": "A PRD alapján tervezd meg a termék architektúráját (NestJS + PostgreSQL + React, moduláris monolit) a docs/dev/architecture.md fájlba, hozd létre a product/ alatti vázat, és bontsd fejlesztői feladatokra a munkát.",
       "department": "dev",
       "assignee": "architect",
-      "status": "todo",
+      "status": "review",
       "kind": "code",
       "priority": 1,
       "dependsOn": [
@@ -68,8 +110,35 @@
       ],
       "createdBy": "ceo",
       "createdAt": "2026-10-13T05:57:15.602Z",
-      "updatedAt": "2026-10-13T05:57:15.602Z",
-      "notes": []
+      "updatedAt": "2026-10-16T15:51:52.332Z",
+      "notes": [
+        {
+          "at": "2026-10-16T15:34:19.994Z",
+          "by": "architect",
+          "text": "Elakadt: Elfogyott a keret, a feladat félkész. Kész: docs/dev/architecture.md (modulok, adatmodell, API, jogosultság, DPIA-értékelés, feladatlista a 9. pontban); ADR-0001…0004 (docs/dev/adr/); a backend alapja: package.json, tsconfig, shared/money (bigint, half-up, 5 Ft-os kerekítés) és shared/auth (alapból tiltó guard, beépített szerepkörök), mindkettő tesztekkel. A teszteket még nem futtattam. Hátravan: 1) main.ts, app.module.ts, modulvázak (platform/licensing/masterdata/invoicing/inventory/nav-connector/reports), shared/country és privacy interfészek; 2) db/migrations/0001_baseline up/down; 3) frontend váz + hu.json; 4) installer: compose, .env.example helyőrzőkkel; licensing/README; product/README frissítése; 5) az architecture.md 9. pontjában szereplő 12 fejlesztői feladat létrehozása. A következő körben folytatom."
+        },
+        {
+          "at": "2026-10-16T15:42:34.448Z",
+          "by": "system",
+          "text": "Visszanyitva: a feladatkeret miatt jelölődött elakadtnak; a mentett fájlokból folytatódik."
+        },
+        {
+          "at": "2026-10-16T15:49:34.102Z",
+          "by": "system",
+          "text": "Nem fejeződött be ebben a munkanapban, folytatódik."
+        },
+        {
+          "at": "2026-10-16T15:50:26.211Z",
+          "by": "system",
+          "text": "Nem fejeződött be ebben a munkanapban, folytatódik."
+        },
+        {
+          "at": "2026-10-16T15:51:52.332Z",
+          "by": "architect",
+          "text": "T-0004 kész. Architektúra: docs/dev/architecture.md (modulhatárok, adatmodell, API-szerződések, jogosultsági modell, DPIA-értékelés: MVP-re nem kötelező, a privacy-officer erősítse meg T-0006-ban), ADR-0001…0004. product/ váz: backend (main.ts, app.module + spec, 7 modulváz, shared/money, auth, config, country, privacy, health tesztekkel), db/migrations/0001_baseline up/down, frontend váz + hu.json + i18n teszt, installer (docker-compose.yml, env.example titok nélkül), licensing/README, product/README. Fejlesztői feladatok: T-0034…T-0041 létrehozva, az adatvédelmi feladatokat a T-0019 bontja tovább. A napi feladatkorlát miatt három feladat (NAV-csatoló, riportok, frontend váz) nem jött létre; ezek kész leírása az architecture.md 9.1 pontjában van, a következő munkanapon fel kell venni őket (architect vagy tech-lead). A teszteket nem futtattam, ezt a CI (T-0013) vagy a kódellenőrzés pótolja."
+        }
+      ],
+      "reviewRound": 1
     },
     {
       "id": "T-0005",
@@ -94,14 +163,25 @@
       "description": "A privacy_lookup tudásbázis és a docs/security/adatvedelem/README.md alapján írd meg a docs/security/privacy/requirements.md fájlba az ERP adatvédelmi követelményeit: adatkategóriák és jogalapok modulonként, érintetti kérelem funkció, megőrzési profil-modell, naplózás, különleges adatok kezelése, DPA-sablon váza. A fejlesztésnek szánt teendőket hozd létre feladatként az architektnek.",
       "department": "security",
       "assignee": "privacy-officer",
-      "status": "todo",
+      "status": "done",
       "kind": "doc",
       "priority": 1,
       "dependsOn": [],
       "createdBy": "ciso",
       "createdAt": "2026-10-13T06:51:54.268Z",
-      "updatedAt": "2026-10-13T06:51:54.268Z",
-      "notes": []
+      "updatedAt": "2026-10-16T15:35:25.660Z",
+      "notes": [
+        {
+          "at": "2026-10-13T10:52:40.351Z",
+          "by": "system",
+          "text": "Megszakítva: elfogyott a munkanap kerete."
+        },
+        {
+          "at": "2026-10-16T15:35:25.660Z",
+          "by": "privacy-officer",
+          "text": "Megírtam a docs/security/privacy/requirements.md fájlt. Tartalma: modulonkénti adatkategóriák és jogalapok, érintetti kérelem funkció, megőrzési profil-modell HU/PL/CZ alapértékekkel, naplózás, különleges adatok kezelése, DPA-váz és az R1–R11 termékkövetelmények. Az architektnek három feladatot hoztam létre: T-0019, T-0020 és T-0021. Nyitott pont: a CZ bérszámfejtési és HR megőrzési idők, valamint a HU/PL/CZ HR-akták pontos ideje nincs a tudásbázisban, ezeket az országos szakértőknek kell kiegészíteniük. A ⚠ jelölésű pontokat jogásznak kell jóváhagynia."
+        }
+      ]
     },
     {
       "id": "T-0007",
@@ -153,9 +233,1022 @@
       "createdAt": "2026-10-13T06:51:54.268Z",
       "updatedAt": "2026-10-13T06:51:54.268Z",
       "notes": []
+    },
+    {
+      "id": "T-0010",
+      "title": "Napi tervezés (2026-10-13)",
+      "description": "Nézd át a feladattáblát. Oldd fel az elakadt feladatokat (átadás vagy pontosítás), és ha egy részlegnek nincs érdemi munkája, hozz létre neki a termék útvonalához illő, jól körülhatárolt feladatot. A fejlesztés legyen a fókusz, a biztonság minden kódmunkát kísérjen. Ne duplikálj meglévő feladatot. A végén zárd le complete_task-kal egy rövid tervvel.",
+      "department": "core",
+      "assignee": "ceo",
+      "status": "done",
+      "kind": "plan",
+      "priority": 1,
+      "dependsOn": [],
+      "createdBy": "system",
+      "createdAt": "2026-10-13T10:34:28.811Z",
+      "updatedAt": "2026-10-13T10:35:49.854Z",
+      "notes": [
+        {
+          "at": "2026-10-13T10:35:49.854Z",
+          "by": "ceo",
+          "text": "Átnéztem a táblát: nincs elakadt feladat, így nem kellett semmit feloldani. A kritikus út: T-0001 → T-0002 (PRD) → T-0004 (architektúra). Hat új feladat, egyik sem ismétel meglévőt:\n- Fejlesztés: T-0011 NAV/KSeF technikai feltárás (P1), T-0012 fejlesztési szabályok és DoD (P1), T-0013 CI biztonsági ellenőrzésekkel (SAST, függőségek, titokkeresés, SBOM), függ: T-0004, T-0003.\n- T-0014 támogatási modell és naplózott hozzáférés (support), T-0015 pénzügyi alapmodell (finance), T-0016 versenytárs-árazás (sales, függ: T-0001).\nA marketing T-0005-tel már dolgozik. A terv itt van: docs/core/napi-terv-2026-10-13.md."
+        }
+      ]
+    },
+    {
+      "id": "T-0011",
+      "title": "Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció",
+      "description": "A számlázó modul belépési feltétele a HU (NAV Online Számla) és a PL (KSeF) adóhatósági integráció. Készíts technikai feltárást a docs/dev/integraciok/nav-ksef.md fájlba (kód még nem kell, a vázat az architekt adja – T-0004):\n- NAV Online Számla 3.0: műveletek (tokenExchange, manageInvoice, queryTransactionStatus, query*), hitelesítés és aláírás menete, XML séma, hibakezelés és újraküldés, teszt- és éles környezet, rate limit, módosító/sztornó számlák.\n- KSeF: hitelesítés (token / tanúsítvány), FA(3) strukturált számla, KSeF-azonosító tárolása, offline mód és határidők (2026.02.01 / 2026.04.01 / 2027.01.01).\n- CZ: rögzítsd, hogy most nincs állami valós idejű integráció.\n- Javasolt közös absztrakció (TaxAuthorityAdapter interfész vázlat), állapotgép, idempotencia, várólista/újraküldés.\n- Biztonság és adatvédelem (privacy_lookup: szamlazas, HU/PL): technikai felhasználó jelszava, aláíró- és cserekulcs csak titoktárban, soha nem repóban vagy naplóban; magánszemély vevőnél a NAV-nak nem megy név és cím; adatszolgáltatási napló (mi ment ki, mikor).\n- Nyitott kérdések és kockázatok listája a PM-nek és az architektnek.\nElfogadás: a dokumentum alapján az architekt fejlesztői feladatokra tudja bontani az integrációt; a ⚠ jogi pontok meg vannak jelölve.",
+      "department": "dev",
+      "assignee": "integration-dev",
+      "status": "review",
+      "kind": "code",
+      "priority": 1,
+      "dependsOn": [],
+      "createdBy": "ceo",
+      "createdAt": "2026-10-13T10:35:34.063Z",
+      "updatedAt": "2026-10-17T10:50:27.202Z",
+      "notes": [
+        {
+          "at": "2026-10-16T15:36:36.149Z",
+          "by": "integration-dev",
+          "text": "Elkészült a docs/dev/integraciok/nav-ksef.md: NAV 3.0 (műveletek, hitelesítés/aláírás, XSD, hibakezelés, módosító/sztornó, rate limit), KSeF (auth, FA(3), KSeF-szám, offline, határidők), CZ (nincs integráció), TaxAuthorityAdapter vázlat, állapotgép, idempotencia, várólista (ADR-0003-ra építve), biztonság/adatvédelem, 9 pontos fejlesztői bontás, nyitott kérdések. ⚠ jogi pontok jelölve; 🔍 = a hivatalos specifikációból ellenőrizendő részletek (pl. rate limit értéke, pontos határidők, KSeF API részletek), mert innen nem tudtam verifikálni."
+        },
+        {
+          "at": "2026-10-17T10:49:37.256Z",
+          "by": "appsec",
+          "text": "Javítás kell: Kód nincs; a §5/§6 biztonsági hiányait vizsgáltam. Jó: titoktár, magánszemély-vevő kihagyása, append-only napló. Pótolandó a §5-be és a §6 pontjaiba:\n1. XXE/gzip: NAV/KSeF válasz és számla-XML parse-ánál DTD és külső entitás tiltva (XSD-validátornál is). Támadás: manipulált partnernév/válasz `<!ENTITY SYSTEM \"file:///...\">` fájlt olvas vagy SSRF-et indít. `compressedContent` kicsomagolásánál méret- és arányhatár.\n2. SSRF/TLS: a környezet csak előre definiált azonosító (`test`|`prod`) lehet, szabad URL nem; host-allowlist. TLS-ellenőrzés kötelező. Éles módra váltás csak adminnak, megerősítéssel, auditnaplóval.\n3. Titoktár: nevezd meg a tenantonkénti kulcs származtatását (HKDF/envelope), a master key és a titkok rotációját. A titoktábla ne kerüljön az adatexportba; a felület soha ne adjon vissza titkot, csak állapotot.\n4. Napló/UI: maszkolandó a requestSignature, token, Authorization, a teljes XML-body és a NAV nyers hibaüzenete. A hatósági hibaüzenetek a felületen escape-elve, hosszkorláttal jelenjenek meg (stored XSS).\n5. Naplótábla: az append-only DB-szinten kikényszerítve (UPDATE/DELETE megvonva, trigger/hash-lánc). Tenant-izolációra (tenant_id + RLS vagy kötelező szűrő) keresztmandátum-teszt a `*_submission` és a napló táblára, a worker lekérdezésére is.\n6. Bemenet: `queryTaxpayer` adószám-validáció (formátum/ellenőrzőösszeg) és tenantonkénti rate limit. QR-tartalom szerveroldalon épüljön, szabad szöveg nélkül.\n7. Kripto: AES-128/ECB csak a NAV tokenExchange-válaszhoz, adapterbe zárt kivétel; saját adatra (titoktár, XML-archívum) AES-256-GCM. Csak szabványos könyvtár. A requestId/timestamp ismétlés-védelem tesztelve.\n8. Mock/fixtúrák: csak kitalált kulcsok, CI secret-scan; negatív teszt, hogy titok nincs a logban és az exportban.\nPótlás után jóváhagyom; a többi rendben."
+        },
+        {
+          "at": "2026-10-17T10:50:27.202Z",
+          "by": "integration-dev",
+          "text": "docs/dev/integraciok/nav-ksef.md javítva az appsec 8 pontja szerint: XXE/gzip (§5.1), SSRF/TLS/prod-váltás (§5.2), titoktár HKDF/envelope + rotáció + export-kizárás (§5.3), maszkolás és UI escape (§5.4), DB-szintű append-only + hash-lánc + RLS + keresztmandátum-teszt (§5.5), queryTaxpayer validáció/rate limit és szerveroldali QR (§5.6), kripto (ECB-kivétel, GCM, replay, §5.7), fixtúrák/secret-scan/negatív tesztek (§5.8). A fejlesztői bontás 10 pontra bővült és hivatkozik ezekre. A ⚠ és 🔍 jelölések megmaradtak."
+        }
+      ],
+      "reviewRound": 2
+    },
+    {
+      "id": "T-0012",
+      "title": "Fejlesztési szabályok és Definition of Done",
+      "description": "Írd meg a docs/dev/fejlesztesi-szabalyok.md fájlt, hogy a T-0004 utáni fejlesztői feladatok egységes szabályok szerint induljanak:\n- Kódkonvenciók (TypeScript strict, NestJS modulhatárok a moduláris monolitban, React), elnevezések, angol kód és komment.\n- Branch- és commitszabály, PR-méret, kódellenőrzési folyamat (code-reviewer + appsec).\n- Tesztelési elvárások: unit/integráció/e2e, minimális lefedettség, tesztadat csak álnevesített (GDPR 25. cikk).\n- Adatbázis-migrációk szabályai (PostgreSQL), visszafelé kompatibilitás.\n- Definition of Done: tesztek zöldek, biztonsági ellenőrzés lefutott, nincs titok a repóban, személyes adatmezőnél dokumentált cél/jogalap/megőrzés (privacy_lookup: alapelvek), dokumentáció frissítve.\nIgazodj a CISO biztonsági alapszabályzatához (T-0003, docs/security/policy.md); ha az még nincs kész, hivatkozz rá, ne írd meg helyette.\nElfogadás: tömör, ellenőrzőlistaként használható DoD; nem ütközik a T-0003 szabályzattal.",
+      "department": "dev",
+      "assignee": "tech-lead",
+      "status": "review",
+      "kind": "code",
+      "priority": 1,
+      "dependsOn": [],
+      "createdBy": "ceo",
+      "createdAt": "2026-10-13T10:35:34.063Z",
+      "updatedAt": "2026-10-17T10:51:52.947Z",
+      "notes": [
+        {
+          "at": "2026-10-16T15:37:38.636Z",
+          "by": "tech-lead",
+          "text": "Elkészült a docs/dev/fejlesztesi-szabalyok.md: kódkonvenciók (TS strict, NestJS modulhatárok, React, pénz/idő), branch/commit/PR-szabály (≤400 sor), review-folyamat (code-reviewer + appsec/privacy/supply-chain a policy 8.2 szerint), tesztelési szintek és lefedettségi küszöbök (80/70%, kritikus kód 90%), álnevesített tesztadat (GDPR 25.), PostgreSQL migrációs szabályok (up/down, N-1 kompatibilitás, expand/contract), ellenőrzőlista-szerű DoD. A T-0003 policy.md-re hivatkozik, nem ismétli és nem ütközik vele. Az ADR-ek tartalmát nem olvastam át részletesen, csak hivatkozom rájuk (0001, 0002, 0004)."
+        },
+        {
+          "at": "2026-10-17T10:50:54.648Z",
+          "by": "code-reviewer",
+          "text": "Javítás kell: Jó, tömör, a policy.md-vel nem ütközik. Javítandó:\n1. KÖTELEZŐ – 1.3, 4., 5. pont: `tenant_id` helyett `company_id uuid NOT NULL` (ADR-0002). DB-szinten RLS (`current_setting('app.company_id')`, kérésenként `SET LOCAL`), az `erp_app` ne legyen táblatulajdonos. DoD-ba: integrációs teszt, hogy `SET LOCAL` nélkül nincs sor.\n2. KÖTELEZŐ – Adatvédelmi DoD igazítása az ADR-0005/0006/0008-hoz: modulonként `privacy/classification.ts` (purpose, legalBases, retentionCategory, sensitivity, art9Condition) és `PersonDataProvider` (search/export/rectify/setRestricted/erase). Az ADR-0005 „javasolt”, jelöld. Új személyes oszlop osztályozás nélkül CI-hiba (T-0013). Vedd fel a Kapcsolódó sorba az ADR-0005, 0006 (megőrzési motor), 0008 (HR különleges adat titkosítás) hivatkozást. Különleges adatnál privacy-officer ÉS CISO jóváhagyás (policy 7.2), DPIA-feltételek említése.\n3. Policy 5.2 hivatkozás a DoD-ban: lockfile + `npm ci`, `--ignore-scripts`, 7 napos várakozás, image digest-rögzítés. 1.3 kimenő hívásnál: SSRF-allowlist, TLS-ellenőrzés kikapcsolása tilos (policy 6.).\n4. Kisebb: `dangerouslySetInnerHTML` – jelezd, hogy kivétel csak sanitizálva, AppSec-jóváhagyással lehet (policy 6.). A biztonsági javítás regressziós tesztje (2.3) a DoD Kód és teszt blokkjába is kerüljön.\n5. Az ADR-eket (0001–0008) futtasd át, hogy más eltérés ne maradjon (az 1. pont ilyen volt). Javítás után újra átnézem."
+        },
+        {
+          "at": "2026-10-17T10:51:52.947Z",
+          "by": "tech-lead",
+          "text": "Javítottam a docs/dev/fejlesztesi-szabalyok.md-t, a review mind az 5 pontja szerint. (1) `tenant_id` helyett `company_id uuid NOT NULL` + RLS (`current_setting('app.company_id')`, kérésenként `SET LOCAL`), az `erp_app` nem táblatulajdonos. A DoD-ba és a 3.3 pontba bekerült az integrációs teszt, hogy `SET LOCAL` nélkül nincs sor. (2) Az adatvédelmi DoD az ADR-0005/0006/0008 szerint: `privacy/classification.ts` és `PersonDataProvider`; az ADR-0005 \"javasolt\"-ként jelölve; osztályozás nélküli új személyes oszlop CI-hiba (T-0013). Különleges adatnál privacy-officer ÉS CISO jóváhagyás (policy 7.2), DPIA-feltételek. Az ADR-0005/0006/0008 felkerült a Kapcsolódó sorba. (3) Policy 5.2 a DoD-ban: lockfile, `npm ci`, `--ignore-scripts`, 7 napos várakozás, image digest. Kimenő hívásnál SSRF-allowlist, TLS-ellenőrzés kikapcsolása tilos. (4) A `dangerouslySetInnerHTML` kivétele csak sanitizálva, AppSec-jóváhagyással. A biztonsági javítás regressziós tesztje a DoD Kód és teszt blokkjában is szerepel. (5) Mind a 8 ADR-t átfutottam. Az ADR-0001-hez igazítva: `PublicService`, modulonként külön DB-séma, TypeORM, kézzel írt SQL migráció, `APP_ROLE`. Az ADR-0007-hez: `AuditService.record()`, értékmentes napló. Az ADR-0008-hoz: `Sensitive<T>`, `KeyProvider`, maszkolás. Az ADR-0006-hoz: az `anonymize_record()` kivétel a bizonylat-védelem alól. Az ADR-0004-hez: `CountryPack` útvonala. Új szerződésteszt-szint a `PersonDataProvider`-hez."
+        }
+      ],
+      "reviewRound": 2
+    },
+    {
+      "id": "T-0013",
+      "title": "CI-folyamat biztonsági kapukkal és helyi fejlesztői környezet",
+      "description": "Az architekt által létrehozott product/ vázra (T-0004) építve készítsd el:\n- Docker Compose alapú helyi fejlesztői környezetet (NestJS API, PostgreSQL, React), titkok csak .env.example mintával, valódi érték soha nem kerül fájlba.\n- CI-folyamatot: lint, típusellenőrzés, tesztek, build; biztonsági kapuk: függőség-sérülékenység vizsgálat, titokkeresés, SAST, SBOM generálás (NIS2-elvárás az ügyfeleink felé).\n- Leírást a docs/dev/ci.md fájlba: a kapuk, a hibás build kezelése, hogyan futtatható helyben.\nIgazodj a T-0003 biztonsági alapszabályzathoz. Kódot és konfigurációt tesztekkel/ellenőrző futtatással add le.\nElfogadás: egy minta-PR-en minden kapu lefut; a biztonsági kapu kritikus találatnál megállítja a buildet.",
+      "department": "dev",
+      "assignee": "devops",
+      "status": "todo",
+      "kind": "code",
+      "priority": 2,
+      "dependsOn": [
+        "T-0004",
+        "T-0003"
+      ],
+      "createdBy": "ceo",
+      "createdAt": "2026-10-13T10:35:34.063Z",
+      "updatedAt": "2026-10-13T10:35:34.063Z",
+      "notes": []
+    },
+    {
+      "id": "T-0014",
+      "title": "Támogatási modell, SLA-terv és naplózott támogatási hozzáférés",
+      "description": "Írd meg a docs/support/tamogatasi-modell.md fájlba a dobozos (helyben telepített) ERP támogatási modelljét HU/PL/CZ ügyfeleknek:\n- Támogatási szintek és csatornák, nyelvek (HU/PL/CZ), javasolt SLA-k (reakcióidő súlyosság szerint), eszkalációs út a fejlesztés és a biztonság felé.\n- Támogatási hozzáférés szabályai (privacy_lookup: szerepek): főszabályként nem látunk ügyféladatot; ha hozzáférünk, adatfeldolgozók vagyunk – csak az ügyfél engedélyével, naplózva, időkorláttal; DPA szükségessége.\n- Biztonsági esemény bejelentésének útja a támogatáson keresztül (incident-responder felé), NIS2-elvárások: gyors értesítés.\n- A termékhez szükséges támogatási funkciók listája (pl. diagnosztikai csomag személyes adat nélkül) – ezt javaslatként a PM-nek.\nBelső dokumentum, kifelé nem kommunikálunk.\nElfogadás: a modell konkrét, és a termékfunkció-javaslatok átadhatók a PRD-be.",
+      "department": "support",
+      "assignee": "support-lead",
+      "status": "todo",
+      "kind": "doc",
+      "priority": 2,
+      "dependsOn": [],
+      "createdBy": "ceo",
+      "createdAt": "2026-10-13T10:35:34.063Z",
+      "updatedAt": "2026-10-13T10:35:34.063Z",
+      "notes": []
+    },
+    {
+      "id": "T-0015",
+      "title": "Pénzügyi alapmodell: költségek, bevételi modell, fedezeti pont",
+      "description": "Készíts pénzügyi alapmodellt a docs/finance/penzugyi-alapmodell.md fájlba az első termékszelethez (számlázás + készlet):\n- Költségstruktúra (fejlesztés, üzemeltetés/infrastruktúra, támogatás, jogi és lokalizációs költségek HU/PL/CZ, adóhatósági integrációk karbantartása).\n- Bevételi modell-változatok (egyszeri licenc + éves karbantartás vs. előfizetés), feltételezések egyértelműen jelölve.\n- Fedezeti pont és érzékenységvizsgálat 3 forgatókönyvre (pesszimista/alap/optimista), országonként.\n- Mely számokat kell a piackutatásból (T-0001) és az árazásból pontosítani.\nBelső dokumentum; árat nem kommunikálunk kifelé, az árazás külön jóváhagyást igényel.\nElfogadás: a feltételezések táblázatban, a PRD licencmodell-javaslatához (T-0002) felhasználható.",
+      "department": "finance",
+      "assignee": "controller",
+      "status": "todo",
+      "kind": "doc",
+      "priority": 2,
+      "dependsOn": [],
+      "createdBy": "ceo",
+      "createdAt": "2026-10-13T10:35:34.063Z",
+      "updatedAt": "2026-10-13T10:35:34.063Z",
+      "notes": []
+    },
+    {
+      "id": "T-0016",
+      "title": "Versenytárs-árazás és licencmodell-javaslat (HU/PL/CZ)",
+      "description": "A piackutatásra (T-0001, docs/product/market.md) építve – azt nem megismételve – készítsd el a docs/sales/arazas-benchmark.md fájlt:\n- A fő HU, PL, CZ versenytársak csomagjai és árai (számlázás, készlet, NAV/KSeF-integráció), dobozos vs. előfizetéses modellek.\n- Javasolt csomagstruktúra és árszint-sáv az első termékszelethez, országonként, indoklással.\n- Kapcsolódás a pénzügyi alapmodellhez (finance/controller feladata).\nBelső elemzés; a végleges árazás tulajdonosi \"pricing\" jóváhagyást igényel, ezért ha konkrét árajánlást teszel, kérj jóváhagyást.\nElfogadás: táblázatos összevetés forrásmegjelöléssel, és egy javasolt csomagstruktúra.",
+      "department": "sales",
+      "assignee": "pricing-analyst",
+      "status": "todo",
+      "kind": "doc",
+      "priority": 2,
+      "dependsOn": [
+        "T-0001"
+      ],
+      "createdBy": "ceo",
+      "createdAt": "2026-10-13T10:35:34.063Z",
+      "updatedAt": "2026-10-13T10:35:34.063Z",
+      "notes": []
+    },
+    {
+      "id": "T-0017",
+      "title": "Jogi átnézés: magyar számlázási követelmények a PRD-ben",
+      "description": "Nézd át a docs/product/prd.md ⚠ jelölésű pontjait: SZ-1 (Áfa tv. 169. § szerinti kötelező számlaadatok – készíts tételes ellenőrzőlistát az AC-1 teszthez), SZ-6 (készpénzes 5 Ft-os kerekítés), NAV-5 / AC-2 (magánszemély vevő neve és címe nem kerül a NAV-adatszolgáltatásba), SZ-3 sztornó/módosító számla szabályai, R-5 könyvelői export, valamint a 7. fejezet licencfeltételei (megújítás nélküli működés, NAV-frissítés elmaradásának kockázatáról szóló tájékoztatás). Kimenet: docs/finance/jogi-szamlazas-hu.md, pontonként: megfelel / módosítandó (konkrét javaslattal) / nyitott kérdés, jogszabályhellyel. Elfogadás: az AC-1 ellenőrzőlistája tételesen használható tesztesetként.",
+      "department": "finance",
+      "assignee": "legal",
+      "status": "todo",
+      "kind": "doc",
+      "priority": 2,
+      "dependsOn": [],
+      "createdBy": "product-manager",
+      "createdAt": "2026-10-13T10:38:57.241Z",
+      "updatedAt": "2026-10-13T10:38:57.241Z",
+      "notes": []
+    },
+    {
+      "id": "T-0018",
+      "title": "Incidens- és sérülékenységkezelési eljárás + SECURITY.md vázlat",
+      "description": "A docs/security/policy.md 11. pontja és 9.2 K11 alapján készítsd el a docs/security/incidens.md-t: súlyossági besorolás (a policy 3. pontjával összhangban), belső jelzés és eszkaláció, kiszivárgott titok kezelése (4.3 pont), sérülékenységközlemény-sablon dobozos termékhez, ügyfélértesítési határidők (GDPR 33. cikk szerint adatfeldolgozóként azonnal; NIS2-alany ügyfelek 24 órás korai figyelmeztetése; CRA 24 órás ENISA-bejelentés, a legal feladat eredményétől függően), incidensnyilvántartás formátuma. Írd meg a koordinált közzétételt leíró SECURITY.md vázlatát is a docs/security/ alá (bejelentési csatorna helyőrzővel). Ez kifelé menő szöveg, ezért outbound jóváhagyás kell hozzá. Elfogadás: a release gate K11 pontja ezzel teljesíthető. Előtte nézd meg a privacy_lookup incidens témát.",
+      "department": "security",
+      "assignee": "incident-responder",
+      "status": "todo",
+      "kind": "doc",
+      "priority": 2,
+      "dependsOn": [
+        "T-0003"
+      ],
+      "createdBy": "ciso",
+      "createdAt": "2026-10-13T10:44:28.715Z",
+      "updatedAt": "2026-10-13T10:44:28.715Z",
+      "notes": []
+    },
+    {
+      "id": "T-0019",
+      "title": "Adatvédelmi adatmodell: osztályozási metaadat, megőrzési motor, érintetti kérelem (R1–R3)",
+      "description": "Forrás: docs/security/privacy/requirements.md (2., 3., 4., 8. pont, R1–R3, R6). Az architecture.md-be és ADR-be vidd be: (1) mezőszintű adatosztályozási metaadat a sémában (cél, jogalap, megőrzési kategória, különleges jelző) és ebből generált nyilvántartás; (2) PersonDataProvider felület, amit minden modul implementál az érintetti kérelemhez (keresés, JSON/CSV export, helyesbítés, korlátozás, törlés/anonimizálás, határidő-figyelés); (3) megőrzési profil-modell országonként (HU/PL/CZ), lejárati ütemező, restricted állapot, jogi tartás. Bontsd fejlesztői feladatokra (backend, db-engineer). Elfogadás: modulhatárok és API-szerződés leírva, DPIA-szükségesség jelölve.",
+      "department": "dev",
+      "assignee": "architect",
+      "status": "review",
+      "kind": "code",
+      "priority": 1,
+      "dependsOn": [],
+      "createdBy": "privacy-officer",
+      "createdAt": "2026-10-16T15:35:22.411Z",
+      "updatedAt": "2026-10-16T15:55:45.193Z",
+      "notes": [
+        {
+          "at": "2026-10-16T15:41:09.703Z",
+          "by": "system",
+          "text": "Nem fejeződött be ebben a munkanapban, folytatódik."
+        },
+        {
+          "at": "2026-10-16T15:53:23.911Z",
+          "by": "system",
+          "text": "Nem fejeződött be ebben a munkanapban, folytatódik."
+        },
+        {
+          "at": "2026-10-16T15:55:45.193Z",
+          "by": "architect",
+          "text": "T-0019 kész. Adatvédelmi architektúra:\n- ADR-0005: mezőszintű osztályozás (cél, jogalap, megőrzési kategória, különleges jelző, 9. cikk feltétel), ebből generált GDPR 30. cikk szerinti nyilvántartás, PersonDataProvider szerződés.\n- ADR-0006: megőrzési motor – HU/PL/CZ profil, lejárati ütemező, restricted állapot, jogi tartás, anonimizálás változatlan bizonylaton.\n- docs/dev/architecture.md: 7. pont átírva – modulhatárok és felelősségek (7.1), DSR-folyamat (7.2), API-szerződés végpontokkal, engedélyekkel és hibakódokkal (7.3–7.4), DPIA-szükségesség táblázat (7.6: MVP nem kötelező, az auditnapló megerősítendő, a HR-szelet előtt kötelező); a 4. adatmodell-pont a platform adatvédelmi tábláival és a restricted oszlopokkal bővült; új 9.2: fejlesztői bontás.\n- Kód tesztekkel: product/backend/src/shared/privacy/ (classification, processing-register, person-data-provider, dsr-deadline, retention, retention-profiles + spec-ek).\nNyitott: a 9.2-ben leírt 5 fejlesztői feladatot (db-engineer: DB-réteg; backend-hr: DSR, illetve megőrzési motor; backend-accounting és backend-invoicing: providerek) nem tudtam létrehozni, mert elfogyott a napi feladatkeret. A leírások elfogadási feltétellel együtt készen állnak a felvételre, ezt a következő munkanapon kell megtenni. A megőrzési profilok még vázlatok (draft), a privacy-hu/pl/cz-nek kell megerősítenie őket."
+        }
+      ],
+      "reviewRound": 1
+    },
+    {
+      "id": "T-0020",
+      "title": "Naplózás és különleges adatok védelme: architektúra (R4, R5, R7, R11)",
+      "description": "Forrás: docs/security/privacy/requirements.md (5., 6. pont). Tervezd meg: append-only hozzáférési és adminisztrációs napló (személyes adat érték nélkül, hash-lánc), incidensnapló és riasztás az ügyfél adminjának, támogatási hozzáférés ügyfél-engedéllyel; HR-különleges adat mezőszintű titkosítása (AES-256-GCM, kulcs a kulcstárban, forgatás) külön hr.special.* jogosultsággal, olvasás-naplózással, maszkolt riport/export. Illeszd a jogosultsági modellbe, és bontsd fejlesztői feladatokra tesztkövetelménnyel. Egyeztess a CISO-val a kulcskezelésről.",
+      "department": "dev",
+      "assignee": "architect",
+      "status": "review",
+      "kind": "code",
+      "priority": 1,
+      "dependsOn": [],
+      "createdBy": "privacy-officer",
+      "createdAt": "2026-10-16T15:35:22.411Z",
+      "updatedAt": "2026-10-17T10:48:22.067Z",
+      "notes": [
+        {
+          "at": "2026-10-16T15:57:01.038Z",
+          "by": "system",
+          "text": "Nem fejeződött be ebben a munkanapban, folytatódik."
+        },
+        {
+          "at": "2026-10-17T10:48:22.067Z",
+          "by": "architect",
+          "text": "Elkészült: docs/dev/adr/0007 (hash-láncolt HMAC napló, incidensnapló + 72 órás riasztás, támogatási grant), docs/dev/adr/0008 (boríték-titkosítás AES-256-GCM, KeyProvider/KEK, forgatás, hr.special.* alapból senkinek, maszkolás, olvasás-naplózás), docs/dev/naplozas-es-kulonleges-adat.md (modulhely, API-szerződések, jogosultsági illesztés, DPIA, tesztkövetelményes bontás). Létrehozott feladatok: T-0048 (CISO kulcskezelés), T-0049 (DPIA, privacy-officer), T-0050 (DB), T-0051 (audit), T-0052 (kripto), T-0053 (incidens+támogatás), T-0054 (HR-különleges). A frontend feladatot az API-k után kell létrehozni. Az architecture.md-t nem írtam át; az 5–7. pontjába hivatkozás kerülhet az új dokumentumra (tech-lead/következő kör). A CISO-egyeztetés T-0048-ban zajlik, a fejlesztés a javasolt alapértékekkel indulhat."
+        }
+      ],
+      "reviewRound": 1
+    },
+    {
+      "id": "T-0021",
+      "title": "Álnevesítés, adatexport, hozzájárulás-nyilvántartás: architektúra (R8–R10)",
+      "description": "Forrás: docs/security/privacy/requirements.md (R8, R9, R10). Tervezd meg: álnevesítő eszköz teszt-/demóadathoz és álnevesített riportnézet; teljes adatexport nyílt formátumban szolgáltatóváltáshoz; marketing-hozzájárulás nyilvántartás (idő, forrás, csatorna, visszavonás). Írd be az architecture.md-be, bontsd fejlesztői feladatokra. Elfogadás: adatmodell és API-szerződés leírva.",
+      "department": "dev",
+      "assignee": "architect",
+      "status": "todo",
+      "kind": "code",
+      "priority": 2,
+      "dependsOn": [],
+      "createdBy": "privacy-officer",
+      "createdAt": "2026-10-16T15:35:22.411Z",
+      "updatedAt": "2026-10-16T15:35:22.411Z",
+      "notes": []
+    },
+    {
+      "id": "T-0022",
+      "title": "Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció",
+      "description": "Vizsgáld át a(z) T-0011 feladat változásait (Kódellenőr). A fejlesztő összefoglalója: Elkészült a docs/dev/integraciok/nav-ksef.md: NAV 3.0 (műveletek, hitelesítés/aláírás, XSD, hibakezelés, módosító/sztornó, rate limit), KSeF (auth, FA(3), KSeF-szám, offline, határidők), CZ (nincs integráció), TaxAuthorityAdapter vázlat, állapotgép, idempotencia, várólista (ADR-0003-ra építve), biztonság/adatvédelem, 9 pontos fejlesztői bontás, nyitott kérdések. ⚠ jogi pontok jelölve; 🔍 = a hivatalos specifikációból ellenőrizendő részletek (pl. rate limit értéke, pontos határidők, KSeF API részletek), mert innen nem tudtam verifikálni.",
+      "department": "dev",
+      "assignee": "code-reviewer",
+      "status": "done",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0011",
+      "createdBy": "system",
+      "createdAt": "2026-10-16T15:36:36.149Z",
+      "updatedAt": "2026-10-17T10:48:57.092Z",
+      "notes": [
+        {
+          "at": "2026-10-17T10:48:57.092Z",
+          "by": "code-reviewer",
+          "text": "Jóváhagyva: Jóváhagyom. A dokumentum lefedi a feladat minden pontját, és az architekt le tudja bontani fejlesztői feladatokra. A ⚠ jogi pontok és a 🔍 ellenőrizendő részletek jelölve vannak. A titkok kezelése, a magánszemély vevő adatainak kihagyása és az append-only adatszolgáltatási napló rendben van. Az idempotencia, az állapotgép és a hibaosztályok következetesek az ADR-0003-mal.\n\nNem blokkoló javaslatok, a következő módosításkor érdemes javítani:\n1. Az 1. fejezet módosító/sztornó pontjában elírás van: „a(z eredeti) számla\" helyett „az eredeti számla\".\n2. A 4. fejezetben a `NEEDS_ATTENTION` és a `SUSPENDED` kapcsolata nincs kimondva. A `SUSPENDED` tenant-szintű integrációs állapot, a `NEEDS_ATTENTION` pedig sor-szintű. Egy mondatban érdemes rögzíteni.\n3. A „privacy_officer nézze át\" helyett a szerep azonosítója `privacy-officer`.\n4. A 🔍 pontokat (rate limit értéke, határidők, a softwareId regisztrációja, az AES-mód, a KSeF API-részletek) a 6. pont 1. lépése előtt egy ellenőrző listában érdemes összegyűjteni. Ez a fejlesztés indításának előfeltétele lehet."
+        }
+      ],
+      "reviewRound": 1
+    },
+    {
+      "id": "T-0023",
+      "title": "Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció",
+      "description": "Vizsgáld át a(z) T-0011 feladat változásait (Alkalmazásbiztonsági auditor). A fejlesztő összefoglalója: Elkészült a docs/dev/integraciok/nav-ksef.md: NAV 3.0 (műveletek, hitelesítés/aláírás, XSD, hibakezelés, módosító/sztornó, rate limit), KSeF (auth, FA(3), KSeF-szám, offline, határidők), CZ (nincs integráció), TaxAuthorityAdapter vázlat, állapotgép, idempotencia, várólista (ADR-0003-ra építve), biztonság/adatvédelem, 9 pontos fejlesztői bontás, nyitott kérdések. ⚠ jogi pontok jelölve; 🔍 = a hivatalos specifikációból ellenőrizendő részletek (pl. rate limit értéke, pontos határidők, KSeF API részletek), mert innen nem tudtam verifikálni.",
+      "department": "security",
+      "assignee": "appsec",
+      "status": "done",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0011",
+      "createdBy": "system",
+      "createdAt": "2026-10-16T15:36:36.149Z",
+      "updatedAt": "2026-10-17T10:49:37.256Z",
+      "notes": [
+        {
+          "at": "2026-10-17T10:49:37.256Z",
+          "by": "appsec",
+          "text": "Javítást kér: Kód nincs; a §5/§6 biztonsági hiányait vizsgáltam. Jó: titoktár, magánszemély-vevő kihagyása, append-only napló. Pótolandó a §5-be és a §6 pontjaiba:\n1. XXE/gzip: NAV/KSeF válasz és számla-XML parse-ánál DTD és külső entitás tiltva (XSD-validátornál is). Támadás: manipulált partnernév/válasz `<!ENTITY SYSTEM \"file:///...\">` fájlt olvas vagy SSRF-et indít. `compressedContent` kicsomagolásánál méret- és arányhatár.\n2. SSRF/TLS: a környezet csak előre definiált azonosító (`test`|`prod`) lehet, szabad URL nem; host-allowlist. TLS-ellenőrzés kötelező. Éles módra váltás csak adminnak, megerősítéssel, auditnaplóval.\n3. Titoktár: nevezd meg a tenantonkénti kulcs származtatását (HKDF/envelope), a master key és a titkok rotációját. A titoktábla ne kerüljön az adatexportba; a felület soha ne adjon vissza titkot, csak állapotot.\n4. Napló/UI: maszkolandó a requestSignature, token, Authorization, a teljes XML-body és a NAV nyers hibaüzenete. A hatósági hibaüzenetek a felületen escape-elve, hosszkorláttal jelenjenek meg (stored XSS).\n5. Naplótábla: az append-only DB-szinten kikényszerítve (UPDATE/DELETE megvonva, trigger/hash-lánc). Tenant-izolációra (tenant_id + RLS vagy kötelező szűrő) keresztmandátum-teszt a `*_submission` és a napló táblára, a worker lekérdezésére is.\n6. Bemenet: `queryTaxpayer` adószám-validáció (formátum/ellenőrzőösszeg) és tenantonkénti rate limit. QR-tartalom szerveroldalon épüljön, szabad szöveg nélkül.\n7. Kripto: AES-128/ECB csak a NAV tokenExchange-válaszhoz, adapterbe zárt kivétel; saját adatra (titoktár, XML-archívum) AES-256-GCM. Csak szabványos könyvtár. A requestId/timestamp ismétlés-védelem tesztelve.\n8. Mock/fixtúrák: csak kitalált kulcsok, CI secret-scan; negatív teszt, hogy titok nincs a logban és az exportban.\nPótlás után jóváhagyom; a többi rendben."
+        }
+      ],
+      "reviewRound": 1
+    },
+    {
+      "id": "T-0024",
+      "title": "Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció",
+      "description": "Vizsgáld át adatvédelmi szempontból a(z) T-0011 feladat változásait: jogalap, adattakarékosság, megőrzés, érintetti jogok, naplózás, és az EU, HU, PL, CZ szabályok (privacy_lookup). A fejlesztő összefoglalója: Elkészült a docs/dev/integraciok/nav-ksef.md: NAV 3.0 (műveletek, hitelesítés/aláírás, XSD, hibakezelés, módosító/sztornó, rate limit), KSeF (auth, FA(3), KSeF-szám, offline, határidők), CZ (nincs integráció), TaxAuthorityAdapter vázlat, állapotgép, idempotencia, várólista (ADR-0003-ra építve), biztonság/adatvédelem, 9 pontos fejlesztői bontás, nyitott kérdések. ⚠ jogi pontok jelölve; 🔍 = a hivatalos specifikációból ellenőrizendő részletek (pl. rate limit értéke, pontos határidők, KSeF API részletek), mert innen nem tudtam verifikálni.",
+      "department": "security",
+      "assignee": "privacy-officer",
+      "status": "done",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0011",
+      "createdBy": "system",
+      "createdAt": "2026-10-16T15:36:36.149Z",
+      "updatedAt": "2026-10-17T10:49:37.256Z",
+      "notes": [
+        {
+          "at": "2026-10-17T10:49:37.256Z",
+          "by": "system",
+          "text": "Visszavonva: a feladat javításra visszament."
+        }
+      ],
+      "reviewRound": 1
+    },
+    {
+      "id": "T-0025",
+      "title": "Átvizsgálás: Fejlesztési szabályok és Definition of Done",
+      "description": "Vizsgáld át a(z) T-0012 feladat változásait (Kódellenőr). A fejlesztő összefoglalója: Elkészült a docs/dev/fejlesztesi-szabalyok.md: kódkonvenciók (TS strict, NestJS modulhatárok, React, pénz/idő), branch/commit/PR-szabály (≤400 sor), review-folyamat (code-reviewer + appsec/privacy/supply-chain a policy 8.2 szerint), tesztelési szintek és lefedettségi küszöbök (80/70%, kritikus kód 90%), álnevesített tesztadat (GDPR 25.), PostgreSQL migrációs szabályok (up/down, N-1 kompatibilitás, expand/contract), ellenőrzőlista-szerű DoD. A T-0003 policy.md-re hivatkozik, nem ismétli és nem ütközik vele. Az ADR-ek tartalmát nem olvastam át részletesen, csak hivatkozom rájuk (0001, 0002, 0004).",
+      "department": "dev",
+      "assignee": "code-reviewer",
+      "status": "done",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0012",
+      "createdBy": "system",
+      "createdAt": "2026-10-16T15:37:38.636Z",
+      "updatedAt": "2026-10-17T10:50:54.648Z",
+      "notes": [
+        {
+          "at": "2026-10-17T10:50:54.648Z",
+          "by": "code-reviewer",
+          "text": "Javítást kér: Jó, tömör, a policy.md-vel nem ütközik. Javítandó:\n1. KÖTELEZŐ – 1.3, 4., 5. pont: `tenant_id` helyett `company_id uuid NOT NULL` (ADR-0002). DB-szinten RLS (`current_setting('app.company_id')`, kérésenként `SET LOCAL`), az `erp_app` ne legyen táblatulajdonos. DoD-ba: integrációs teszt, hogy `SET LOCAL` nélkül nincs sor.\n2. KÖTELEZŐ – Adatvédelmi DoD igazítása az ADR-0005/0006/0008-hoz: modulonként `privacy/classification.ts` (purpose, legalBases, retentionCategory, sensitivity, art9Condition) és `PersonDataProvider` (search/export/rectify/setRestricted/erase). Az ADR-0005 „javasolt”, jelöld. Új személyes oszlop osztályozás nélkül CI-hiba (T-0013). Vedd fel a Kapcsolódó sorba az ADR-0005, 0006 (megőrzési motor), 0008 (HR különleges adat titkosítás) hivatkozást. Különleges adatnál privacy-officer ÉS CISO jóváhagyás (policy 7.2), DPIA-feltételek említése.\n3. Policy 5.2 hivatkozás a DoD-ban: lockfile + `npm ci`, `--ignore-scripts`, 7 napos várakozás, image digest-rögzítés. 1.3 kimenő hívásnál: SSRF-allowlist, TLS-ellenőrzés kikapcsolása tilos (policy 6.).\n4. Kisebb: `dangerouslySetInnerHTML` – jelezd, hogy kivétel csak sanitizálva, AppSec-jóváhagyással lehet (policy 6.). A biztonsági javítás regressziós tesztje (2.3) a DoD Kód és teszt blokkjába is kerüljön.\n5. Az ADR-eket (0001–0008) futtasd át, hogy más eltérés ne maradjon (az 1. pont ilyen volt). Javítás után újra átnézem."
+        }
+      ],
+      "reviewRound": 1
+    },
+    {
+      "id": "T-0026",
+      "title": "Átvizsgálás: Fejlesztési szabályok és Definition of Done",
+      "description": "Vizsgáld át a(z) T-0012 feladat változásait (Alkalmazásbiztonsági auditor). A fejlesztő összefoglalója: Elkészült a docs/dev/fejlesztesi-szabalyok.md: kódkonvenciók (TS strict, NestJS modulhatárok, React, pénz/idő), branch/commit/PR-szabály (≤400 sor), review-folyamat (code-reviewer + appsec/privacy/supply-chain a policy 8.2 szerint), tesztelési szintek és lefedettségi küszöbök (80/70%, kritikus kód 90%), álnevesített tesztadat (GDPR 25.), PostgreSQL migrációs szabályok (up/down, N-1 kompatibilitás, expand/contract), ellenőrzőlista-szerű DoD. A T-0003 policy.md-re hivatkozik, nem ismétli és nem ütközik vele. Az ADR-ek tartalmát nem olvastam át részletesen, csak hivatkozom rájuk (0001, 0002, 0004).",
+      "department": "security",
+      "assignee": "appsec",
+      "status": "done",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0012",
+      "createdBy": "system",
+      "createdAt": "2026-10-16T15:37:38.636Z",
+      "updatedAt": "2026-10-17T10:50:54.648Z",
+      "notes": [
+        {
+          "at": "2026-10-17T10:50:54.648Z",
+          "by": "system",
+          "text": "Visszavonva: a feladat javításra visszament."
+        }
+      ],
+      "reviewRound": 1
+    },
+    {
+      "id": "T-0027",
+      "title": "Átvizsgálás: Fejlesztési szabályok és Definition of Done",
+      "description": "Vizsgáld át adatvédelmi szempontból a(z) T-0012 feladat változásait: jogalap, adattakarékosság, megőrzés, érintetti jogok, naplózás, és az EU, HU, PL, CZ szabályok (privacy_lookup). A fejlesztő összefoglalója: Elkészült a docs/dev/fejlesztesi-szabalyok.md: kódkonvenciók (TS strict, NestJS modulhatárok, React, pénz/idő), branch/commit/PR-szabály (≤400 sor), review-folyamat (code-reviewer + appsec/privacy/supply-chain a policy 8.2 szerint), tesztelési szintek és lefedettségi küszöbök (80/70%, kritikus kód 90%), álnevesített tesztadat (GDPR 25.), PostgreSQL migrációs szabályok (up/down, N-1 kompatibilitás, expand/contract), ellenőrzőlista-szerű DoD. A T-0003 policy.md-re hivatkozik, nem ismétli és nem ütközik vele. Az ADR-ek tartalmát nem olvastam át részletesen, csak hivatkozom rájuk (0001, 0002, 0004).",
+      "department": "security",
+      "assignee": "privacy-officer",
+      "status": "done",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0012",
+      "createdBy": "system",
+      "createdAt": "2026-10-16T15:37:38.636Z",
+      "updatedAt": "2026-10-17T10:50:54.648Z",
+      "notes": [
+        {
+          "at": "2026-10-17T10:50:54.648Z",
+          "by": "system",
+          "text": "Visszavonva: a feladat javításra visszament."
+        }
+      ],
+      "reviewRound": 1
+    },
+    {
+      "id": "T-0028",
+      "title": "Piaci feltárás: praxiskezelő magánrendelőknek",
+      "description": "Új termékvonal: magánrendelőknek dobozos praxiskezelő szoftver (lásd docs/core/tulajdonosi-iranymutatas.md, 2026-10-16).\nKészíts piaci elemzést a docs/product/praxis/market.md fájlba: célszegmensek (1–10 orvosos magánrendelők, fogászat, szakrendelők, terápiás praxisok), Magyarország elsőként, PL/CZ kitekintés; a vásárló fő problémái (időpontkezelés, kartonozás, számlázás, EESZT-kötelezettségek); versenytárstípusok és jellemző árszintek; miért vennének dobozos, helyben telepíthető megoldást. Jelöld, mi ellenőrzött tény és mi feltételezés.",
+      "department": "product",
+      "assignee": "market-researcher",
+      "status": "todo",
+      "kind": "doc",
+      "priority": 1,
+      "dependsOn": [],
+      "createdBy": "ceo",
+      "createdAt": "2026-10-16T15:47:02.675Z",
+      "updatedAt": "2026-10-16T15:47:02.675Z",
+      "notes": []
+    },
+    {
+      "id": "T-0029",
+      "title": "Egészségügyi adatok: adatvédelmi követelmények a praxiskezelőhöz",
+      "description": "Új termékvonal: magánrendelőknek dobozos praxiskezelő szoftver (lásd docs/core/tulajdonosi-iranymutatas.md, 2026-10-16).\nA praxiskezelő különleges kategóriájú egészségügyi adatot kezel (GDPR 9. cikk). Írd le a docs/security/praxis-adatvedelem.md fájlba a szoftverre vonatkozó követelményeket: jogalap, hozzáférés-kezelés szerepkörönként (orvos, asszisztens, recepció), naplózás, titkosítás, mentés, megőrzési idők (HU egészségügyi dokumentáció), érintetti jogok korlátai, adatfeldolgozói szerep, DPIA szükségessége. A magyar részhez vond be a privacy-hu szerepet feladattal; PL/CZ csak kitekintés. A ⚠ jogi pontokat jelöld jogi ellenőrzésre.",
+      "department": "security",
+      "assignee": "privacy-officer",
+      "status": "todo",
+      "kind": "doc",
+      "priority": 1,
+      "dependsOn": [],
+      "createdBy": "ceo",
+      "createdAt": "2026-10-16T15:47:02.676Z",
+      "updatedAt": "2026-10-16T15:47:02.676Z",
+      "notes": []
+    },
+    {
+      "id": "T-0030",
+      "title": "Jogi keretek: EESZT-csatlakozás és orvostechnikai besorolás",
+      "description": "Új termékvonal: magánrendelőknek dobozos praxiskezelő szoftver (lásd docs/core/tulajdonosi-iranymutatas.md, 2026-10-16).\nFoglald össze a docs/legal/praxis.md fájlba: mi kell ahhoz, hogy a szoftver EESZT-hez csatlakozhasson (feltételek, tanúsítás, folyamat), és mikor számítana orvostechnikai eszköznek (MDR) – mit kell elkerülnünk az első változatban, hogy ne legyen az. Jelöld, mit kell külső jogásznak ellenőriznie.",
+      "department": "finance",
+      "assignee": "legal",
+      "status": "todo",
+      "kind": "doc",
+      "priority": 2,
+      "dependsOn": [],
+      "createdBy": "ceo",
+      "createdAt": "2026-10-16T15:47:02.676Z",
+      "updatedAt": "2026-10-16T15:47:02.676Z",
+      "notes": []
+    },
+    {
+      "id": "T-0031",
+      "title": "PRD: praxiskezelő első termékszelet",
+      "description": "Új termékvonal: magánrendelőknek dobozos praxiskezelő szoftver (lásd docs/core/tulajdonosi-iranymutatas.md, 2026-10-16).\nA piaci elemzés és az adatvédelmi követelmények alapján írd meg a docs/product/praxis/prd.md fájlt: célszegmens, personák, első szelet moduljai M/S/C prioritással (javaslat: időpontfoglalás és naptár, betegkartoték, ambuláns lap/vizitdokumentáció, számlázás a meglévő Számla modulra építve, alap riportok; EESZT-funkciók a jogi feltárás után), elfogadási feltételek, nem-célok, licenc- és csomagjavaslat. Ahol lehet, a közös platformra építs (törzsadat, számlázás, jogosultság, audit), ne kétszer fejlesszük. A végén kérj spec-jóváhagyást (request_approval).",
+      "department": "product",
+      "assignee": "product-manager",
+      "status": "todo",
+      "kind": "plan",
+      "priority": 1,
+      "dependsOn": [
+        "T-0028",
+        "T-0029"
+      ],
+      "createdBy": "ceo",
+      "createdAt": "2026-10-16T15:47:02.676Z",
+      "updatedAt": "2026-10-16T15:47:02.676Z",
+      "notes": []
+    },
+    {
+      "id": "T-0032",
+      "title": "Árazási javaslat: praxiskezelő",
+      "description": "Új termékvonal: magánrendelőknek dobozos praxiskezelő szoftver (lásd docs/core/tulajdonosi-iranymutatas.md, 2026-10-16).\nA piaci elemzés alapján készíts árazási javaslatot a docs/sales/praxis-arazas.md fájlba: csomagok (pl. egyorvosos, rendelő), örökös licenc + éves támogatás vs. bérlet, bevezetési kedvezmény. Ez javaslat, végleges árat a tulajdonos hagy jóvá.",
+      "department": "sales",
+      "assignee": "pricing-analyst",
+      "status": "todo",
+      "kind": "doc",
+      "priority": 2,
+      "dependsOn": [
+        "T-0028"
+      ],
+      "createdBy": "ceo",
+      "createdAt": "2026-10-16T15:47:02.676Z",
+      "updatedAt": "2026-10-16T15:47:02.676Z",
+      "notes": []
+    },
+    {
+      "id": "T-0033",
+      "title": "Közös platform két termékre: ERP és praxiskezelő",
+      "description": "Új termékvonal: magánrendelőknek dobozos praxiskezelő szoftver (lásd docs/core/tulajdonosi-iranymutatas.md, 2026-10-16).\nA PRD jóváhagyása után egészítsd ki a docs/dev/architecture.md-t: mely részek közösek az ERP-vel (törzsadat, számlázás, jogosultság, audit, telepítő, mentés), mi a praxiskezelő saját modulja, és hogyan kezeljük a különleges egészségügyi adatokat (elkülönített tárolás, titkosítás). Rövid ADR-ben rögzítsd.",
+      "department": "dev",
+      "assignee": "architect",
+      "status": "todo",
+      "kind": "code",
+      "priority": 2,
+      "dependsOn": [
+        "T-0031",
+        "T-0030"
+      ],
+      "createdBy": "ceo",
+      "createdAt": "2026-10-16T15:47:02.676Z",
+      "updatedAt": "2026-10-16T15:47:02.676Z",
+      "notes": []
+    },
+    {
+      "id": "T-0034",
+      "title": "DB alapok: sémák, RLS, DB-szerepkörök, változatlansági triggerek, sorszámkör, migrációfuttató",
+      "description": "Alap: docs/dev/architecture.md 4. és 8. pont, ADR-0002, product/db/migrations/0001_baseline. Készítsd el: 1) migrációfuttató (up/down, platform.schema_migration, tranzakcióban, erp_migrator szerepkörrel); 2) platform alaptáblák (company, user, role, role_permission, user_role, session, audit_log append-only, setting, secret, outbox); 3) RLS minden tenant-táblán app.company_id munkamenet-változóval + NestJS TransactionContext, ami beállítja; 4) változatlansági trigger-sablon (issued bizonylat UPDATE/DELETE tiltás); 5) number_sequence + hézagmentes foglaló függvény (SELECT … FOR UPDATE, SEQUENCE tilos). Elfogadás: minden migráció up+down fut üres DB-n; integrációs teszt: másik company_id adata RLS-sel nem látszik; párhuzamos sorszámfoglalás hézag- és duplikátummentes; erp_app nem tud UPDATE/DELETE-et az audit_log-on.",
+      "department": "dev",
+      "assignee": "db-engineer",
+      "status": "todo",
+      "kind": "code",
+      "priority": 1,
+      "dependsOn": [],
+      "createdBy": "architect",
+      "createdAt": "2026-10-16T15:49:50.877Z",
+      "updatedAt": "2026-10-16T15:49:50.877Z",
+      "notes": []
+    },
+    {
+      "id": "T-0035",
+      "title": "Platform modul: hitelesítés, felhasználó/szerepkör, PermissionGuard, auditnapló, titoktár",
+      "description": "Alap: architecture.md 2., 5., 6. pont; PRD P-1…P-7; product/backend/src/shared/auth. Készítsd el a src/modules/platform-ot: munkamenet-süti alapú bejelentkezés (HttpOnly, Secure, SameSite=Strict), Argon2id, próbálkozás-korlátozás, TOTP; felhasználó- és szerepkör-CRUD (beépített 5 szerepkör + egyedi); globális PermissionGuard bekötése; AuditService.record() append-only; SecretVault (AES-256-GCM boríték, mesterkulcs Docker secretből); RFC 9457 hibaformátum közös filterként. Elfogadás: egység+integrációs tesztek, minden végponthoz negatív jogosultsági teszt (AC-19), migráció up/down, OpenAPI frissítve; naplóban nincs jelszó/token.",
+      "department": "dev",
+      "assignee": "api-dev",
+      "status": "todo",
+      "kind": "code",
+      "priority": 1,
+      "dependsOn": [
+        "T-0034"
+      ],
+      "createdBy": "architect",
+      "createdAt": "2026-10-16T15:50:04.872Z",
+      "updatedAt": "2026-10-16T15:50:04.872Z",
+      "notes": []
+    },
+    {
+      "id": "T-0036",
+      "title": "Telepítő, titkosított mentés/visszaállítás és frissítő szkript",
+      "description": "Alap: architecture.md 1. és 8. pont, product/installer/ (docker-compose.yml, env.example). Készítsd el: install.sh (telepítésenként véletlen titkok ./secrets alá 0600-val, compose indítás, első indításkor varázsló), titkosított mentés és visszaállítás (pg_dump + titkosítás), update.sh (image-aláírás ellenőrzés → kötelező mentés → migráció up → hiba esetén automatikus visszaállítás), Caddy proxy-konfig. Elfogadás: tiszta Linux VM-en szakember nélkül 30 percen belül működő rendszer (NF-2); szándékosan elrontott migrációnál a frissítés visszaáll; fájlban nincs titok; dokumentált lépések product/installer/README.md-ben.",
+      "department": "dev",
+      "assignee": "devops",
+      "status": "todo",
+      "kind": "code",
+      "priority": 2,
+      "dependsOn": [
+        "T-0034",
+        "T-0013"
+      ],
+      "createdBy": "architect",
+      "createdAt": "2026-10-16T15:50:04.873Z",
+      "updatedAt": "2026-10-16T15:50:04.873Z",
+      "notes": []
+    },
+    {
+      "id": "T-0037",
+      "title": "Fenyegetésmodell: architektúra és NAV-csatoló",
+      "description": "Alap: docs/dev/architecture.md, ADR-0001…0004, docs/security/policy.md, T-0011 eredménye. Készíts STRIDE fenyegetésmodellt docs/security/threat-model.md-be: bizalmi határok (böngésző–proxy–app–db, worker–NAV/SMTP), tenant-elszigetelés (RLS), munkamenet-kezelés, titoktár, licencellenőrzés megkerülése, frissítési lánc, NAV technikai felhasználó kulcsai. Elfogadás: fenyegetésenként kockázat és intézkedés; az architektúrát módosító javaslatok külön listában, a felelős fejlesztői feladatra hivatkozva.",
+      "department": "security",
+      "assignee": "appsec",
+      "status": "todo",
+      "kind": "code",
+      "priority": 2,
+      "dependsOn": [],
+      "createdBy": "architect",
+      "createdAt": "2026-10-16T15:50:04.873Z",
+      "updatedAt": "2026-10-16T15:50:04.873Z",
+      "notes": []
+    },
+    {
+      "id": "T-0038",
+      "title": "Licencellenőrzés (offline Ed25519) és funkciókapcsolók",
+      "description": "Alap: architecture.md 8. pont, product/licensing/README.md, src/modules/licensing. Készítsd el: licencfájl beolvasás és Ed25519-ellenőrzés internet nélkül (nyilvános kulcs az image-ben), LicenseService.isEnabled(feature) és limits() (felhasználó, raktár), @RequiresFeature dekorátor/guard, licencfeltöltés végpont a platform-adminnak. Elfogadás: tesztek érvényes, lejárt frissítési jogú, manipulált és hiányzó licencre; limit túllépésnél stabil hibakód; privát kulcs nincs a repóban (teszthez futás közben generált kulcspár).",
+      "department": "dev",
+      "assignee": "api-dev",
+      "status": "todo",
+      "kind": "code",
+      "priority": 2,
+      "dependsOn": [
+        "T-0035"
+      ],
+      "createdBy": "architect",
+      "createdAt": "2026-10-16T15:50:14.294Z",
+      "updatedAt": "2026-10-16T15:50:14.294Z",
+      "notes": []
+    },
+    {
+      "id": "T-0039",
+      "title": "Törzsadatok modul: cég, partner, cikk, áfa-kulcs, deviza + CSV/XLSX import",
+      "description": "Alap: architecture.md 2., 4. pont (masterdata séma), PRD TD-1…TD-7, shared/country (HU adószám-validátor). Készítsd el a src/modules/masterdata-t: partner (típusok, címek, kapcsolattartó), cikk (készletkezelt/szolgáltatás, VTSZ/SZJ, EAN, raktáronkénti minimumkészlet), vat_rate NAV-kóddal és mentességi jogcímmel, currency_rate, bank_account; CSV/XLSX import előnézettel és soronkénti hibalistával. Publikus: PartnerReader, ItemReader, VatRateReader. Magánszemély partnerhez PersonalDataProvider regisztráció (shared/privacy). Elfogadás: tesztek, migráció up/down, OpenAPI, negatív jogosultsági tesztek, RLS-teszt.",
+      "department": "dev",
+      "assignee": "backend-accounting",
+      "status": "todo",
+      "kind": "code",
+      "priority": 1,
+      "dependsOn": [
+        "T-0035"
+      ],
+      "createdBy": "architect",
+      "createdAt": "2026-10-16T15:50:14.294Z",
+      "updatedAt": "2026-10-16T15:50:14.294Z",
+      "notes": []
+    },
+    {
+      "id": "T-0040",
+      "title": "Készletkezelés modul: raktár, bizonylatok, mozgóátlagár, leltár, minimumkészlet",
+      "description": "Alap: architecture.md 3., 4. pont (inventory séma, mozgóátlagár-képlet), PRD K-1…K-10. Készítsd el a src/modules/inventory-t: raktár (allow_negative), bevét/kiadás/átvezetés bizonylatok változatlanul (javítás ellenbizonylattal), stock_movement napló, stock_balance mozgóátlagárral (numeric, half-up, 4 tizedes), leltár, minimumkészlet-riasztás outbox-eseménnyel. Publikus: StockService.issueForInvoice(tx,…), returnForCorrection(tx,…), StockReader. Elfogadás: AC-11 (elégtelen készlet → 409 INSUFFICIENT_STOCK, visszagördülés), AC-12 (átlagár-példák), AC-14; párhuzamos kiadás tesztje; migráció up/down, OpenAPI.",
+      "department": "dev",
+      "assignee": "backend-inventory",
+      "status": "todo",
+      "kind": "code",
+      "priority": 1,
+      "dependsOn": [
+        "T-0039"
+      ],
+      "createdBy": "architect",
+      "createdAt": "2026-10-16T15:50:20.678Z",
+      "updatedAt": "2026-10-16T15:50:20.678Z",
+      "notes": []
+    },
+    {
+      "id": "T-0041",
+      "title": "Számlázás modul: számla, sztornó, módosító, díjbekérő, sorszámkör, PDF, e-mail, fizetés",
+      "description": "Alap: architecture.md 3., 4., 5. pont, PRD SZ-*, shared/money. Készítsd el a src/modules/invoicing-t: kiállítás egy tranzakcióban (sorszámfoglalás + mentés + StockService.issueForInvoice + outbox InvoiceIssued), Idempotency-Key; sztornó, módosító, díjbekérő → számla konverzió, előleg; partner-pillanatkép; kerekítés shared/money-val (soronként, áfaösszesítő, 5 Ft-os készpénzes kerekítés); PDF a HU országcsomag sablonjával; e-mail küldés naplóval; fizetési státusz. Elfogadás: AC-3 (hézagmentes sorszám párhuzamosan), AC-4 (kiállított számla módosítása → 409 INVOICE_IMMUTABLE + audit), AC-6 (NAV-hiba nem blokkol), AC-11; migráció up/down, OpenAPI, negatív jogosultsági tesztek.",
+      "department": "dev",
+      "assignee": "backend-invoicing",
+      "status": "todo",
+      "kind": "code",
+      "priority": 1,
+      "dependsOn": [
+        "T-0040",
+        "T-0039"
+      ],
+      "createdBy": "architect",
+      "createdAt": "2026-10-16T15:50:26.211Z",
+      "updatedAt": "2026-10-16T15:50:26.211Z",
+      "notes": []
+    },
+    {
+      "id": "T-0042",
+      "title": "Átvizsgálás: Architektúra és repó-struktúra",
+      "description": "Vizsgáld át a(z) T-0004 feladat változásait (Kódellenőr). A fejlesztő összefoglalója: T-0004 kész. Architektúra: docs/dev/architecture.md (modulhatárok, adatmodell, API-szerződések, jogosultsági modell, DPIA-értékelés: MVP-re nem kötelező, a privacy-officer erősítse meg T-0006-ban), ADR-0001…0004. product/ váz: backend (main.ts, app.module + spec, 7 modulváz, shared/money, auth, config, country, privacy, health tesztekkel), db/migrations/0001_baseline up/down, frontend váz + hu.json + i18n teszt, installer (docker-compose.yml, env.example titok nélkül), licensing/README, product/README. Fejlesztői feladatok: T-0034…T-0041 létrehozva, az adatvédelmi feladatokat a T-0019 bontja tovább. A napi feladatkorlát miatt három feladat (NAV-csatoló, riportok, frontend váz) nem jött létre; ezek kész leírása az architecture.md 9.1 pontjában van, a következő munkanapon fel kell venni őket (architect vagy tech-lead). A teszteket nem futtattam, ezt a CI (T-0013) vagy a kódellenőrzés pótolja.",
+      "department": "dev",
+      "assignee": "code-reviewer",
+      "status": "todo",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0004",
+      "createdBy": "system",
+      "createdAt": "2026-10-16T15:51:52.332Z",
+      "updatedAt": "2026-10-16T15:51:52.332Z",
+      "notes": [],
+      "reviewRound": 1
+    },
+    {
+      "id": "T-0043",
+      "title": "Átvizsgálás: Architektúra és repó-struktúra",
+      "description": "Vizsgáld át a(z) T-0004 feladat változásait (Alkalmazásbiztonsági auditor). A fejlesztő összefoglalója: T-0004 kész. Architektúra: docs/dev/architecture.md (modulhatárok, adatmodell, API-szerződések, jogosultsági modell, DPIA-értékelés: MVP-re nem kötelező, a privacy-officer erősítse meg T-0006-ban), ADR-0001…0004. product/ váz: backend (main.ts, app.module + spec, 7 modulváz, shared/money, auth, config, country, privacy, health tesztekkel), db/migrations/0001_baseline up/down, frontend váz + hu.json + i18n teszt, installer (docker-compose.yml, env.example titok nélkül), licensing/README, product/README. Fejlesztői feladatok: T-0034…T-0041 létrehozva, az adatvédelmi feladatokat a T-0019 bontja tovább. A napi feladatkorlát miatt három feladat (NAV-csatoló, riportok, frontend váz) nem jött létre; ezek kész leírása az architecture.md 9.1 pontjában van, a következő munkanapon fel kell venni őket (architect vagy tech-lead). A teszteket nem futtattam, ezt a CI (T-0013) vagy a kódellenőrzés pótolja.",
+      "department": "security",
+      "assignee": "appsec",
+      "status": "todo",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0004",
+      "createdBy": "system",
+      "createdAt": "2026-10-16T15:51:52.332Z",
+      "updatedAt": "2026-10-16T15:51:52.332Z",
+      "notes": [],
+      "reviewRound": 1
+    },
+    {
+      "id": "T-0044",
+      "title": "Átvizsgálás: Adatvédelmi adatmodell: osztályozási metaadat, megőrzési motor, érintetti kérelem (R1–R3)",
+      "description": "Vizsgáld át a(z) T-0019 feladat változásait (Kódellenőr). A fejlesztő összefoglalója: T-0019 kész. Adatvédelmi architektúra:\n- ADR-0005: mezőszintű osztályozás (cél, jogalap, megőrzési kategória, különleges jelző, 9. cikk feltétel), ebből generált GDPR 30. cikk szerinti nyilvántartás, PersonDataProvider szerződés.\n- ADR-0006: megőrzési motor – HU/PL/CZ profil, lejárati ütemező, restricted állapot, jogi tartás, anonimizálás változatlan bizonylaton.\n- docs/dev/architecture.md: 7. pont átírva – modulhatárok és felelősségek (7.1), DSR-folyamat (7.2), API-szerződés végpontokkal, engedélyekkel és hibakódokkal (7.3–7.4), DPIA-szükségesség táblázat (7.6: MVP nem kötelező, az auditnapló megerősítendő, a HR-szelet előtt kötelező); a 4. adatmodell-pont a platform adatvédelmi tábláival és a restricted oszlopokkal bővült; új 9.2: fejlesztői bontás.\n- Kód tesztekkel: product/backend/src/shared/privacy/ (classification, processing-register, person-data-provider, dsr-deadline, retention, retention-profiles + spec-ek).\nNyitott: a 9.2-ben leírt 5 fejlesztői feladatot (db-engineer: DB-réteg; backend-hr: DSR, illetve megőrzési motor; backend-accounting és backend-invoicing: providerek) nem tudtam létrehozni, mert elfogyott a napi feladatkeret. A leírások elfogadási feltétellel együtt készen állnak a felvételre, ezt a következő munkanapon kell megtenni. A megőrzési profilok még vázlatok (draft), a privacy-hu/pl/cz-nek kell megerősítenie őket.",
+      "department": "dev",
+      "assignee": "code-reviewer",
+      "status": "todo",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0019",
+      "createdBy": "system",
+      "createdAt": "2026-10-16T15:55:45.193Z",
+      "updatedAt": "2026-10-16T15:55:45.193Z",
+      "notes": [],
+      "reviewRound": 1
+    },
+    {
+      "id": "T-0045",
+      "title": "Átvizsgálás: Adatvédelmi adatmodell: osztályozási metaadat, megőrzési motor, érintetti kérelem (R1–R3)",
+      "description": "Vizsgáld át a(z) T-0019 feladat változásait (Alkalmazásbiztonsági auditor). A fejlesztő összefoglalója: T-0019 kész. Adatvédelmi architektúra:\n- ADR-0005: mezőszintű osztályozás (cél, jogalap, megőrzési kategória, különleges jelző, 9. cikk feltétel), ebből generált GDPR 30. cikk szerinti nyilvántartás, PersonDataProvider szerződés.\n- ADR-0006: megőrzési motor – HU/PL/CZ profil, lejárati ütemező, restricted állapot, jogi tartás, anonimizálás változatlan bizonylaton.\n- docs/dev/architecture.md: 7. pont átírva – modulhatárok és felelősségek (7.1), DSR-folyamat (7.2), API-szerződés végpontokkal, engedélyekkel és hibakódokkal (7.3–7.4), DPIA-szükségesség táblázat (7.6: MVP nem kötelező, az auditnapló megerősítendő, a HR-szelet előtt kötelező); a 4. adatmodell-pont a platform adatvédelmi tábláival és a restricted oszlopokkal bővült; új 9.2: fejlesztői bontás.\n- Kód tesztekkel: product/backend/src/shared/privacy/ (classification, processing-register, person-data-provider, dsr-deadline, retention, retention-profiles + spec-ek).\nNyitott: a 9.2-ben leírt 5 fejlesztői feladatot (db-engineer: DB-réteg; backend-hr: DSR, illetve megőrzési motor; backend-accounting és backend-invoicing: providerek) nem tudtam létrehozni, mert elfogyott a napi feladatkeret. A leírások elfogadási feltétellel együtt készen állnak a felvételre, ezt a következő munkanapon kell megtenni. A megőrzési profilok még vázlatok (draft), a privacy-hu/pl/cz-nek kell megerősítenie őket.",
+      "department": "security",
+      "assignee": "appsec",
+      "status": "todo",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0019",
+      "createdBy": "system",
+      "createdAt": "2026-10-16T15:55:45.193Z",
+      "updatedAt": "2026-10-16T15:55:45.193Z",
+      "notes": [],
+      "reviewRound": 1
+    },
+    {
+      "id": "T-0046",
+      "title": "Átvizsgálás: Adatvédelmi adatmodell: osztályozási metaadat, megőrzési motor, érintetti kérelem (R1–R3)",
+      "description": "Vizsgáld át adatvédelmi szempontból a(z) T-0019 feladat változásait: jogalap, adattakarékosság, megőrzés, érintetti jogok, naplózás, és az EU, HU, PL, CZ szabályok (privacy_lookup). A fejlesztő összefoglalója: T-0019 kész. Adatvédelmi architektúra:\n- ADR-0005: mezőszintű osztályozás (cél, jogalap, megőrzési kategória, különleges jelző, 9. cikk feltétel), ebből generált GDPR 30. cikk szerinti nyilvántartás, PersonDataProvider szerződés.\n- ADR-0006: megőrzési motor – HU/PL/CZ profil, lejárati ütemező, restricted állapot, jogi tartás, anonimizálás változatlan bizonylaton.\n- docs/dev/architecture.md: 7. pont átírva – modulhatárok és felelősségek (7.1), DSR-folyamat (7.2), API-szerződés végpontokkal, engedélyekkel és hibakódokkal (7.3–7.4), DPIA-szükségesség táblázat (7.6: MVP nem kötelező, az auditnapló megerősítendő, a HR-szelet előtt kötelező); a 4. adatmodell-pont a platform adatvédelmi tábláival és a restricted oszlopokkal bővült; új 9.2: fejlesztői bontás.\n- Kód tesztekkel: product/backend/src/shared/privacy/ (classification, processing-register, person-data-provider, dsr-deadline, retention, retention-profiles + spec-ek).\nNyitott: a 9.2-ben leírt 5 fejlesztői feladatot (db-engineer: DB-réteg; backend-hr: DSR, illetve megőrzési motor; backend-accounting és backend-invoicing: providerek) nem tudtam létrehozni, mert elfogyott a napi feladatkeret. A leírások elfogadási feltétellel együtt készen állnak a felvételre, ezt a következő munkanapon kell megtenni. A megőrzési profilok még vázlatok (draft), a privacy-hu/pl/cz-nek kell megerősítenie őket.",
+      "department": "security",
+      "assignee": "privacy-officer",
+      "status": "todo",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0019",
+      "createdBy": "system",
+      "createdAt": "2026-10-16T15:55:45.193Z",
+      "updatedAt": "2026-10-16T15:55:45.193Z",
+      "notes": [],
+      "reviewRound": 1
+    },
+    {
+      "id": "T-0047",
+      "title": "Design system v1: Alicya ERP Start",
+      "description": "Új részleg indul: a Dizájn csapat felel a kész szoftverek kinézetéért. A jóváhagyott PRD (docs/product/prd.md) és az architektúra (docs/dev/architecture.md, React frontend) alapján készítsd el a docs/design/README.md fájlt (vizuális irány, alapelvek, akadálymentesség) és a docs/design/tokens.json-t (színek, tipográfia, térközök, lekerekítés, árnyék; világos és sötét téma). Tervezd úgy, hogy a márkázott ügyfélváltozatoknál csak néhány token (logó, cégnév, fő és kiemelő szín) cserélődjön. Utána adj feladatot a UI dizájnernek a számlázás és a készlet képernyőire, a grafikusnak az ikonkészletre.",
+      "department": "design",
+      "assignee": "design-lead",
+      "status": "todo",
+      "kind": "doc",
+      "priority": 2,
+      "dependsOn": [],
+      "createdBy": "ceo",
+      "createdAt": "2026-10-16T22:02:53.668Z",
+      "updatedAt": "2026-10-16T22:02:53.668Z",
+      "notes": []
+    },
+    {
+      "id": "T-0048",
+      "title": "Kulcskezelés jóváhagyása: ADR-0008 és audit HMAC-kulcs",
+      "description": "Olvasd: docs/dev/adr/0008-mezoszintu-titkositas-hr-kulonleges.md és 0007 (3. pont). Döntsd el/írd meg véleményed docs/security/ alatt (rövid jegyzet, kulcskezelés.md): 1) KEK forrása MVP-ben: telepítő által generált 0600 Docker secret fájl (javaslat) vs. külső KMS; 2) KEK/DEK forgatási periódus (javaslat 12 hó) és a nonce-számláló limit; 3) helyreállítási csomag (KEK + audit HMAC-kulcs, jelszóval titkosítva) tartalma és az ügyfél megerősítése; 4) a KEK ne legyen a DB-mentéssel egy csomagban – elfogadható-e; 5) audit HMAC-kulcs külön a KEK-től, forgatása (lánc-szegmensek); 6) SaaS: cégenkénti KEK. Elfogadás: pontonként elfogad/módosít, a módosítást az architectnek jelezd (jegyzet), a fejlesztés a javasolt alapértékekkel indul.",
+      "department": "security",
+      "assignee": "ciso",
+      "status": "todo",
+      "kind": "doc",
+      "priority": 1,
+      "dependsOn": [],
+      "createdBy": "architect",
+      "createdAt": "2026-10-17T10:47:33.736Z",
+      "updatedAt": "2026-10-17T10:47:33.736Z",
+      "notes": []
+    },
+    {
+      "id": "T-0049",
+      "title": "DPIA-sablon: HR-különleges adat és auditnapló (ügyféloldali)",
+      "description": "Az architektúra (docs/dev/architecture.md 7.6) szerint a HR-szelet (betegszabadság, szakszervezeti levonás, jelenlét) fejlesztése előtt DPIA kell; az auditnapló munkavállalói tevékenységet rögzít (döntés: kell-e). Készíts ügyféloldali DPIA-sablont docs/security/privacy/ alatt az ADR-0007/0008 intézkedései alapján (mezőszintű titkosítás, hr.special.* jogosultság, olvasás-naplózás, maszkolás), és nyilatkozz az auditnapló DPIA-igényéről. Elfogadás: sablon + döntés indoklással, a backend-hr feladat (HR különleges adat) innen indulhat.",
+      "department": "security",
+      "assignee": "privacy-officer",
+      "status": "todo",
+      "kind": "doc",
+      "priority": 1,
+      "dependsOn": [],
+      "createdBy": "architect",
+      "createdAt": "2026-10-17T10:47:33.736Z",
+      "updatedAt": "2026-10-17T10:47:33.736Z",
+      "notes": []
+    },
+    {
+      "id": "T-0050",
+      "title": "DB: auditnapló-lánc, incidens, támogatási grant, data_key migrációk",
+      "description": "Spec: docs/dev/adr/0007 és 0008, docs/dev/naplozas-es-kulonleges-adat.md (3. pont). Migrációk fel/le product/db/migrations/: audit_log bővítés (company_id, seq, category, actor_type, action, resource_type/id, outcome, details jsonb, prev_hash, hash; UNIQUE(company_id,seq); havi partíció), BEFORE UPDATE/DELETE/TRUNCATE trigger, audit_anchor, platform.audit_prune() SECURITY DEFINER (csak egész lejárt partíció, előbb anchor), incident + incident_event, support_grant (kódhash), data_key, RLS mindenen, erp_app-nak nincs UPDATE/DELETE az audit táblákon. Elfogadás: DoD; fel/le teszt; negatívtesztek: UPDATE/DELETE/TRUNCATE hibával jár erp_app-pal, másik cég sora nem látható (RLS), prune nem töröl nem lejárt partíciót és anchort ír, seq hézagmentes párhuzamos beszúrásnál.",
+      "department": "dev",
+      "assignee": "db-engineer",
+      "status": "todo",
+      "kind": "code",
+      "priority": 1,
+      "dependsOn": [
+        "T-0034"
+      ],
+      "createdBy": "architect",
+      "createdAt": "2026-10-17T10:47:33.736Z",
+      "updatedAt": "2026-10-17T10:47:33.736Z",
+      "notes": []
+    },
+    {
+      "id": "T-0051",
+      "title": "Platform: AuditService, hash-lánc, ellenőrzés, napló-API",
+      "description": "Spec: docs/dev/adr/0007, docs/dev/naplozas-es-kulonleges-adat.md (2–5., 7. pont). modules/platform/audit/: AuditService.record() egyetlen belépési pont (szinkron, ugyanabban a tranzakcióban, fail-closed), details zod .strict() sémák akciónként, HMAC-SHA256 lánc cégenként (advisory lock, seq), napi anchor a workerben, verify, @AuditedRead interceptor, API (GET /audit, /verify, /anchors, /export) engedélyekkel audit.log.read|verify|export, central redactor. Elfogadás: DoD; tesztek: lánc helyes; módosított/törölt/kihagyott sor → verify hibát jelez; párhuzamos írás hézagmentes seq; ismeretlen details kulcs elutasítva; property-teszt: e-mail minta, jelszó, token sosem kerül a naplóba; naplóolvasás naplózott; engedély-negatívteszt; OpenAPI.",
+      "department": "dev",
+      "assignee": "api-dev",
+      "status": "todo",
+      "kind": "code",
+      "priority": 1,
+      "dependsOn": [
+        "T-0050",
+        "T-0035"
+      ],
+      "createdBy": "architect",
+      "createdAt": "2026-10-17T10:48:09.527Z",
+      "updatedAt": "2026-10-17T10:48:09.527Z",
+      "notes": []
+    },
+    {
+      "id": "T-0052",
+      "title": "Platform: KeyProvider, FieldCrypto (AES-256-GCM), kulcsforgatás, helyreállítási csomag",
+      "description": "Spec: docs/dev/adr/0008, docs/dev/naplozas-es-kulonleges-adat.md. src/shared/crypto/ (KeyProvider interfész, Sensitive<T>) és modules/platform/crypto/ (FileKeyProvider: ERP_KEK_FILE 0600, DEK-ek platform.data_key-ben AES-GCM-mel csomagolva, FieldCrypto.encrypt/decrypt AAD-val, nonce-számláló, DEK- és KEK-forgatás, worker újratitkosítás KEY_REENCRYPT_BATCH, POST /keys/rotate + GET /keys platform.key.rotate engedéllyel, helyreállítási csomag export/import jelszóval). Kulcsanyag soha ne kerüljön logba/fájlba; az installer-integrációt jelezd devops-nak (create_task). A T-0048 (CISO) módosításait vedd figyelembe, de a javasolt alapértékekkel indulhatsz. Elfogadás: DoD; tesztek: roundtrip; AAD-csere (sor/oszlop/cég) és hibás tag → hiba; forgatás alatti olvasás/írás; újratitkosítás megszakítás után folytatható; visszaállítás helyreállítási csomagból; redaktor teszt Sensitive<T>-re; engedély-negatívteszt.",
+      "department": "dev",
+      "assignee": "api-dev",
+      "status": "todo",
+      "kind": "code",
+      "priority": 1,
+      "dependsOn": [
+        "T-0050",
+        "T-0048"
+      ],
+      "createdBy": "architect",
+      "createdAt": "2026-10-17T10:48:09.527Z",
+      "updatedAt": "2026-10-17T10:48:09.527Z",
+      "notes": []
+    },
+    {
+      "id": "T-0053",
+      "title": "Platform: incidensnapló + riasztás az adminnak + támogatási hozzáférés (grant)",
+      "description": "Spec: docs/dev/adr/0007 7–9. pont, docs/dev/naplozas-es-kulonleges-adat.md 3., 5., 7. pont. modules/platform/incident/ és support-access/: incidens státuszgép, 72 órás határidő (awareness_at + 72h, hatóság országonként), szabálymotor (küszöbök platform.setting-ből), riasztás e-mailben outboxon át személyes adat nélkül + alkalmazáson belüli sáv, emlékeztető 48/24/6 óra; security.alert_contacts beállítás (kötelező ≥1); support_grant: egyszeri kód (csak hash), max 72 óra, TOTP-s támogatói munkamenet, visszavonás, lejárat, tiltott hatókör (hr.special.*, titok, kulcs) 422, maszkolt nézet alapból, összesítő riport; minden művelet AuditService-en át grant_id-vel. Elfogadás: DoD; tesztek: tiltott státuszátmenet 409; határidő-számítás időugrással; emlékeztetők; e-mail tartalmában nincs személyes adat; grant lejárat/visszavonás után 401; hibás kód 401/429; támogatói művelet naplózott; engedély-negatívtesztek; OpenAPI.",
+      "department": "dev",
+      "assignee": "backend-hr",
+      "status": "todo",
+      "kind": "code",
+      "priority": 2,
+      "dependsOn": [
+        "T-0051",
+        "T-0035"
+      ],
+      "createdBy": "architect",
+      "createdAt": "2026-10-17T10:48:18.223Z",
+      "updatedAt": "2026-10-17T10:48:18.223Z",
+      "notes": []
+    },
+    {
+      "id": "T-0054",
+      "title": "HR: különleges adat (betegszabadság, szakszervezeti levonás) titkosítva, hr.special.*",
+      "description": "Spec: docs/dev/adr/0008, docs/dev/naplozas-es-kulonleges-adat.md. modules/hr/special/: hr.special_record (payload_enc, nyílt csak id/company_id/employee_id), FieldCrypto használata, osztályozás (sensitivity special, art9Condition), PersonDataProvider, hr.special.read/write (beépített szerepkörnek sincs, admin sem), lista mindig maszkolt, reveal=true naplózott olvasás rekordonként dekódolás előtt, absence-summary aggregátum <5 elfedéssel, DSR-export csak privacy.dsr.export ÉS hr.special.read mellett, diagnózis mező nincs (DTO whitelist), hr_kulonleges megőrzés (törlés). Előfeltétel: DPIA-sablon (T-0049) kész. Elfogadás: DoD; tesztek: admin/HR-vezető 403; reveal nélkül maszk; minden olvasás auditbejegyzés; DB-dump nem tartalmaz nyílt szöveget; engedélykiosztás riaszt; DSR-export két engedéllyel; riport elfedés; tenant/RLS-teszt; OpenAPI.",
+      "department": "dev",
+      "assignee": "backend-hr",
+      "status": "todo",
+      "kind": "code",
+      "priority": 2,
+      "dependsOn": [
+        "T-0051",
+        "T-0052",
+        "T-0049"
+      ],
+      "createdBy": "architect",
+      "createdAt": "2026-10-17T10:48:18.223Z",
+      "updatedAt": "2026-10-17T10:48:18.223Z",
+      "notes": []
+    },
+    {
+      "id": "T-0055",
+      "title": "Átvizsgálás: Naplózás és különleges adatok védelme: architektúra (R4, R5, R7, R11)",
+      "description": "Vizsgáld át a(z) T-0020 feladat változásait (Kódellenőr). A fejlesztő összefoglalója: Elkészült: docs/dev/adr/0007 (hash-láncolt HMAC napló, incidensnapló + 72 órás riasztás, támogatási grant), docs/dev/adr/0008 (boríték-titkosítás AES-256-GCM, KeyProvider/KEK, forgatás, hr.special.* alapból senkinek, maszkolás, olvasás-naplózás), docs/dev/naplozas-es-kulonleges-adat.md (modulhely, API-szerződések, jogosultsági illesztés, DPIA, tesztkövetelményes bontás). Létrehozott feladatok: T-0048 (CISO kulcskezelés), T-0049 (DPIA, privacy-officer), T-0050 (DB), T-0051 (audit), T-0052 (kripto), T-0053 (incidens+támogatás), T-0054 (HR-különleges). A frontend feladatot az API-k után kell létrehozni. Az architecture.md-t nem írtam át; az 5–7. pontjába hivatkozás kerülhet az új dokumentumra (tech-lead/következő kör). A CISO-egyeztetés T-0048-ban zajlik, a fejlesztés a javasolt alapértékekkel indulhat.",
+      "department": "dev",
+      "assignee": "code-reviewer",
+      "status": "todo",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0020",
+      "createdBy": "system",
+      "createdAt": "2026-10-17T10:48:22.067Z",
+      "updatedAt": "2026-10-17T10:48:22.067Z",
+      "notes": [],
+      "reviewRound": 1
+    },
+    {
+      "id": "T-0056",
+      "title": "Átvizsgálás: Naplózás és különleges adatok védelme: architektúra (R4, R5, R7, R11)",
+      "description": "Vizsgáld át a(z) T-0020 feladat változásait (Alkalmazásbiztonsági auditor). A fejlesztő összefoglalója: Elkészült: docs/dev/adr/0007 (hash-láncolt HMAC napló, incidensnapló + 72 órás riasztás, támogatási grant), docs/dev/adr/0008 (boríték-titkosítás AES-256-GCM, KeyProvider/KEK, forgatás, hr.special.* alapból senkinek, maszkolás, olvasás-naplózás), docs/dev/naplozas-es-kulonleges-adat.md (modulhely, API-szerződések, jogosultsági illesztés, DPIA, tesztkövetelményes bontás). Létrehozott feladatok: T-0048 (CISO kulcskezelés), T-0049 (DPIA, privacy-officer), T-0050 (DB), T-0051 (audit), T-0052 (kripto), T-0053 (incidens+támogatás), T-0054 (HR-különleges). A frontend feladatot az API-k után kell létrehozni. Az architecture.md-t nem írtam át; az 5–7. pontjába hivatkozás kerülhet az új dokumentumra (tech-lead/következő kör). A CISO-egyeztetés T-0048-ban zajlik, a fejlesztés a javasolt alapértékekkel indulhat.",
+      "department": "security",
+      "assignee": "appsec",
+      "status": "todo",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0020",
+      "createdBy": "system",
+      "createdAt": "2026-10-17T10:48:22.067Z",
+      "updatedAt": "2026-10-17T10:48:22.067Z",
+      "notes": [],
+      "reviewRound": 1
+    },
+    {
+      "id": "T-0057",
+      "title": "Átvizsgálás: Naplózás és különleges adatok védelme: architektúra (R4, R5, R7, R11)",
+      "description": "Vizsgáld át adatvédelmi szempontból a(z) T-0020 feladat változásait: jogalap, adattakarékosság, megőrzés, érintetti jogok, naplózás, és az EU, HU, PL, CZ szabályok (privacy_lookup). A fejlesztő összefoglalója: Elkészült: docs/dev/adr/0007 (hash-láncolt HMAC napló, incidensnapló + 72 órás riasztás, támogatási grant), docs/dev/adr/0008 (boríték-titkosítás AES-256-GCM, KeyProvider/KEK, forgatás, hr.special.* alapból senkinek, maszkolás, olvasás-naplózás), docs/dev/naplozas-es-kulonleges-adat.md (modulhely, API-szerződések, jogosultsági illesztés, DPIA, tesztkövetelményes bontás). Létrehozott feladatok: T-0048 (CISO kulcskezelés), T-0049 (DPIA, privacy-officer), T-0050 (DB), T-0051 (audit), T-0052 (kripto), T-0053 (incidens+támogatás), T-0054 (HR-különleges). A frontend feladatot az API-k után kell létrehozni. Az architecture.md-t nem írtam át; az 5–7. pontjába hivatkozás kerülhet az új dokumentumra (tech-lead/következő kör). A CISO-egyeztetés T-0048-ban zajlik, a fejlesztés a javasolt alapértékekkel indulhat.",
+      "department": "security",
+      "assignee": "privacy-officer",
+      "status": "todo",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0020",
+      "createdBy": "system",
+      "createdAt": "2026-10-17T10:48:22.067Z",
+      "updatedAt": "2026-10-17T10:48:22.067Z",
+      "notes": [],
+      "reviewRound": 1
+    },
+    {
+      "id": "T-0058",
+      "title": "Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció",
+      "description": "Vizsgáld át a(z) T-0011 feladat változásait (Kódellenőr). A fejlesztő összefoglalója: docs/dev/integraciok/nav-ksef.md javítva az appsec 8 pontja szerint: XXE/gzip (§5.1), SSRF/TLS/prod-váltás (§5.2), titoktár HKDF/envelope + rotáció + export-kizárás (§5.3), maszkolás és UI escape (§5.4), DB-szintű append-only + hash-lánc + RLS + keresztmandátum-teszt (§5.5), queryTaxpayer validáció/rate limit és szerveroldali QR (§5.6), kripto (ECB-kivétel, GCM, replay, §5.7), fixtúrák/secret-scan/negatív tesztek (§5.8). A fejlesztői bontás 10 pontra bővült és hivatkozik ezekre. A ⚠ és 🔍 jelölések megmaradtak.",
+      "department": "dev",
+      "assignee": "code-reviewer",
+      "status": "todo",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0011",
+      "createdBy": "system",
+      "createdAt": "2026-10-17T10:50:27.202Z",
+      "updatedAt": "2026-10-17T10:50:27.202Z",
+      "notes": [],
+      "reviewRound": 2
+    },
+    {
+      "id": "T-0059",
+      "title": "Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció",
+      "description": "Vizsgáld át a(z) T-0011 feladat változásait (Alkalmazásbiztonsági auditor). A fejlesztő összefoglalója: docs/dev/integraciok/nav-ksef.md javítva az appsec 8 pontja szerint: XXE/gzip (§5.1), SSRF/TLS/prod-váltás (§5.2), titoktár HKDF/envelope + rotáció + export-kizárás (§5.3), maszkolás és UI escape (§5.4), DB-szintű append-only + hash-lánc + RLS + keresztmandátum-teszt (§5.5), queryTaxpayer validáció/rate limit és szerveroldali QR (§5.6), kripto (ECB-kivétel, GCM, replay, §5.7), fixtúrák/secret-scan/negatív tesztek (§5.8). A fejlesztői bontás 10 pontra bővült és hivatkozik ezekre. A ⚠ és 🔍 jelölések megmaradtak.",
+      "department": "security",
+      "assignee": "appsec",
+      "status": "todo",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0011",
+      "createdBy": "system",
+      "createdAt": "2026-10-17T10:50:27.202Z",
+      "updatedAt": "2026-10-17T10:50:27.202Z",
+      "notes": [],
+      "reviewRound": 2
+    },
+    {
+      "id": "T-0060",
+      "title": "Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció",
+      "description": "Vizsgáld át adatvédelmi szempontból a(z) T-0011 feladat változásait: jogalap, adattakarékosság, megőrzés, érintetti jogok, naplózás, és az EU, HU, PL, CZ szabályok (privacy_lookup). A fejlesztő összefoglalója: docs/dev/integraciok/nav-ksef.md javítva az appsec 8 pontja szerint: XXE/gzip (§5.1), SSRF/TLS/prod-váltás (§5.2), titoktár HKDF/envelope + rotáció + export-kizárás (§5.3), maszkolás és UI escape (§5.4), DB-szintű append-only + hash-lánc + RLS + keresztmandátum-teszt (§5.5), queryTaxpayer validáció/rate limit és szerveroldali QR (§5.6), kripto (ECB-kivétel, GCM, replay, §5.7), fixtúrák/secret-scan/negatív tesztek (§5.8). A fejlesztői bontás 10 pontra bővült és hivatkozik ezekre. A ⚠ és 🔍 jelölések megmaradtak.",
+      "department": "security",
+      "assignee": "privacy-officer",
+      "status": "todo",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0011",
+      "createdBy": "system",
+      "createdAt": "2026-10-17T10:50:27.202Z",
+      "updatedAt": "2026-10-17T10:50:27.202Z",
+      "notes": [],
+      "reviewRound": 2
+    },
+    {
+      "id": "T-0061",
+      "title": "Átvizsgálás: Fejlesztési szabályok és Definition of Done",
+      "description": "Vizsgáld át a(z) T-0012 feladat változásait (Kódellenőr). A fejlesztő összefoglalója: Javítottam a docs/dev/fejlesztesi-szabalyok.md-t, a review mind az 5 pontja szerint. (1) `tenant_id` helyett `company_id uuid NOT NULL` + RLS (`current_setting('app.company_id')`, kérésenként `SET LOCAL`), az `erp_app` nem táblatulajdonos. A DoD-ba és a 3.3 pontba bekerült az integrációs teszt, hogy `SET LOCAL` nélkül nincs sor. (2) Az adatvédelmi DoD az ADR-0005/0006/0008 szerint: `privacy/classification.ts` és `PersonDataProvider`; az ADR-0005 \"javasolt\"-ként jelölve; osztályozás nélküli új személyes oszlop CI-hiba (T-0013). Különleges adatnál privacy-officer ÉS CISO jóváhagyás (policy 7.2), DPIA-feltételek. Az ADR-0005/0006/0008 felkerült a Kapcsolódó sorba. (3) Policy 5.2 a DoD-ban: lockfile, `npm ci`, `--ignore-scripts`, 7 napos várakozás, image digest. Kimenő hívásnál SSRF-allowlist, TLS-ellenőrzés kikapcsolása tilos. (4) A `dangerouslySetInnerHTML` kivétele csak sanitizálva, AppSec-jóváhagyással. A biztonsági javítás regressziós tesztje a DoD Kód és teszt blokkjában is szerepel. (5) Mind a 8 ADR-t átfutottam. Az ADR-0001-hez igazítva: `PublicService`, modulonként külön DB-séma, TypeORM, kézzel írt SQL migráció, `APP_ROLE`. Az ADR-0007-hez: `AuditService.record()`, értékmentes napló. Az ADR-0008-hoz: `Sensitive<T>`, `KeyProvider`, maszkolás. Az ADR-0006-hoz: az `anonymize_record()` kivétel a bizonylat-védelem alól. Az ADR-0004-hez: `CountryPack` útvonala. Új szerződésteszt-szint a `PersonDataProvider`-hez.",
+      "department": "dev",
+      "assignee": "code-reviewer",
+      "status": "todo",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0012",
+      "createdBy": "system",
+      "createdAt": "2026-10-17T10:51:52.947Z",
+      "updatedAt": "2026-10-17T10:51:52.947Z",
+      "notes": [],
+      "reviewRound": 2
+    },
+    {
+      "id": "T-0062",
+      "title": "Átvizsgálás: Fejlesztési szabályok és Definition of Done",
+      "description": "Vizsgáld át a(z) T-0012 feladat változásait (Alkalmazásbiztonsági auditor). A fejlesztő összefoglalója: Javítottam a docs/dev/fejlesztesi-szabalyok.md-t, a review mind az 5 pontja szerint. (1) `tenant_id` helyett `company_id uuid NOT NULL` + RLS (`current_setting('app.company_id')`, kérésenként `SET LOCAL`), az `erp_app` nem táblatulajdonos. A DoD-ba és a 3.3 pontba bekerült az integrációs teszt, hogy `SET LOCAL` nélkül nincs sor. (2) Az adatvédelmi DoD az ADR-0005/0006/0008 szerint: `privacy/classification.ts` és `PersonDataProvider`; az ADR-0005 \"javasolt\"-ként jelölve; osztályozás nélküli új személyes oszlop CI-hiba (T-0013). Különleges adatnál privacy-officer ÉS CISO jóváhagyás (policy 7.2), DPIA-feltételek. Az ADR-0005/0006/0008 felkerült a Kapcsolódó sorba. (3) Policy 5.2 a DoD-ban: lockfile, `npm ci`, `--ignore-scripts`, 7 napos várakozás, image digest. Kimenő hívásnál SSRF-allowlist, TLS-ellenőrzés kikapcsolása tilos. (4) A `dangerouslySetInnerHTML` kivétele csak sanitizálva, AppSec-jóváhagyással. A biztonsági javítás regressziós tesztje a DoD Kód és teszt blokkjában is szerepel. (5) Mind a 8 ADR-t átfutottam. Az ADR-0001-hez igazítva: `PublicService`, modulonként külön DB-séma, TypeORM, kézzel írt SQL migráció, `APP_ROLE`. Az ADR-0007-hez: `AuditService.record()`, értékmentes napló. Az ADR-0008-hoz: `Sensitive<T>`, `KeyProvider`, maszkolás. Az ADR-0006-hoz: az `anonymize_record()` kivétel a bizonylat-védelem alól. Az ADR-0004-hez: `CountryPack` útvonala. Új szerződésteszt-szint a `PersonDataProvider`-hez.",
+      "department": "security",
+      "assignee": "appsec",
+      "status": "todo",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0012",
+      "createdBy": "system",
+      "createdAt": "2026-10-17T10:51:52.947Z",
+      "updatedAt": "2026-10-17T10:51:52.947Z",
+      "notes": [],
+      "reviewRound": 2
+    },
+    {
+      "id": "T-0063",
+      "title": "Átvizsgálás: Fejlesztési szabályok és Definition of Done",
+      "description": "Vizsgáld át adatvédelmi szempontból a(z) T-0012 feladat változásait: jogalap, adattakarékosság, megőrzés, érintetti jogok, naplózás, és az EU, HU, PL, CZ szabályok (privacy_lookup). A fejlesztő összefoglalója: Javítottam a docs/dev/fejlesztesi-szabalyok.md-t, a review mind az 5 pontja szerint. (1) `tenant_id` helyett `company_id uuid NOT NULL` + RLS (`current_setting('app.company_id')`, kérésenként `SET LOCAL`), az `erp_app` nem táblatulajdonos. A DoD-ba és a 3.3 pontba bekerült az integrációs teszt, hogy `SET LOCAL` nélkül nincs sor. (2) Az adatvédelmi DoD az ADR-0005/0006/0008 szerint: `privacy/classification.ts` és `PersonDataProvider`; az ADR-0005 \"javasolt\"-ként jelölve; osztályozás nélküli új személyes oszlop CI-hiba (T-0013). Különleges adatnál privacy-officer ÉS CISO jóváhagyás (policy 7.2), DPIA-feltételek. Az ADR-0005/0006/0008 felkerült a Kapcsolódó sorba. (3) Policy 5.2 a DoD-ban: lockfile, `npm ci`, `--ignore-scripts`, 7 napos várakozás, image digest. Kimenő hívásnál SSRF-allowlist, TLS-ellenőrzés kikapcsolása tilos. (4) A `dangerouslySetInnerHTML` kivétele csak sanitizálva, AppSec-jóváhagyással. A biztonsági javítás regressziós tesztje a DoD Kód és teszt blokkjában is szerepel. (5) Mind a 8 ADR-t átfutottam. Az ADR-0001-hez igazítva: `PublicService`, modulonként külön DB-séma, TypeORM, kézzel írt SQL migráció, `APP_ROLE`. Az ADR-0007-hez: `AuditService.record()`, értékmentes napló. Az ADR-0008-hoz: `Sensitive<T>`, `KeyProvider`, maszkolás. Az ADR-0006-hoz: az `anonymize_record()` kivétel a bizonylat-védelem alól. Az ADR-0004-hez: `CountryPack` útvonala. Új szerződésteszt-szint a `PersonDataProvider`-hez.",
+      "department": "security",
+      "assignee": "privacy-officer",
+      "status": "todo",
+      "kind": "review",
+      "priority": 1,
+      "dependsOn": [],
+      "reviewOf": "T-0012",
+      "createdBy": "system",
+      "createdAt": "2026-10-17T10:51:52.947Z",
+      "updatedAt": "2026-10-17T10:51:52.947Z",
+      "notes": [],
+      "reviewRound": 2
     }
   ],
-  "gates": [],
+  "gates": [
+    {
+      "id": "G-001",
+      "kind": "spec",
+      "title": "PRD jóváhagyás: „Számla + Készlet Start\" (első termékszelet)",
+      "summary": "Fájl: docs/product/prd.md (a market.md és az adatvédelmi tudásbázis alapján).\n\nTartalom: célszegmens (3–25 fős magyar KKV áruforgalommal + adatszuverenitásra érzékeny cégek), 4 persona; modulok azonosítóval és M/S/C prioritással: törzsadatok, számlázás, NAV Online Számla 3.0 (tartós outbox, magánszemélynél név/cím nem megy ki, titkosított kulcsok), készlet (több raktár, gördülő átlagár, minimum készlet, leltár), riportok/könyvelői export, platform (RBAC, auditnapló, mentés, Docker telepítő, érintetti kérelem, 8 éves HU megőrzés törlés helyett korlátozással, nincs telemetria). 27 tesztelhető elfogadási feltétel, nem-funkcionális követelmények (pl. NF-7 PL/CZ bővíthetőség), nem-célok (főkönyv, bér/HR, PL/CZ, webshop, POS, SaaS, MI), roadmap vázlat.\n\nLicencjavaslat: örökös licenc cégenként + évi kb. 18–22% frissítési/támogatási díj, Start/Pro csomag, offline licencfájl, kötelező „hazatelefonálás” nélkül. Az árakat nem rögzítettük, ezt a T-0016/T-0015 adja.\n\nDöntést kér (10. fejezet): 1) örökös licenc vagy éves bérlet; 2) bekerüljön-e az MVP-be az előlegszámla (SZ-5) és a készletfoglalás (K-8); 3) melyik könyvelőprogram exportja legyen az első; 4) az auditnapló megőrzési ideje (privacy-hu dönt).\n\nKockázatok: a ⚠ jelölt jogi pontokat még nem ellenőrizte jogász, erre létrehoztam a T-0017 feladatot (legal). A megőrzési értékeket a T-0007 hagyja jóvá. A jóváhagyás nyitja meg a T-0004 architektúra-feladatot.",
+      "taskId": "T-0002",
+      "requestedBy": "product-manager",
+      "status": "approved",
+      "createdAt": "2026-10-13T10:39:06.451Z",
+      "issueNumber": 2,
+      "decidedAt": "2026-10-16T15:24:09.467Z",
+      "decisionNote": ""
+    }
+  ],
   "events": [
     {
       "at": "2026-10-13T05:57:15.602Z",
@@ -233,7 +1326,2299 @@
       "department": "system",
       "kind": "warn",
       "text": "Nincs beállítva ANTHROPIC_API_KEY, ezért a cég csak a táblát frissítette, munka nem folyt."
+    },
+    {
+      "at": "2026-10-13T10:23:24.430Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "warn",
+      "text": "Nincs beállítva ANTHROPIC_API_KEY, ezért a cég csak a táblát frissítette, munka nem folyt."
+    },
+    {
+      "at": "2026-10-13T10:34:28.811Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0010 → Vezérigazgató: Napi tervezés (2026-10-13)"
+    },
+    {
+      "at": "2026-10-13T10:34:28.815Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Vezérigazgató dolgozik: T-0010 Napi tervezés (2026-10-13)"
+    },
+    {
+      "at": "2026-10-13T10:35:34.063Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Új feladat T-0011 → Integrációs fejlesztő · NAV: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció"
+    },
+    {
+      "at": "2026-10-13T10:35:34.063Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Új feladat T-0012 → Tech lead: Fejlesztési szabályok és Definition of Done"
+    },
+    {
+      "at": "2026-10-13T10:35:34.063Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Új feladat T-0013 → DevOps mérnök: CI-folyamat biztonsági kapukkal és helyi fejlesztői környezet"
+    },
+    {
+      "at": "2026-10-13T10:35:34.063Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Új feladat T-0014 → Ügyfélsiker vezető: Támogatási modell, SLA-terv és naplózott támogatási hozzáférés"
+    },
+    {
+      "at": "2026-10-13T10:35:34.063Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Új feladat T-0015 → Kontroller: Pénzügyi alapmodell: költségek, bevételi modell, fedezeti pont"
+    },
+    {
+      "at": "2026-10-13T10:35:34.063Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Új feladat T-0016 → Árazási elemző: Versenytárs-árazás és licencmodell-javaslat (HU/PL/CZ)"
+    },
+    {
+      "at": "2026-10-13T10:35:49.854Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Kész: T-0010 Napi tervezés (2026-10-13)"
+    },
+    {
+      "at": "2026-10-13T10:35:49.855Z",
+      "actor": "market-researcher",
+      "department": "product",
+      "kind": "info",
+      "text": "Piackutató dolgozik: T-0001 Piaci rés: magyar KKV számlázás + készlet"
+    },
+    {
+      "at": "2026-10-13T10:36:19.961Z",
+      "actor": "market-researcher",
+      "department": "product",
+      "kind": "info",
+      "text": "Kész: T-0001 Piaci rés: magyar KKV számlázás + készlet"
+    },
+    {
+      "at": "2026-10-13T10:36:19.962Z",
+      "actor": "product-manager",
+      "department": "product",
+      "kind": "info",
+      "text": "Termékmenedzser dolgozik: T-0002 PRD: első termékszelet (számlázás + készlet)"
+    },
+    {
+      "at": "2026-10-13T10:38:57.241Z",
+      "actor": "product-manager",
+      "department": "product",
+      "kind": "info",
+      "text": "Új feladat T-0017 → Jogi agent: Jogi átnézés: magyar számlázási követelmények a PRD-ben"
+    },
+    {
+      "at": "2026-10-13T10:39:06.451Z",
+      "actor": "product-manager",
+      "department": "product",
+      "kind": "gate",
+      "text": "Jóváhagyásra vár (G-001): PRD jóváhagyás: „Számla + Készlet Start\" (első termékszelet)"
+    },
+    {
+      "at": "2026-10-13T10:39:06.452Z",
+      "actor": "ciso",
+      "department": "security",
+      "kind": "info",
+      "text": "Biztonsági igazgató (CISO) dolgozik: T-0003 Biztonsági alapszabályzat"
+    },
+    {
+      "at": "2026-10-13T10:44:28.715Z",
+      "actor": "ciso",
+      "department": "security",
+      "kind": "info",
+      "text": "Új feladat T-0018 → Incidenskezelő: Incidens- és sérülékenységkezelési eljárás + SECURITY.md vázlat"
+    },
+    {
+      "at": "2026-10-13T10:44:39.052Z",
+      "actor": "ciso",
+      "department": "security",
+      "kind": "info",
+      "text": "Kész: T-0003 Biztonsági alapszabályzat"
+    },
+    {
+      "at": "2026-10-13T10:44:39.052Z",
+      "actor": "privacy-officer",
+      "department": "security",
+      "kind": "info",
+      "text": "Adatvédelmi tisztviselő (DPO · EU) dolgozik: T-0006 Adatvédelmi követelmények az ERP-hez (EU)"
+    },
+    {
+      "at": "2026-10-13T10:52:40.351Z",
+      "actor": "controller",
+      "department": "finance",
+      "kind": "warn",
+      "text": "A munkanap költségkerete elfogyott."
+    },
+    {
+      "at": "2026-10-13T14:22:04.858Z",
+      "actor": "privacy-officer",
+      "department": "security",
+      "kind": "info",
+      "text": "Adatvédelmi tisztviselő (DPO · EU) dolgozik: T-0006 Adatvédelmi követelmények az ERP-hez (EU)"
+    },
+    {
+      "at": "2026-10-13T14:22:05.044Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "warn",
+      "text": "Hiba T-0006 közben: 401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CfzPKyzRBx8kSgWRGGZvX\"}"
+    },
+    {
+      "at": "2026-10-14T06:35:03.471Z",
+      "actor": "privacy-officer",
+      "department": "security",
+      "kind": "info",
+      "text": "Adatvédelmi tisztviselő (DPO · EU) dolgozik: T-0006 Adatvédelmi követelmények az ERP-hez (EU)"
+    },
+    {
+      "at": "2026-10-14T06:35:03.650Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "warn",
+      "text": "Hiba T-0006 közben: 401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011Cg1fXKe2Rfi9ZNqohyBJc\"}"
+    },
+    {
+      "at": "2026-10-14T14:31:02.742Z",
+      "actor": "privacy-officer",
+      "department": "security",
+      "kind": "info",
+      "text": "Adatvédelmi tisztviselő (DPO · EU) dolgozik: T-0006 Adatvédelmi követelmények az ERP-hez (EU)"
+    },
+    {
+      "at": "2026-10-14T14:31:02.886Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "warn",
+      "text": "Hiba T-0006 közben: 401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011Cg2HpYhm5tER75z6i3rWN\"}"
+    },
+    {
+      "at": "2026-10-15T06:35:56.980Z",
+      "actor": "privacy-officer",
+      "department": "security",
+      "kind": "info",
+      "text": "Adatvédelmi tisztviselő (DPO · EU) dolgozik: T-0006 Adatvédelmi követelmények az ERP-hez (EU)"
+    },
+    {
+      "at": "2026-10-15T06:35:57.114Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "warn",
+      "text": "Hiba T-0006 közben: 401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011Cg3ZQBPoQrfHTpibruKzh\"}"
+    },
+    {
+      "at": "2026-10-15T14:32:20.177Z",
+      "actor": "privacy-officer",
+      "department": "security",
+      "kind": "info",
+      "text": "Adatvédelmi tisztviselő (DPO · EU) dolgozik: T-0006 Adatvédelmi követelmények az ERP-hez (EU)"
+    },
+    {
+      "at": "2026-10-15T14:32:20.423Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "warn",
+      "text": "Hiba T-0006 közben: 401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011Cg4BjBKofFCHLdCfFZbkS\"}"
+    },
+    {
+      "at": "2026-10-16T06:34:00.928Z",
+      "actor": "privacy-officer",
+      "department": "security",
+      "kind": "info",
+      "text": "Adatvédelmi tisztviselő (DPO · EU) dolgozik: T-0006 Adatvédelmi követelmények az ERP-hez (EU)"
+    },
+    {
+      "at": "2026-10-16T06:34:01.099Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "warn",
+      "text": "Hiba T-0006 közben: 401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011Cg5T4YTpMwBYCEyQKHAii\"}"
+    },
+    {
+      "at": "2026-10-16T14:31:55.261Z",
+      "actor": "privacy-officer",
+      "department": "security",
+      "kind": "info",
+      "text": "Adatvédelmi tisztviselő (DPO · EU) dolgozik: T-0006 Adatvédelmi követelmények az ERP-hez (EU)"
+    },
+    {
+      "at": "2026-10-16T14:31:55.427Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "warn",
+      "text": "Hiba T-0006 közben: 401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011Cg65WFYFWqrpLgksoi5iu\"}"
+    },
+    {
+      "at": "2026-10-16T15:24:09.467Z",
+      "actor": "owner",
+      "department": "product",
+      "kind": "gate",
+      "text": "G-001 jóváhagyva: PRD jóváhagyás: „Számla + Készlet Start\" (első termékszelet)"
+    },
+    {
+      "at": "2026-10-16T15:27:58.008Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Szoftverarchitekt dolgozik: T-0004 Architektúra és repó-struktúra"
+    },
+    {
+      "at": "2026-10-16T15:27:58.168Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "warn",
+      "text": "Hiba T-0004 közben: 401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011Cg69n8gAH3qWjmaKefDXC\"}"
+    },
+    {
+      "at": "2026-10-16T15:31:18.485Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Szoftverarchitekt dolgozik: T-0004 Architektúra és repó-struktúra"
+    },
+    {
+      "at": "2026-10-16T15:34:19.994Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "warn",
+      "text": "T-0004 elakadt: Elfogyott a keret, a feladat félkész. Kész: docs/dev/architecture.md (modulok, adatmodell, API, jogosultság, DPIA-értékelés, feladatlista a 9. pontban); ADR-0001…0004 (docs/dev/adr/); a backend alapja: package.json, tsconfig, shared/money (bigint, half-up, 5 Ft-os kerekítés) és shared/auth (alapból tiltó guard, beépített szerepkörök), mindkettő tesztekkel. A teszteket még nem futtattam. Hátravan: 1) main.ts, app.module.ts, modulvázak (platform/licensing/masterdata/invoicing/inventory/nav-connector/reports), shared/country és privacy interfészek; 2) db/migrations/0001_baseline up/down; 3) frontend váz + hu.json; 4) installer: compose, .env.example helyőrzőkkel; licensing/README; product/README frissítése; 5) az architecture.md 9. pontjában szereplő 12 fejlesztői feladat létrehozása. A következő körben folytatom."
+    },
+    {
+      "at": "2026-10-16T15:34:21.462Z",
+      "actor": "privacy-officer",
+      "department": "security",
+      "kind": "info",
+      "text": "Adatvédelmi tisztviselő (DPO · EU) dolgozik: T-0006 Adatvédelmi követelmények az ERP-hez (EU)"
+    },
+    {
+      "at": "2026-10-16T15:35:22.411Z",
+      "actor": "privacy-officer",
+      "department": "security",
+      "kind": "info",
+      "text": "Új feladat T-0019 → Szoftverarchitekt: Adatvédelmi adatmodell: osztályozási metaadat, megőrzési motor, érintetti kérelem (R1–R3)"
+    },
+    {
+      "at": "2026-10-16T15:35:22.411Z",
+      "actor": "privacy-officer",
+      "department": "security",
+      "kind": "info",
+      "text": "Új feladat T-0020 → Szoftverarchitekt: Naplózás és különleges adatok védelme: architektúra (R4, R5, R7, R11)"
+    },
+    {
+      "at": "2026-10-16T15:35:22.411Z",
+      "actor": "privacy-officer",
+      "department": "security",
+      "kind": "info",
+      "text": "Új feladat T-0021 → Szoftverarchitekt: Álnevesítés, adatexport, hozzájárulás-nyilvántartás: architektúra (R8–R10)"
+    },
+    {
+      "at": "2026-10-16T15:35:25.660Z",
+      "actor": "privacy-officer",
+      "department": "security",
+      "kind": "info",
+      "text": "Kész: T-0006 Adatvédelmi követelmények az ERP-hez (EU)"
+    },
+    {
+      "at": "2026-10-16T15:35:26.884Z",
+      "actor": "integration-dev",
+      "department": "dev",
+      "kind": "info",
+      "text": "Integrációs fejlesztő · NAV dolgozik: T-0011 Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció"
+    },
+    {
+      "at": "2026-10-16T15:36:36.149Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0022 → Kódellenőr: Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció"
+    },
+    {
+      "at": "2026-10-16T15:36:36.149Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0023 → Alkalmazásbiztonsági auditor: Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció"
+    },
+    {
+      "at": "2026-10-16T15:36:36.149Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0024 → Adatvédelmi tisztviselő (DPO · EU): Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció"
+    },
+    {
+      "at": "2026-10-16T15:36:37.432Z",
+      "actor": "tech-lead",
+      "department": "dev",
+      "kind": "info",
+      "text": "Tech lead dolgozik: T-0012 Fejlesztési szabályok és Definition of Done"
+    },
+    {
+      "at": "2026-10-16T15:37:38.636Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0025 → Kódellenőr: Átvizsgálás: Fejlesztési szabályok és Definition of Done"
+    },
+    {
+      "at": "2026-10-16T15:37:38.636Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0026 → Alkalmazásbiztonsági auditor: Átvizsgálás: Fejlesztési szabályok és Definition of Done"
+    },
+    {
+      "at": "2026-10-16T15:37:38.636Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0027 → Adatvédelmi tisztviselő (DPO · EU): Átvizsgálás: Fejlesztési szabályok és Definition of Done"
+    },
+    {
+      "at": "2026-10-16T15:37:40.163Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Szoftverarchitekt dolgozik: T-0019 Adatvédelmi adatmodell: osztályozási metaadat, megőrzési motor, érintetti kérelem (R1–R3)"
+    },
+    {
+      "at": "2026-10-16T15:41:10.965Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Szoftverarchitekt dolgozik: T-0019 Adatvédelmi adatmodell: osztályozási metaadat, megőrzési motor, érintetti kérelem (R1–R3)"
+    },
+    {
+      "at": "2026-10-16T15:41:23.480Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "warn",
+      "text": "Hiba T-0019 közben: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011Cg6AoV1fwnoHR632aw3nR\"}"
+    },
+    {
+      "at": "2026-10-16T15:47:02.675Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Új feladat T-0028 → Piackutató: Piaci feltárás: praxiskezelő magánrendelőknek"
+    },
+    {
+      "at": "2026-10-16T15:47:02.676Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Új feladat T-0029 → Adatvédelmi tisztviselő (DPO · EU): Egészségügyi adatok: adatvédelmi követelmények a praxiskezelőhöz"
+    },
+    {
+      "at": "2026-10-16T15:47:02.676Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Új feladat T-0030 → Jogi agent: Jogi keretek: EESZT-csatlakozás és orvostechnikai besorolás"
+    },
+    {
+      "at": "2026-10-16T15:47:02.676Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Új feladat T-0031 → Termékmenedzser: PRD: praxiskezelő első termékszelet"
+    },
+    {
+      "at": "2026-10-16T15:47:02.676Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Új feladat T-0032 → Árazási elemző: Árazási javaslat: praxiskezelő"
+    },
+    {
+      "at": "2026-10-16T15:47:02.676Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Új feladat T-0033 → Szoftverarchitekt: Közös platform két termékre: ERP és praxiskezelő"
+    },
+    {
+      "at": "2026-10-16T15:47:02.676Z",
+      "actor": "owner",
+      "department": "core",
+      "kind": "info",
+      "text": "Új termékvonal indult: praxiskezelő szoftver magánrendelőknek."
+    },
+    {
+      "at": "2026-10-16T15:48:00.190Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Szoftverarchitekt dolgozik: T-0004 Architektúra és repó-struktúra"
+    },
+    {
+      "at": "2026-10-16T15:49:35.528Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Szoftverarchitekt dolgozik: T-0004 Architektúra és repó-struktúra"
+    },
+    {
+      "at": "2026-10-16T15:49:50.877Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Új feladat T-0034 → Adatbázis-mérnök: DB alapok: sémák, RLS, DB-szerepkörök, változatlansági triggerek, sorszámkör, migrációfuttató"
+    },
+    {
+      "at": "2026-10-16T15:50:04.872Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Új feladat T-0035 → API fejlesztő: Platform modul: hitelesítés, felhasználó/szerepkör, PermissionGuard, auditnapló, titoktár"
+    },
+    {
+      "at": "2026-10-16T15:50:04.873Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Új feladat T-0036 → DevOps mérnök: Telepítő, titkosított mentés/visszaállítás és frissítő szkript"
+    },
+    {
+      "at": "2026-10-16T15:50:04.873Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Új feladat T-0037 → Alkalmazásbiztonsági auditor: Fenyegetésmodell: architektúra és NAV-csatoló"
+    },
+    {
+      "at": "2026-10-16T15:50:14.294Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Új feladat T-0038 → API fejlesztő: Licencellenőrzés (offline Ed25519) és funkciókapcsolók"
+    },
+    {
+      "at": "2026-10-16T15:50:14.294Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Új feladat T-0039 → Backend fejlesztő · Könyvelés: Törzsadatok modul: cég, partner, cikk, áfa-kulcs, deviza + CSV/XLSX import"
+    },
+    {
+      "at": "2026-10-16T15:50:20.678Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Új feladat T-0040 → Backend fejlesztő · Készlet: Készletkezelés modul: raktár, bizonylatok, mozgóátlagár, leltár, minimumkészlet"
+    },
+    {
+      "at": "2026-10-16T15:50:26.211Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Új feladat T-0041 → Backend fejlesztő · Számlázás: Számlázás modul: számla, sztornó, módosító, díjbekérő, sorszámkör, PDF, e-mail, fizetés"
+    },
+    {
+      "at": "2026-10-16T15:50:27.488Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Szoftverarchitekt dolgozik: T-0004 Architektúra és repó-struktúra"
+    },
+    {
+      "at": "2026-10-16T15:51:52.332Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0042 → Kódellenőr: Átvizsgálás: Architektúra és repó-struktúra"
+    },
+    {
+      "at": "2026-10-16T15:51:52.332Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0043 → Alkalmazásbiztonsági auditor: Átvizsgálás: Architektúra és repó-struktúra"
+    },
+    {
+      "at": "2026-10-16T15:51:53.649Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Szoftverarchitekt dolgozik: T-0019 Adatvédelmi adatmodell: osztályozási metaadat, megőrzési motor, érintetti kérelem (R1–R3)"
+    },
+    {
+      "at": "2026-10-16T15:53:25.228Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Szoftverarchitekt dolgozik: T-0019 Adatvédelmi adatmodell: osztályozási metaadat, megőrzési motor, érintetti kérelem (R1–R3)"
+    },
+    {
+      "at": "2026-10-16T15:55:45.193Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0044 → Kódellenőr: Átvizsgálás: Adatvédelmi adatmodell: osztályozási metaadat, megőrzési motor, érintetti kérelem (R1–R3)"
+    },
+    {
+      "at": "2026-10-16T15:55:45.193Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0045 → Alkalmazásbiztonsági auditor: Átvizsgálás: Adatvédelmi adatmodell: osztályozási metaadat, megőrzési motor, érintetti kérelem (R1–R3)"
+    },
+    {
+      "at": "2026-10-16T15:55:45.193Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0046 → Adatvédelmi tisztviselő (DPO · EU): Átvizsgálás: Adatvédelmi adatmodell: osztályozási metaadat, megőrzési motor, érintetti kérelem (R1–R3)"
+    },
+    {
+      "at": "2026-10-16T15:55:46.384Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Szoftverarchitekt dolgozik: T-0020 Naplózás és különleges adatok védelme: architektúra (R4, R5, R7, R11)"
+    },
+    {
+      "at": "2026-10-16T16:00:12.252Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Vezérigazgató válaszolt a tulajdonosnak (issue #4)."
+    },
+    {
+      "at": "2026-10-16T21:53:24.657Z",
+      "actor": "owner",
+      "department": "security",
+      "kind": "info",
+      "text": "Adatbiztonság részleg kikapcsolva."
+    },
+    {
+      "at": "2026-10-16T21:56:02.586Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Vezérigazgató válaszolt a tulajdonosnak (issue #4)."
+    },
+    {
+      "at": "2026-10-16T21:56:43.980Z",
+      "actor": "owner",
+      "department": "security",
+      "kind": "info",
+      "text": "Adatbiztonság részleg bekapcsolva."
+    },
+    {
+      "at": "2026-10-16T22:02:53.668Z",
+      "actor": "ceo",
+      "department": "core",
+      "kind": "info",
+      "text": "Új feladat T-0047 → Dizájnvezető: Design system v1: Alicya ERP Start"
+    },
+    {
+      "at": "2026-10-17T10:45:53.737Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Szoftverarchitekt dolgozik: T-0020 Naplózás és különleges adatok védelme: architektúra (R4, R5, R7, R11)"
+    },
+    {
+      "at": "2026-10-17T10:47:33.736Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Új feladat T-0048 → Biztonsági igazgató (CISO): Kulcskezelés jóváhagyása: ADR-0008 és audit HMAC-kulcs"
+    },
+    {
+      "at": "2026-10-17T10:47:33.736Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Új feladat T-0049 → Adatvédelmi tisztviselő (DPO · EU): DPIA-sablon: HR-különleges adat és auditnapló (ügyféloldali)"
+    },
+    {
+      "at": "2026-10-17T10:47:33.736Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Új feladat T-0050 → Adatbázis-mérnök: DB: auditnapló-lánc, incidens, támogatási grant, data_key migrációk"
+    },
+    {
+      "at": "2026-10-17T10:48:09.527Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Új feladat T-0051 → API fejlesztő: Platform: AuditService, hash-lánc, ellenőrzés, napló-API"
+    },
+    {
+      "at": "2026-10-17T10:48:09.527Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Új feladat T-0052 → API fejlesztő: Platform: KeyProvider, FieldCrypto (AES-256-GCM), kulcsforgatás, helyreállítási csomag"
+    },
+    {
+      "at": "2026-10-17T10:48:18.223Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Új feladat T-0053 → Backend fejlesztő · HR: Platform: incidensnapló + riasztás az adminnak + támogatási hozzáférés (grant)"
+    },
+    {
+      "at": "2026-10-17T10:48:18.223Z",
+      "actor": "architect",
+      "department": "dev",
+      "kind": "info",
+      "text": "Új feladat T-0054 → Backend fejlesztő · HR: HR: különleges adat (betegszabadság, szakszervezeti levonás) titkosítva, hr.special.*"
+    },
+    {
+      "at": "2026-10-17T10:48:22.067Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0055 → Kódellenőr: Átvizsgálás: Naplózás és különleges adatok védelme: architektúra (R4, R5, R7, R11)"
+    },
+    {
+      "at": "2026-10-17T10:48:22.067Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0056 → Alkalmazásbiztonsági auditor: Átvizsgálás: Naplózás és különleges adatok védelme: architektúra (R4, R5, R7, R11)"
+    },
+    {
+      "at": "2026-10-17T10:48:22.067Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0057 → Adatvédelmi tisztviselő (DPO · EU): Átvizsgálás: Naplózás és különleges adatok védelme: architektúra (R4, R5, R7, R11)"
+    },
+    {
+      "at": "2026-10-17T10:48:46.346Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Aréna D-0001: a párbaj elmaradt, mert nem született meg mindkét bírói vélemény."
+    },
+    {
+      "at": "2026-10-17T10:48:47.584Z",
+      "actor": "code-reviewer",
+      "department": "dev",
+      "kind": "info",
+      "text": "Kódellenőr dolgozik: T-0022 Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció"
+    },
+    {
+      "at": "2026-10-17T10:48:58.252Z",
+      "actor": "appsec",
+      "department": "security",
+      "kind": "info",
+      "text": "Alkalmazásbiztonsági auditor dolgozik: T-0023 Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció"
+    },
+    {
+      "at": "2026-10-17T10:49:37.256Z",
+      "actor": "appsec",
+      "department": "security",
+      "kind": "warn",
+      "text": "T-0011 visszaküldve javításra: Kód nincs; a §5/§6 biztonsági hiányait vizsgáltam. Jó: titoktár, magánszemély-vevő kihagyása, append-only napló. Pótolandó a §5-be és a §6 pontjaiba:\n1. XXE/gzip: NAV/KSeF válasz és számla-XML parse-ánál DTD és külső entitás tiltva (XSD-validátornál is). Támadás: manipulált partnernév/válasz `<!ENTITY SYSTEM \"file:///...\">` fájlt olvas vagy SSRF-et indít. `compressedContent` kicsomagolásánál méret- és arányhatár.\n2. SSRF/TLS: a környezet csak előre definiált azonosító (`test`|`prod`) lehet, szabad URL nem; host-allowlist. TLS-ellenőrzés kötelező. Éles módra váltás csak adminnak, megerősítéssel, auditnaplóval.\n3. Titoktár: nevezd meg a tenantonkénti kulcs származtatását (HKDF/envelope), a master key és a titkok rotációját. A titoktábla ne kerüljön az adatexportba; a felület soha ne adjon vissza titkot, csak állapotot.\n4. Napló/UI: maszkolandó a requestSignature, token, Authorization, a teljes XML-body és a NAV nyers hibaüzenete. A hatósági hibaüzenetek a felületen escape-elve, hosszkorláttal jelenjenek meg (stored XSS).\n5. Naplótábla: az append-only DB-szinten kikényszerítve (UPDATE/DELETE megvonva, trigger/hash-lánc). Tenant-izolációra (tenant_id + RLS vagy kötelező szűrő) keresztmandátum-teszt a `*_submission` és a napló táblára, a worker lekérdezésére is.\n6. Bemenet: `queryTaxpayer` adószám-validáció (formátum/ellenőrzőösszeg) és tenantonkénti rate limit. QR-tartalom szerveroldalon épüljön, szabad szöveg nélkül.\n7. Kripto: AES-128/ECB csak a NAV tokenExchange-válaszhoz, adapterbe zárt kivétel; saját adatra (titoktár, XML-archívum) AES-256-GCM. Csak szabványos könyvtár. A requestId/timestamp ismétlés-védelem tesztelve.\n8. Mock/fixtúrák: csak kitalált kulcsok, CI secret-scan; negatív teszt, hogy titok nincs a logban és az exportban.\nPótlás után jóváhagyom; a többi rendben."
+    },
+    {
+      "at": "2026-10-17T10:49:38.565Z",
+      "actor": "integration-dev",
+      "department": "dev",
+      "kind": "info",
+      "text": "Integrációs fejlesztő · NAV dolgozik: T-0011 Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció"
+    },
+    {
+      "at": "2026-10-17T10:50:27.202Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0058 → Kódellenőr: Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció"
+    },
+    {
+      "at": "2026-10-17T10:50:27.202Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0059 → Alkalmazásbiztonsági auditor: Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció"
+    },
+    {
+      "at": "2026-10-17T10:50:27.202Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0060 → Adatvédelmi tisztviselő (DPO · EU): Átvizsgálás: Technikai feltárás: NAV Online Számla 3.0 és KSeF integráció"
+    },
+    {
+      "at": "2026-10-17T10:50:28.446Z",
+      "actor": "code-reviewer",
+      "department": "dev",
+      "kind": "info",
+      "text": "Kódellenőr dolgozik: T-0025 Átvizsgálás: Fejlesztési szabályok és Definition of Done"
+    },
+    {
+      "at": "2026-10-17T10:50:54.648Z",
+      "actor": "code-reviewer",
+      "department": "dev",
+      "kind": "warn",
+      "text": "T-0012 visszaküldve javításra: Jó, tömör, a policy.md-vel nem ütközik. Javítandó:\n1. KÖTELEZŐ – 1.3, 4., 5. pont: `tenant_id` helyett `company_id uuid NOT NULL` (ADR-0002). DB-szinten RLS (`current_setting('app.company_id')`, kérésenként `SET LOCAL`), az `erp_app` ne legyen táblatulajdonos. DoD-ba: integrációs teszt, hogy `SET LOCAL` nélkül nincs sor.\n2. KÖTELEZŐ – Adatvédelmi DoD igazítása az ADR-0005/0006/0008-hoz: modulonként `privacy/classification.ts` (purpose, legalBases, retentionCategory, sensitivity, art9Condition) és `PersonDataProvider` (search/export/rectify/setRestricted/erase). Az ADR-0005 „javasolt”, jelöld. Új személyes oszlop osztályozás nélkül CI-hiba (T-0013). Vedd fel a Kapcsolódó sorba az ADR-0005, 0006 (megőrzési motor), 0008 (HR különleges adat titkosítás) hivatkozást. Különleges adatnál privacy-officer ÉS CISO jóváhagyás (policy 7.2), DPIA-feltételek említése.\n3. Policy 5.2 hivatkozás a DoD-ban: lockfile + `npm ci`, `--ignore-scripts`, 7 napos várakozás, image digest-rögzítés. 1.3 kimenő hívásnál: SSRF-allowlist, TLS-ellenőrzés kikapcsolása tilos (policy 6.).\n4. Kisebb: `dangerouslySetInnerHTML` – jelezd, hogy kivétel csak sanitizálva, AppSec-jóváhagyással lehet (policy 6.). A biztonsági javítás regressziós tesztje (2.3) a DoD Kód és teszt blokkjába is kerüljön.\n5. Az ADR-eket (0001–0008) futtasd át, hogy más eltérés ne maradjon (az 1. pont ilyen volt). Javítás után újra átnézem."
+    },
+    {
+      "at": "2026-10-17T10:50:55.914Z",
+      "actor": "tech-lead",
+      "department": "dev",
+      "kind": "info",
+      "text": "Tech lead dolgozik: T-0012 Fejlesztési szabályok és Definition of Done"
+    },
+    {
+      "at": "2026-10-17T10:51:52.947Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0061 → Kódellenőr: Átvizsgálás: Fejlesztési szabályok és Definition of Done"
+    },
+    {
+      "at": "2026-10-17T10:51:52.947Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0062 → Alkalmazásbiztonsági auditor: Átvizsgálás: Fejlesztési szabályok és Definition of Done"
+    },
+    {
+      "at": "2026-10-17T10:51:52.947Z",
+      "actor": "system",
+      "department": "system",
+      "kind": "info",
+      "text": "Új feladat T-0063 → Adatvédelmi tisztviselő (DPO · EU): Átvizsgálás: Fejlesztési szabályok és Definition of Done"
+    },
+    {
+      "at": "2026-10-17T10:52:14.483Z",
+      "actor": "owner",
+      "department": "core",
+      "kind": "info",
+      "text": "Beállítások módosítva: belső verseny."
+    },
+    {
+      "at": "2026-10-18T22:43:50.766Z",
+      "actor": "owner",
+      "department": "core",
+      "kind": "info",
+      "text": "Beállítások módosítva: szünet."
     }
   ],
-  "ledger": []
+  "ledger": [
+    {
+      "at": "2026-10-13T10:34:30.611Z",
+      "role": "ceo",
+      "model": "claude-opus-5-5",
+      "inputTokens": 4,
+      "outputTokens": 88,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 4220,
+      "usd": 0.022876
+    },
+    {
+      "at": "2026-10-13T10:34:33.279Z",
+      "role": "ceo",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 262,
+      "cacheReadTokens": 4220,
+      "cacheWriteTokens": 627,
+      "usd": 0.009227
+    },
+    {
+      "at": "2026-10-13T10:34:49.720Z",
+      "role": "ceo",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 1514,
+      "cacheReadTokens": 4847,
+      "cacheWriteTokens": 11828,
+      "usd": 0.09039739999999999
+    },
+    {
+      "at": "2026-10-13T10:35:34.061Z",
+      "role": "ceo",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 4242,
+      "cacheReadTokens": 16675,
+      "cacheWriteTokens": 2224,
+      "usd": 0.099303
+    },
+    {
+      "at": "2026-10-13T10:35:45.274Z",
+      "role": "ceo",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 1134,
+      "cacheReadTokens": 18899,
+      "cacheWriteTokens": 4753,
+      "usd": 0.0502328
+    },
+    {
+      "at": "2026-10-13T10:35:49.853Z",
+      "role": "ceo",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 375,
+      "cacheReadTokens": 23652,
+      "cacheWriteTokens": 1171,
+      "usd": 0.018093400000000003
+    },
+    {
+      "at": "2026-10-13T10:35:51.812Z",
+      "role": "market-researcher",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 4,
+      "outputTokens": 217,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 3713,
+      "usd": 0.0114605
+    },
+    {
+      "at": "2026-10-13T10:36:17.378Z",
+      "role": "market-researcher",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 2724,
+      "cacheReadTokens": 3713,
+      "cacheWriteTokens": 809,
+      "usd": 0.030009099999999997
+    },
+    {
+      "at": "2026-10-13T10:36:19.961Z",
+      "role": "market-researcher",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 204,
+      "cacheReadTokens": 4522,
+      "cacheWriteTokens": 2750,
+      "usd": 0.0098234
+    },
+    {
+      "at": "2026-10-13T10:36:21.766Z",
+      "role": "product-manager",
+      "model": "claude-opus-5-5",
+      "inputTokens": 4,
+      "outputTokens": 140,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 4144,
+      "usd": 0.023536
+    },
+    {
+      "at": "2026-10-13T10:36:24.060Z",
+      "role": "product-manager",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 223,
+      "cacheReadTokens": 4144,
+      "cacheWriteTokens": 1119,
+      "usd": 0.0108918
+    },
+    {
+      "at": "2026-10-13T10:36:27.721Z",
+      "role": "product-manager",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 269,
+      "cacheReadTokens": 5263,
+      "cacheWriteTokens": 15119,
+      "usd": 0.0820356
+    },
+    {
+      "at": "2026-10-13T10:38:50.337Z",
+      "role": "product-manager",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 13218,
+      "cacheReadTokens": 20382,
+      "cacheWriteTokens": 1244,
+      "usd": 0.27466440000000003
+    },
+    {
+      "at": "2026-10-13T10:38:57.241Z",
+      "role": "product-manager",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 554,
+      "cacheReadTokens": 21626,
+      "cacheWriteTokens": 13245,
+      "usd": 0.0816382
+    },
+    {
+      "at": "2026-10-13T10:39:06.450Z",
+      "role": "product-manager",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 865,
+      "cacheReadTokens": 34871,
+      "cacheWriteTokens": 611,
+      "usd": 0.0273372
+    },
+    {
+      "at": "2026-10-13T10:39:08.366Z",
+      "role": "ciso",
+      "model": "claude-opus-5-5",
+      "inputTokens": 4,
+      "outputTokens": 140,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 4160,
+      "usd": 0.023616
+    },
+    {
+      "at": "2026-10-13T10:39:10.650Z",
+      "role": "ciso",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 224,
+      "cacheReadTokens": 4160,
+      "cacheWriteTokens": 1168,
+      "usd": 0.01116
+    },
+    {
+      "at": "2026-10-13T10:39:15.232Z",
+      "role": "ciso",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 352,
+      "cacheReadTokens": 5328,
+      "cacheWriteTokens": 24412,
+      "usd": 0.1301736
+    },
+    {
+      "at": "2026-10-13T10:41:57.981Z",
+      "role": "ciso",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 16000,
+      "cacheReadTokens": 29740,
+      "cacheWriteTokens": 1893,
+      "usd": 0.335421
+    },
+    {
+      "at": "2026-10-13T10:44:14.638Z",
+      "role": "ciso",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 13598,
+      "cacheReadTokens": 31633,
+      "cacheWriteTokens": 2553,
+      "usd": 0.2910596
+    },
+    {
+      "at": "2026-10-13T10:44:28.714Z",
+      "role": "ciso",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 1205,
+      "cacheReadTokens": 34186,
+      "cacheWriteTokens": 13625,
+      "usd": 0.0990702
+    },
+    {
+      "at": "2026-10-13T10:44:39.052Z",
+      "role": "ciso",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 984,
+      "cacheReadTokens": 47811,
+      "cacheWriteTokens": 1358,
+      "usd": 0.036040199999999994
+    },
+    {
+      "at": "2026-10-13T10:44:41.952Z",
+      "role": "privacy-officer",
+      "model": "claude-opus-5-5",
+      "inputTokens": 4,
+      "outputTokens": 200,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 4311,
+      "usd": 0.025571
+    },
+    {
+      "at": "2026-10-13T10:44:44.425Z",
+      "role": "privacy-officer",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 169,
+      "cacheReadTokens": 4311,
+      "cacheWriteTokens": 11634,
+      "usd": 0.062420199999999995
+    },
+    {
+      "at": "2026-10-13T10:44:50.566Z",
+      "role": "privacy-officer",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 611,
+      "cacheReadTokens": 15945,
+      "cacheWriteTokens": 26411,
+      "usd": 0.147472
+    },
+    {
+      "at": "2026-10-13T10:47:36.453Z",
+      "role": "privacy-officer",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 16000,
+      "cacheReadTokens": 42356,
+      "cacheWriteTokens": 7180,
+      "usd": 0.3643792
+    },
+    {
+      "at": "2026-10-13T10:50:08.575Z",
+      "role": "privacy-officer",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 16000,
+      "cacheReadTokens": 49536,
+      "cacheWriteTokens": 8150,
+      "usd": 0.37066520000000003
+    },
+    {
+      "at": "2026-10-13T10:52:40.350Z",
+      "role": "privacy-officer",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 16000,
+      "cacheReadTokens": 57686,
+      "cacheWriteTokens": 146,
+      "usd": 0.3322752
+    },
+    {
+      "at": "2026-10-16T15:31:21.326Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 4,
+      "outputTokens": 163,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 6954,
+      "usd": 0.038046
+    },
+    {
+      "at": "2026-10-16T15:31:23.261Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 165,
+      "cacheReadTokens": 6954,
+      "cacheWriteTokens": 479,
+      "usd": 0.0070938
+    },
+    {
+      "at": "2026-10-16T15:31:26.101Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 142,
+      "cacheReadTokens": 7433,
+      "cacheWriteTokens": 13305,
+      "usd": 0.07085960000000001
+    },
+    {
+      "at": "2026-10-16T15:31:29.612Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 273,
+      "cacheReadTokens": 20738,
+      "cacheWriteTokens": 874,
+      "usd": 0.0139856
+    },
+    {
+      "at": "2026-10-16T15:33:02.874Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 9143,
+      "cacheReadTokens": 21612,
+      "cacheWriteTokens": 14455,
+      "usd": 0.2594654
+    },
+    {
+      "at": "2026-10-16T15:33:25.646Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 2139,
+      "cacheReadTokens": 36067,
+      "cacheWriteTokens": 9172,
+      "usd": 0.0958614
+    },
+    {
+      "at": "2026-10-16T15:33:47.781Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 2992,
+      "cacheReadTokens": 45239,
+      "cacheWriteTokens": 2378,
+      "usd": 0.0807858
+    },
+    {
+      "at": "2026-10-16T15:34:12.519Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 3459,
+      "cacheReadTokens": 47617,
+      "cacheWriteTokens": 3203,
+      "usd": 0.09472639999999999
+    },
+    {
+      "at": "2026-10-16T15:34:19.993Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 4,
+      "outputTokens": 572,
+      "cacheReadTokens": 50820,
+      "cacheWriteTokens": 3730,
+      "usd": 0.04027
+    },
+    {
+      "at": "2026-10-16T15:34:22.969Z",
+      "role": "privacy-officer",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 4,
+      "outputTokens": 99,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 7235,
+      "usd": 0.0190855
+    },
+    {
+      "at": "2026-10-16T15:34:24.867Z",
+      "role": "privacy-officer",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 176,
+      "cacheReadTokens": 7235,
+      "cacheWriteTokens": 438,
+      "usd": 0.004306
+    },
+    {
+      "at": "2026-10-16T15:35:12.859Z",
+      "role": "privacy-officer",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 6027,
+      "cacheReadTokens": 7673,
+      "cacheWriteTokens": 14664,
+      "usd": 0.0984686
+    },
+    {
+      "at": "2026-10-16T15:35:22.410Z",
+      "role": "privacy-officer",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 1323,
+      "cacheReadTokens": 22337,
+      "cacheWriteTokens": 6059,
+      "usd": 0.0328489
+    },
+    {
+      "at": "2026-10-16T15:35:25.659Z",
+      "role": "privacy-officer",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 332,
+      "cacheReadTokens": 28396,
+      "cacheWriteTokens": 1599,
+      "usd": 0.0130007
+    },
+    {
+      "at": "2026-10-16T15:35:29.144Z",
+      "role": "integration-dev",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 4,
+      "outputTokens": 184,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 7051,
+      "usd": 0.0194755
+    },
+    {
+      "at": "2026-10-16T15:35:30.744Z",
+      "role": "integration-dev",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 66,
+      "cacheReadTokens": 7051,
+      "cacheWriteTokens": 898,
+      "usd": 0.0043192
+    },
+    {
+      "at": "2026-10-16T15:36:32.920Z",
+      "role": "integration-dev",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 6920,
+      "cacheReadTokens": 7949,
+      "cacheWriteTokens": 579,
+      "usd": 0.07224130000000001
+    },
+    {
+      "at": "2026-10-16T15:36:36.149Z",
+      "role": "integration-dev",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 334,
+      "cacheReadTokens": 8528,
+      "cacheWriteTokens": 6957,
+      "usd": 0.0224421
+    },
+    {
+      "at": "2026-10-16T15:36:39.082Z",
+      "role": "tech-lead",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 4,
+      "outputTokens": 148,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 7330,
+      "usd": 0.019813
+    },
+    {
+      "at": "2026-10-16T15:36:39.923Z",
+      "role": "tech-lead",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 55,
+      "cacheReadTokens": 7330,
+      "cacheWriteTokens": 733,
+      "usd": 0.0038525
+    },
+    {
+      "at": "2026-10-16T15:37:34.446Z",
+      "role": "tech-lead",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 6585,
+      "cacheReadTokens": 8063,
+      "cacheWriteTokens": 13583,
+      "usd": 0.1014241
+    },
+    {
+      "at": "2026-10-16T15:37:38.636Z",
+      "role": "tech-lead",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 363,
+      "cacheReadTokens": 21646,
+      "cacheWriteTokens": 6624,
+      "usd": 0.024523200000000002
+    },
+    {
+      "at": "2026-10-16T15:37:42.446Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 4,
+      "outputTokens": 176,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 7211,
+      "usd": 0.039591
+    },
+    {
+      "at": "2026-10-16T15:37:45.240Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 168,
+      "cacheReadTokens": 7211,
+      "cacheWriteTokens": 6685,
+      "usd": 0.0382352
+    },
+    {
+      "at": "2026-10-16T15:37:51.102Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 487,
+      "cacheReadTokens": 13896,
+      "cacheWriteTokens": 6925,
+      "usd": 0.0471522
+    },
+    {
+      "at": "2026-10-16T15:37:54.896Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 262,
+      "cacheReadTokens": 20821,
+      "cacheWriteTokens": 2680,
+      "usd": 0.0228122
+    },
+    {
+      "at": "2026-10-16T15:37:59.262Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 295,
+      "cacheReadTokens": 23501,
+      "cacheWriteTokens": 398,
+      "usd": 0.0125982
+    },
+    {
+      "at": "2026-10-16T15:39:13.584Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 7776,
+      "cacheReadTokens": 23899,
+      "cacheWriteTokens": 2719,
+      "usd": 0.1739028
+    },
+    {
+      "at": "2026-10-16T15:40:15.804Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 8720,
+      "cacheReadTokens": 26618,
+      "cacheWriteTokens": 9023,
+      "usd": 0.2248466
+    },
+    {
+      "at": "2026-10-16T15:40:59.765Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 6044,
+      "cacheReadTokens": 35641,
+      "cacheWriteTokens": 9142,
+      "usd": 0.17372620000000003
+    },
+    {
+      "at": "2026-10-16T15:41:09.702Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 4,
+      "outputTokens": 946,
+      "cacheReadTokens": 44783,
+      "cacheWriteTokens": 6322,
+      "usd": 0.059502599999999996
+    },
+    {
+      "at": "2026-10-16T15:41:13.654Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 4,
+      "outputTokens": 142,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 7265,
+      "usd": 0.039181
+    },
+    {
+      "at": "2026-10-16T15:41:18.311Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 151,
+      "cacheReadTokens": 7265,
+      "cacheWriteTokens": 772,
+      "usd": 0.008341
+    },
+    {
+      "at": "2026-10-16T15:41:23.181Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 406,
+      "cacheReadTokens": 8037,
+      "cacheWriteTokens": 11937,
+      "usd": 0.0694204
+    },
+    {
+      "at": "2026-10-16T15:48:02.169Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 4,
+      "outputTokens": 124,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 7431,
+      "usd": 0.039651
+    },
+    {
+      "at": "2026-10-16T15:48:04.484Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 206,
+      "cacheReadTokens": 7431,
+      "cacheWriteTokens": 6380,
+      "usd": 0.0375142
+    },
+    {
+      "at": "2026-10-16T15:48:06.834Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 174,
+      "cacheReadTokens": 13811,
+      "cacheWriteTokens": 1400,
+      "usd": 0.0132502
+    },
+    {
+      "at": "2026-10-16T15:48:27.275Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 2800,
+      "cacheReadTokens": 15211,
+      "cacheWriteTokens": 935,
+      "usd": 0.0637252
+    },
+    {
+      "at": "2026-10-16T15:48:47.544Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 2789,
+      "cacheReadTokens": 16146,
+      "cacheWriteTokens": 3124,
+      "usd": 0.0746372
+    },
+    {
+      "at": "2026-10-16T15:49:08.887Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 2818,
+      "cacheReadTokens": 19270,
+      "cacheWriteTokens": 3328,
+      "usd": 0.076862
+    },
+    {
+      "at": "2026-10-16T15:49:30.949Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 2695,
+      "cacheReadTokens": 22598,
+      "cacheWriteTokens": 3241,
+      "usd": 0.07463260000000001
+    },
+    {
+      "at": "2026-10-16T15:49:34.101Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 330,
+      "cacheReadTokens": 25839,
+      "cacheWriteTokens": 2927,
+      "usd": 0.026410799999999998
+    },
+    {
+      "at": "2026-10-16T15:49:38.136Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 4,
+      "outputTokens": 124,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 7472,
+      "usd": 0.039856
+    },
+    {
+      "at": "2026-10-16T15:49:40.533Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 144,
+      "cacheReadTokens": 7472,
+      "cacheWriteTokens": 6864,
+      "usd": 0.038702400000000005
+    },
+    {
+      "at": "2026-10-16T15:49:43.284Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 188,
+      "cacheReadTokens": 14336,
+      "cacheWriteTokens": 2198,
+      "usd": 0.0176252
+    },
+    {
+      "at": "2026-10-16T15:49:50.876Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 696,
+      "cacheReadTokens": 16534,
+      "cacheWriteTokens": 699,
+      "usd": 0.0207298
+    },
+    {
+      "at": "2026-10-16T15:50:04.872Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 1400,
+      "cacheReadTokens": 17233,
+      "cacheWriteTokens": 777,
+      "usd": 0.0353396
+    },
+    {
+      "at": "2026-10-16T15:50:14.294Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 951,
+      "cacheReadTokens": 18010,
+      "cacheWriteTokens": 1676,
+      "usd": 0.03101
+    },
+    {
+      "at": "2026-10-16T15:50:20.678Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 525,
+      "cacheReadTokens": 19686,
+      "cacheWriteTokens": 1151,
+      "usd": 0.0202002
+    },
+    {
+      "at": "2026-10-16T15:50:26.211Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 578,
+      "cacheReadTokens": 20837,
+      "cacheWriteTokens": 609,
+      "usd": 0.018780400000000003
+    },
+    {
+      "at": "2026-10-16T15:50:30.691Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 4,
+      "outputTokens": 125,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 7513,
+      "usd": 0.040081
+    },
+    {
+      "at": "2026-10-16T15:50:35.173Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 164,
+      "cacheReadTokens": 7513,
+      "cacheWriteTokens": 6865,
+      "usd": 0.0391156
+    },
+    {
+      "at": "2026-10-16T15:50:38.525Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 229,
+      "cacheReadTokens": 14378,
+      "cacheWriteTokens": 1763,
+      "usd": 0.0162786
+    },
+    {
+      "at": "2026-10-16T15:50:55.962Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 1879,
+      "cacheReadTokens": 16141,
+      "cacheWriteTokens": 1257,
+      "usd": 0.047101199999999996
+    },
+    {
+      "at": "2026-10-16T15:51:43.960Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 7012,
+      "cacheReadTokens": 17398,
+      "cacheWriteTokens": 2047,
+      "usd": 0.1539626
+    },
+    {
+      "at": "2026-10-16T15:51:52.331Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 467,
+      "cacheReadTokens": 19445,
+      "cacheWriteTokens": 7041,
+      "usd": 0.048442
+    },
+    {
+      "at": "2026-10-16T15:51:56.645Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 4,
+      "outputTokens": 146,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 7265,
+      "usd": 0.039261
+    },
+    {
+      "at": "2026-10-16T15:51:58.479Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 114,
+      "cacheReadTokens": 7265,
+      "cacheWriteTokens": 776,
+      "usd": 0.007621
+    },
+    {
+      "at": "2026-10-16T15:52:02.309Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 323,
+      "cacheReadTokens": 8041,
+      "cacheWriteTokens": 12701,
+      "usd": 0.0715812
+    },
+    {
+      "at": "2026-10-16T15:52:08.276Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 475,
+      "cacheReadTokens": 20742,
+      "cacheWriteTokens": 3149,
+      "usd": 0.0294014
+    },
+    {
+      "at": "2026-10-16T15:52:12.468Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 417,
+      "cacheReadTokens": 23891,
+      "cacheWriteTokens": 1548,
+      "usd": 0.0208662
+    },
+    {
+      "at": "2026-10-16T15:52:16.368Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 275,
+      "cacheReadTokens": 25439,
+      "cacheWriteTokens": 7828,
+      "usd": 0.049735800000000004
+    },
+    {
+      "at": "2026-10-16T15:53:13.471Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 5702,
+      "cacheReadTokens": 33267,
+      "cacheWriteTokens": 3492,
+      "usd": 0.1381614
+    },
+    {
+      "at": "2026-10-16T15:53:23.911Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 923,
+      "cacheReadTokens": 36759,
+      "cacheWriteTokens": 5837,
+      "usd": 0.0550048
+    },
+    {
+      "at": "2026-10-16T15:53:27.344Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 4,
+      "outputTokens": 128,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 7306,
+      "usd": 0.039106
+    },
+    {
+      "at": "2026-10-16T15:53:29.564Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 226,
+      "cacheReadTokens": 7306,
+      "cacheWriteTokens": 854,
+      "usd": 0.010259200000000001
+    },
+    {
+      "at": "2026-10-16T15:53:32.090Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 229,
+      "cacheReadTokens": 8160,
+      "cacheWriteTokens": 10280,
+      "usd": 0.05762
+    },
+    {
+      "at": "2026-10-16T15:53:35.106Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 308,
+      "cacheReadTokens": 18440,
+      "cacheWriteTokens": 1593,
+      "usd": 0.017821
+    },
+    {
+      "at": "2026-10-16T15:53:52.668Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 1830,
+      "cacheReadTokens": 20033,
+      "cacheWriteTokens": 4376,
+      "usd": 0.0624946
+    },
+    {
+      "at": "2026-10-16T15:54:21.685Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 3315,
+      "cacheReadTokens": 24409,
+      "cacheWriteTokens": 3506,
+      "usd": 0.0887198
+    },
+    {
+      "at": "2026-10-16T15:55:37.300Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 9887,
+      "cacheReadTokens": 27915,
+      "cacheWriteTokens": 3591,
+      "usd": 0.221286
+    },
+    {
+      "at": "2026-10-16T15:55:45.193Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 712,
+      "cacheReadTokens": 31506,
+      "cacheWriteTokens": 9916,
+      "usd": 0.0701292
+    },
+    {
+      "at": "2026-10-16T15:55:48.730Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 4,
+      "outputTokens": 193,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 7144,
+      "usd": 0.039596
+    },
+    {
+      "at": "2026-10-16T15:55:51.136Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 262,
+      "cacheReadTokens": 7144,
+      "cacheWriteTokens": 6690,
+      "usd": 0.040126800000000004
+    },
+    {
+      "at": "2026-10-16T15:55:54.067Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 271,
+      "cacheReadTokens": 13834,
+      "cacheWriteTokens": 12062,
+      "usd": 0.0685048
+    },
+    {
+      "at": "2026-10-16T15:55:55.457Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 88,
+      "cacheReadTokens": 25896,
+      "cacheWriteTokens": 1496,
+      "usd": 0.014427200000000001
+    },
+    {
+      "at": "2026-10-16T15:55:58.662Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 279,
+      "cacheReadTokens": 27392,
+      "cacheWriteTokens": 13616,
+      "usd": 0.07914639999999999
+    },
+    {
+      "at": "2026-10-16T15:56:00.176Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 130,
+      "cacheReadTokens": 41008,
+      "cacheWriteTokens": 1259,
+      "usd": 0.017104599999999998
+    },
+    {
+      "at": "2026-10-16T15:56:07.334Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 697,
+      "cacheReadTokens": 42267,
+      "cacheWriteTokens": 3599,
+      "usd": 0.0403964
+    },
+    {
+      "at": "2026-10-16T15:57:01.038Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 4469,
+      "cacheReadTokens": 45866,
+      "cacheWriteTokens": 1944,
+      "usd": 0.1082812
+    },
+    {
+      "at": "2026-10-16T15:59:56.238Z",
+      "role": "ceo",
+      "model": "claude-opus-5-5",
+      "inputTokens": 4,
+      "outputTokens": 117,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 6473,
+      "usd": 0.034721
+    },
+    {
+      "at": "2026-10-16T15:59:58.944Z",
+      "role": "ceo",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 296,
+      "cacheReadTokens": 6473,
+      "cacheWriteTokens": 2834,
+      "usd": 0.021392599999999998
+    },
+    {
+      "at": "2026-10-16T16:00:12.252Z",
+      "role": "ceo",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 1215,
+      "cacheReadTokens": 9307,
+      "cacheWriteTokens": 1933,
+      "usd": 0.0358344
+    },
+    {
+      "at": "2026-10-16T21:55:33.372Z",
+      "role": "ceo",
+      "model": "claude-opus-5-5",
+      "inputTokens": 4,
+      "outputTokens": 310,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 7575,
+      "usd": 0.044091
+    },
+    {
+      "at": "2026-10-16T21:55:53.360Z",
+      "role": "ceo",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 2061,
+      "cacheReadTokens": 7575,
+      "cacheWriteTokens": 2903,
+      "usd": 0.057258
+    },
+    {
+      "at": "2026-10-16T21:56:02.586Z",
+      "role": "ceo",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 837,
+      "cacheReadTokens": 10478,
+      "cacheWriteTokens": 2183,
+      "usd": 0.0297586
+    },
+    {
+      "at": "2026-10-17T10:44:19.018Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 4,
+      "outputTokens": 127,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 7472,
+      "usd": 0.039916,
+      "arena": "D-0001"
+    },
+    {
+      "at": "2026-10-17T10:44:20.596Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 139,
+      "cacheReadTokens": 7472,
+      "cacheWriteTokens": 745,
+      "usd": 0.0080074,
+      "arena": "D-0001"
+    },
+    {
+      "at": "2026-10-17T10:44:24.073Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 363,
+      "cacheReadTokens": 8217,
+      "cacheWriteTokens": 15776,
+      "usd": 0.08779139999999999,
+      "arena": "D-0001"
+    },
+    {
+      "at": "2026-10-17T10:44:25.070Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 55,
+      "cacheReadTokens": 23993,
+      "cacheWriteTokens": 1349,
+      "usd": 0.0126516,
+      "arena": "D-0001"
+    },
+    {
+      "at": "2026-10-17T10:44:27.012Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 165,
+      "cacheReadTokens": 25342,
+      "cacheWriteTokens": 13583,
+      "usd": 0.0762914,
+      "arena": "D-0001"
+    },
+    {
+      "at": "2026-10-17T10:44:30.360Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 338,
+      "cacheReadTokens": 38925,
+      "cacheWriteTokens": 1353,
+      "usd": 0.021318,
+      "arena": "D-0001"
+    },
+    {
+      "at": "2026-10-17T10:45:25.423Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 4995,
+      "cacheReadTokens": 40278,
+      "cacheWriteTokens": 4203,
+      "usd": 0.1289786,
+      "arena": "D-0001"
+    },
+    {
+      "at": "2026-10-17T10:45:53.733Z",
+      "role": "architect",
+      "model": "claude-opus-5-5",
+      "inputTokens": 2,
+      "outputTokens": 3901,
+      "cacheReadTokens": 44481,
+      "cacheWriteTokens": 7421,
+      "usd": 0.12402919999999999,
+      "arena": "D-0001"
+    },
+    {
+      "at": "2026-10-17T10:45:55.287Z",
+      "role": "architect",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 4,
+      "outputTokens": 157,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 7472,
+      "usd": 0.020258
+    },
+    {
+      "at": "2026-10-17T10:45:58.382Z",
+      "role": "architect",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 322,
+      "cacheReadTokens": 7472,
+      "cacheWriteTokens": 6694,
+      "usd": 0.0214534
+    },
+    {
+      "at": "2026-10-17T10:46:01.084Z",
+      "role": "architect",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 255,
+      "cacheReadTokens": 14166,
+      "cacheWriteTokens": 11960,
+      "usd": 0.0352872
+    },
+    {
+      "at": "2026-10-17T10:47:21.082Z",
+      "role": "architect",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 9134,
+      "cacheReadTokens": 26126,
+      "cacheWriteTokens": 2848,
+      "usd": 0.1036892
+    },
+    {
+      "at": "2026-10-17T10:47:33.735Z",
+      "role": "architect",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 1733,
+      "cacheReadTokens": 28974,
+      "cacheWriteTokens": 9278,
+      "usd": 0.046323800000000005
+    },
+    {
+      "at": "2026-10-17T10:48:09.526Z",
+      "role": "architect",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 4854,
+      "cacheReadTokens": 38252,
+      "cacheWriteTokens": 2002,
+      "usd": 0.0611994
+    },
+    {
+      "at": "2026-10-17T10:48:18.223Z",
+      "role": "architect",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 1296,
+      "cacheReadTokens": 40254,
+      "cacheWriteTokens": 5127,
+      "usd": 0.0338323
+    },
+    {
+      "at": "2026-10-17T10:48:22.067Z",
+      "role": "architect",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 474,
+      "cacheReadTokens": 45381,
+      "cacheWriteTokens": 1515,
+      "usd": 0.0176077
+    },
+    {
+      "at": "2026-10-17T10:48:33.953Z",
+      "role": "arena-judge",
+      "model": "claude-opus-5-5",
+      "inputTokens": 4,
+      "outputTokens": 1122,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 15003,
+      "usd": 0.097471,
+      "arena": "D-0001"
+    },
+    {
+      "at": "2026-10-17T10:48:46.346Z",
+      "role": "arena-judge",
+      "model": "claude-opus-5-5",
+      "inputTokens": 4,
+      "outputTokens": 1188,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 15003,
+      "usd": 0.098791,
+      "arena": "D-0001"
+    },
+    {
+      "at": "2026-10-17T10:48:48.932Z",
+      "role": "code-reviewer",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 4,
+      "outputTokens": 114,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 6433,
+      "usd": 0.0172305
+    },
+    {
+      "at": "2026-10-17T10:48:57.092Z",
+      "role": "code-reviewer",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 974,
+      "cacheReadTokens": 6433,
+      "cacheWriteTokens": 7104,
+      "usd": 0.0287906
+    },
+    {
+      "at": "2026-10-17T10:48:59.556Z",
+      "role": "appsec",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 4,
+      "outputTokens": 114,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 6323,
+      "usd": 0.0169555
+    },
+    {
+      "at": "2026-10-17T10:49:22.732Z",
+      "role": "appsec",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 2412,
+      "cacheReadTokens": 6323,
+      "cacheWriteTokens": 7104,
+      "usd": 0.043148599999999995
+    },
+    {
+      "at": "2026-10-17T10:49:31.294Z",
+      "role": "appsec",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 1181,
+      "cacheReadTokens": 13427,
+      "cacheWriteTokens": 2519,
+      "usd": 0.0207969
+    },
+    {
+      "at": "2026-10-17T10:49:37.256Z",
+      "role": "appsec",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 1000,
+      "cacheReadTokens": 15946,
+      "cacheWriteTokens": 1288,
+      "usd": 0.0164132
+    },
+    {
+      "at": "2026-10-17T10:49:40.258Z",
+      "role": "integration-dev",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 4,
+      "outputTokens": 65,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 8364,
+      "usd": 0.021568
+    },
+    {
+      "at": "2026-10-17T10:50:27.201Z",
+      "role": "integration-dev",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 8345,
+      "cacheReadTokens": 8364,
+      "cacheWriteTokens": 6032,
+      "usd": 0.1002068
+    },
+    {
+      "at": "2026-10-17T10:50:30.203Z",
+      "role": "code-reviewer",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 4,
+      "outputTokens": 164,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 6450,
+      "usd": 0.017773
+    },
+    {
+      "at": "2026-10-17T10:50:32.020Z",
+      "role": "code-reviewer",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 132,
+      "cacheReadTokens": 6450,
+      "cacheWriteTokens": 7753,
+      "usd": 0.0219965
+    },
+    {
+      "at": "2026-10-17T10:50:37.501Z",
+      "role": "code-reviewer",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 658,
+      "cacheReadTokens": 14203,
+      "cacheWriteTokens": 13660,
+      "usd": 0.0435746
+    },
+    {
+      "at": "2026-10-17T10:50:49.009Z",
+      "role": "code-reviewer",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 1313,
+      "cacheReadTokens": 27863,
+      "cacheWriteTokens": 2694,
+      "usd": 0.025441599999999998
+    },
+    {
+      "at": "2026-10-17T10:50:54.648Z",
+      "role": "code-reviewer",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 838,
+      "cacheReadTokens": 30557,
+      "cacheWriteTokens": 1420,
+      "usd": 0.018045400000000003
+    },
+    {
+      "at": "2026-10-17T10:50:57.301Z",
+      "role": "tech-lead",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 4,
+      "outputTokens": 118,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 8753,
+      "usd": 0.0230705
+    },
+    {
+      "at": "2026-10-17T10:51:01.001Z",
+      "role": "tech-lead",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 621,
+      "cacheReadTokens": 8753,
+      "cacheWriteTokens": 6751,
+      "usd": 0.0248421
+    },
+    {
+      "at": "2026-10-17T10:51:47.032Z",
+      "role": "tech-lead",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 8777,
+      "cacheReadTokens": 15504,
+      "cacheWriteTokens": 10408,
+      "usd": 0.11689480000000001
+    },
+    {
+      "at": "2026-10-17T10:51:52.947Z",
+      "role": "tech-lead",
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 2,
+      "outputTokens": 836,
+      "cacheReadTokens": 25912,
+      "cacheWriteTokens": 8816,
+      "usd": 0.035586400000000004
+    }
+  ]
 }
