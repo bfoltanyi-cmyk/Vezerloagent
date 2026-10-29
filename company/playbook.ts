@@ -1,18 +1,21 @@
-// Az Alicya Nexus kézikönyve: hogyan gyárt a cég dobozos ERP szoftvert, és ki miért felel.
+// Az Alicya Nexus kézikönyve: hogyan gyárt az ACHIEVE-R szoftvert (SaaS, dobozos, egyedi), és ki miért felel.
+// A termékportfólió és a piacok a company/portfolio.ts-ben vannak.
 // Minden agent a saját rendszerpromptjában kapja meg a rá vonatkozó részt (src/agent.ts),
 // olvasható formában: docs/core/kezikonyv.md (npm run build:handbook).
 
 import { DEPARTMENTS, ROLES, departmentById, type DepartmentId, type Role } from "./org.js";
+import { COMPANY, CURRENT_FOCUS, CUSTOM_WORK, MARKETS, PRODUCTS, marketNames, productLine } from "./portfolio.js";
 
-export const HANDBOOK_VERSION = "2026-10-16";
+export const HANDBOOK_VERSION = "2026-10-29";
 
-/** Mit jelent nálunk a dobozos termék. Ez minden döntés mércéje. */
-export const BOXED_PRODUCT: string[] = [
-  "Egy termék, sok ügyfél: konfigurálható szabványfunkciók, nem egyedi fejlesztés. Ügyfélspecifikus kérés csak akkor kerül be, ha több ügyfélnek is hasznos, és beállítással kapcsolható.",
-  "Saját szerveren vagy felhőben fut, egyetlen telepítővel (Docker Compose + telepítő szkript), szakember nélkül 30 perc alatt üzembe helyezhető.",
-  "Kiadások: Start (számlázás + készlet), Pro (+ könyvelés, HR), Enterprise (+ API, több cég, SSO). A funkciókat licenckulcs kapcsolja, ami internet nélkül is ellenőrizhető.",
+/** Mit jelent nálunk a termék. Ez minden döntés mércéje. */
+export const PRODUCT_PRINCIPLES: string[] = [
+  "Egy termék, sok ügyfél: konfigurálható szabványfunkciók. Ügyfélspecifikus kérés csak akkor kerül be, ha több ügyfélnek is hasznos, és beállítással kapcsolható.",
+  CUSTOM_WORK,
+  "SaaS termék felhőben fut, több szervezetet szolgál ki (multi-tenant), előfizetéssel. Dobozos termék az ügyfél szerverén vagy felhőben, telepítővel és licenckulccsal.",
+  "Dobozos terméknél: egyetlen telepítő (Docker Compose + telepítő szkript), szakember nélkül 30 perc alatt üzembe helyezhető; a kiadásokat (pl. Start, Pro, Enterprise) licenckulcs kapcsolja, ami internet nélkül is ellenőrizhető.",
   "Szemantikus verziózás (MAJOR.MINOR.PATCH). Minden frissítés automatikus adatbázis-migrációval jár, előtte mentés készül, és hiba esetén visszaállítható.",
-  "Három piac: magyar, lengyel, cseh. Nyelv, pénznem, áfa, e-számlázás (NAV Online Számla, KSeF, cseh szabályok) és megőrzési szabályok országonként.",
+  `Piacok a belépés sorrendjében: ${marketNames()}. Nyelv, pénznem, áfa, e-számlázás és megőrzési szabályok országonként, országcsomagban; ami országfüggő, az nem kerülhet a közös kódba.`,
   "A termék része a felhasználói kézikönyv, a telepítési útmutató, a kiadási jegyzet, az EULA, a DPA-sablon és a támogatási szintek leírása.",
   "Biztonság és adatvédelem alapértelmezésként: szerepköralapú jogosultság, naplózás, titkosított mentés, adatexport és törlés az érintetti jogokhoz.",
 ];
@@ -71,7 +74,7 @@ export const LIFECYCLE: Phase[] = [
 export const DEPARTMENT_PLAYBOOK: Record<DepartmentId, string[]> = {
   core: [
     "A napi tervezésben először a tulajdonosi iránymutatást és a függő döntéseket nézed meg, aztán az életciklus következő lépését: melyik fázis hol tart, mi blokkol.",
-    "Egyszerre egy kiadásra fókuszálunk (most: Start = számlázás + készlet, magyar piac). Ami nem viszi előre, az várhat.",
+    `Egyszerre egy fő kiadásra fókuszálunk (most: ${CURRENT_FOCUS}). Ami nem viszi előre, az várhat. Több termékvonalnál a projektlap mondja meg, melyikhez tartozik a munka.`,
     "Új feladatot csak a fázis tulajdonosának adsz, egyértelmű kimenettel (fájl útvonal) és elfogadási feltétellel. Ne duplikálj.",
   ],
   product: [
@@ -80,7 +83,7 @@ export const DEPARTMENT_PLAYBOOK: Record<DepartmentId, string[]> = {
     "A UX terv szöveges folyamatleírás és ASCII/Markdown wireframe, a design system elemeire építve.",
   ],
   dev: [
-    "Tech stack: NestJS + PostgreSQL + React, TypeScript strict módban, moduláris monolit. Modulok csak publikus szolgáltatáson és eseményeken át beszélnek egymással.",
+    "Alapértelmezett tech stack: NestJS + PostgreSQL + React, TypeScript strict módban, moduláris monolit; modulok csak publikus szolgáltatáson és eseményeken át beszélnek egymással. Ha a termék architektúrája (docs/dev/architecture.md) mást rögzít, az érvényes.",
     "Definition of Done: kód + egység- és integrációs teszt + migráció (fel és le) + OpenAPI frissítés + rövid leírás a feladat lezárásában.",
     "Minden pénzösszeg egész fillérben/groszban/haléřben vagy decimálisban, soha nem lebegőpontosan. Dátumok UTC-ben, megjelenítés helyi időben.",
     "Minden táblán tenant- és jogosultságellenőrzés; minden lekérdezés paraméterezett.",
@@ -103,7 +106,8 @@ export const DEPARTMENT_PLAYBOOK: Record<DepartmentId, string[]> = {
   ],
   sales: [
     "Az árazás és a licenccsomagok a pricing kapun mennek át. Ajánlatsablonokban nincs valódi ügyfélnév.",
-    "Országonként (HU/PL/CZ) gondolkodsz: pénznem, fizetési szokások, versenytársak.",
+    `Országonként gondolkodsz (${marketNames()}): pénznem, fizetési szokások, versenytársak. Először az aktív piacon adunk el.`,
+    "Egyedi fejlesztési kérésnél a küszöböt nézed: alatta terméket ajánlasz, fölötte projektlapot kérsz a tulajdonostól.",
   ],
   support: [
     "A tudásbázis a felhasználói kézikönyvből és a kiadási jegyzetből épül.",
@@ -185,7 +189,8 @@ export function playbookFor(role: Role): string {
   const mine = LIFECYCLE.filter((p) => p.owners.includes(role.id));
   const lines = [
     "## Mit gyártunk",
-    ...BOXED_PRODUCT.map((x) => `- ${x}`),
+    ...PRODUCTS.map((p) => `- ${productLine(p)}`),
+    ...PRODUCT_PRINCIPLES.map((x) => `- ${x}`),
     "",
     "## Az életciklus",
     ...LIFECYCLE.map((p) => `- ${p.name}: ${p.goal}${p.gate ? ` (kapu: ${p.gate})` : ""}`),
@@ -209,13 +214,23 @@ export function playbookFor(role: Role): string {
 /** Az olvasható kézikönyv: docs/core/kezikonyv.md. */
 export function renderHandbook(): string {
   const out = [
-    "# Alicya Nexus kézikönyv",
+    `# ${COMPANY.name} · ${COMPANY.agency} kézikönyv`,
     "",
     `Változat: ${HANDBOOK_VERSION}. Ez a fájl a \`company/playbook.ts\` alapján készül (\`npm run build:handbook\`), kézzel ne szerkeszd. Minden agent a rá vonatkozó részt a rendszerpromptjában kapja meg.`,
     "",
-    "## Mit gyártunk: dobozos ERP",
+    "## Mit gyártunk",
     "",
-    ...BOXED_PRODUCT.map((x) => `- ${x}`),
+    COMPANY.tagline,
+    "",
+    "| Termék | Típus | Állapot | Kinek | Mi |",
+    "|---|---|---|---|---|",
+    ...PRODUCTS.map((p) => `| ${p.name} | ${p.kind} | ${p.status} | ${p.audience} | ${p.summary} |`),
+    "",
+    "| Piac | Pénznem | Állapot | Megjegyzés |",
+    "|---|---|---|---|",
+    ...MARKETS.map((m) => `| ${m.name} | ${m.currency} | ${m.status} | ${m.note} |`),
+    "",
+    ...PRODUCT_PRINCIPLES.map((x) => `- ${x}`),
     "",
     "## A cég működése",
     "",

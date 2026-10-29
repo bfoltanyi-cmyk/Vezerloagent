@@ -37,7 +37,7 @@ export interface Department {
 export const DEPARTMENTS: Department[] = [
   { id: "core", name: "Alicya Core", purpose: "Stratégia, prioritások, erőforrás-elosztás és napi jelentés a tulajdonosnak.", lead: "ceo" },
   { id: "product", name: "Termék & kutatás", purpose: "Piaci rés felkutatása, termékleírás (PRD), roadmap és UX.", lead: "product-manager" },
-  { id: "dev", name: "Fejlesztés", purpose: "Az ERP modulok tervezése, megírása, tesztelése és dobozolása.", lead: "architect" },
+  { id: "dev", name: "Fejlesztés", purpose: "A termékek tervezése, megírása, tesztelése és kiadása (SaaS, dobozos vagy egyedi).", lead: "architect" },
   { id: "security", name: "Adatbiztonság", purpose: "Kódbiztonság, adatvédelem, ellátási lánc és incidenskezelés. Vétójoga van minden kiadás felett.", lead: "ciso" },
   { id: "marketing", name: "Marketing", purpose: "Pozicionálás, tartalom és kampánytervek. Csak vázlatot készít, publikálni nem tud.", lead: "brand-strategist" },
   { id: "sales", name: "Sales", purpose: "Célpiac, ajánlatok, árazás és licenccsomagok. Kifelé nem kommunikál jóváhagyás nélkül.", lead: "sales-lead" },
@@ -56,7 +56,7 @@ export const ROLES: Role[] = [
   r("reporter", "Jelentésíró", "core", "worker", "docs", "Egyoldalas napi jelentést írsz a tulajdonosnak magyarul: mi történt, mi vár rá."),
 
   // Termék
-  r("market-researcher", "Piackutató", "product", "worker", "docs", "Elemzed a magyar KKV ERP-piacot, versenytársakat, árakat és igényeket."),
+  r("market-researcher", "Piackutató", "product", "worker", "docs", "Elemzed a célpiacok szoftverigényeit termékvonalanként (először a magyar KKV-piacot), a versenytársakat és az árakat."),
   r("product-manager", "Termékmenedzser", "product", "lead", "docs", "PRD-t, roadmapet és elfogadási feltételeket írsz. A specifikációt jóváhagyásra küldöd (spec kapu)."),
   r("ux-designer", "UX tervező", "product", "worker", "docs", "Képernyőterveket és felhasználói folyamatokat írsz le szövegesen és wireframe-ként."),
 
